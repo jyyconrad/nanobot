@@ -1,8 +1,73 @@
 # Nanobot 主代理与子代理协调架构规划
 
+## 核心工作方式
+
+### 版本管理（Smart Commit）
+
+**提交策略：**
+- 使用约定式提交格式（Conventional Commits）
+- 每次完成任务或里程碑后执行 smart commit
+- 提交信息格式：`type(scope): description`
+
+**Type 类型：**
+- `feat:` 新功能实现
+- `fix:` Bug 修复
+- `refactor:` 代码重构
+- `test:` 测试相关
+- `docs:` 文档更新
+- `chore:` 构建/工具相关
+
+**示例：**
+```
+feat(main-agent): implement ContextManager class with dynamic compression
+fix(subagent): resolve task cancellation issue
+test(integration): add MainAgent end-to-end test
+docs(architecture): update component interaction diagram
+```
+
+**优势：**
+- 自动生成 ChangeLog
+- 清晰的版本历史
+- 便于回滚和发布管理
+
+### Agent协作方式（Subagent With Skills）
+
+#### 1. Subagent 使用
+
+**并行执行：**
+- 多个独立任务同时进行
+- 使用 `task()` 工具创建多个子代理
+- 不同 session_id 维持独立上下文
+
+**会话管理：**
+- 通过 `session_id` 维持上下文
+- 支持子代理间的消息传递
+- 状态追踪和进度报告
+- 自动 smart commit 功能
+
+#### 2. Skills 利用
+
+**任务匹配：**
+- 根据任务类型自动加载对应 skill
+- 支持skill-creator 自动创建合适的skill用户更好的实现代码逻辑
+- 多 skill 组合使用、并行执行（最多3个）
+- 充分利用code-mentor、opencode、coding-agent
+
+**自动加载策略：**
+1. **显式技能优先**：用户明确指定的技能
+2. **代理类型映射**：根据 agent_type 加载对应技能
+3. **任务类型映射**：根据 task_type 加载对应技能
+4. **默认技能**：加载 always skills
+
+---
+
 ## 1. 架构概述
 
 ### 1.1 职责分离
+
+**Main Agent（主代理）职责：**
+
+#### 职责分离
 
 **Main Agent（主代理）职责：**
 - 用户消息接收和初步处理

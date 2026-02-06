@@ -1,0 +1,51 @@
+# 技能映射配置文件
+# 定义任务类型到技能的映射关系
+
+# 任务类型到技能的映射
+task_types:
+  coding:
+    - coding
+    - debugging
+    - testing
+  debugging:
+    - debugging
+    - coding
+    - testing
+  security:
+    - security
+    - coding
+    - testing
+  testing:
+    - testing
+    - coding
+    - debugging
+  planning:
+    - planning
+    - writing
+  writing:
+    - writing
+    - research
+  research:
+    - research
+    - writing
+  translation:
+    - writing
+  analysis:
+    - research
+    - planning
+
+# 默认技能（always skills）
+default_skills:
+  - planning
+  - writing
+
+# 技能描述（供参考）
+skill_descriptions:
+  coding: 编码技能 - 支持多种编程语言和代码审查
+  debugging: 调试技能 - 支持错误定位和修复
+  security: 安全技能 - 提供代码安全审查
+  testing: 测试技能 - 支持测试生成和执行
+  planning: 规划技能 - 任务分解和项目管理
+  writing: 写作技能 - 内容创作和文档生成
+  research: 研究技能 - 信息收集和数据分析
+  translation: 翻译技能 - 多语言翻译支持
