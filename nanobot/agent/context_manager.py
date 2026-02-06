@@ -5,17 +5,14 @@ ContextManager 是核心上下文管理类，提供智能的上下文处理功�
 包括上下文压缩、扩展和技能加载机制。
 """
 
-import asyncio
 import logging
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
-
-from pydantic import BaseModel
+from typing import Dict, List, Optional, Tuple
 
 from nanobot.agent.context_compressor import ContextCompressor
 from nanobot.agent.context_expander import ContextExpander
-from nanobot.agent.skill_loader import SkillLoader
 from nanobot.agent.memory.enhanced_memory import EnhancedMemoryStore
+from nanobot.agent.skill_loader import SkillLoader
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -103,7 +100,7 @@ class ContextManager:
     async def compress_context(
         self,
         messages: List[Dict],
-        max_tokens: int = 4000
+        max_tokens: int = 200
     ) -> Tuple[str, ContextStats]:
         """
         压缩对话上下文
@@ -115,7 +112,12 @@ class ContextManager:
         Returns:
             压缩后的上下文和统计信息
         """
-        return await self.compressor.compress(messages, max_tokens)
+        # 首先将消息转换为文本
+        text_content = "\n".join([
+            f"{msg.get('role', 'user')}: {msg.get('content', '')}"
+            for msg in messages
+        ])
+        return await self.compressor.compress(text_content, max_tokens)
 
     async def expand_context(
         self,
@@ -176,6 +178,11 @@ class ContextManager:
         """
         if not task_type:
             return "## 技能上下文\n未指定任务类型，使用默认技能"
+
+        # 检查任务类型是否已知
+        task_mapping = self.skill_loader.get_task_type_mapping()
+        if task_type not in task_mapping:
+            return f"## 技能上下文\n未找到与任务类型 '{task_type}' 相关的技能"
 
         skills = await self.skill_loader.load_skills_for_task(task_type)
 

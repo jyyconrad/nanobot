@@ -9,15 +9,10 @@ ContextManager 单元测试 - 测试上下文管理增强组件
 - 边界条件和错误处理
 """
 
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch
 
 from nanobot.agent.context_manager import ContextManager
-from nanobot.agent.context_compressor import ContextCompressor
-from nanobot.agent.context_expander import ContextExpander
-from nanobot.agent.skill_loader import SkillLoader
-from nanobot.agent.memory.enhanced_memory import EnhancedMemoryStore
 
 
 class TestContextManager:
@@ -132,6 +127,11 @@ class TestContextManager:
         """测试记忆搜索功能"""
         session_id = "test_session_5"
         task_id = "test_task_2"
+
+        # 先清理记忆存储，防止前序测试影响
+        for memory in context_manager.memory_store._memories:
+            if memory.task_id == task_id:
+                context_manager.memory_store._memories.remove(memory)
 
         # 添加测试记忆
         await context_manager.memory_store.add_memory(

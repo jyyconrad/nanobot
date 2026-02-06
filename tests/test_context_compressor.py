@@ -8,9 +8,8 @@ ContextCompressor 单元测试 - 测试上下文压缩功能
 - 边界条件和错误处理
 """
 
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch
 
 from nanobot.agent.context_compressor import ContextCompressor
 
@@ -69,14 +68,11 @@ class TestContextCompressor:
     @pytest.mark.asyncio
     async def test_compress_messages(self, compressor):
         """测试压缩消息列表"""
-        messages = [
-            {"role": "user", "content": "我需要你帮我修复一个代码错误"},
-            {"role": "assistant", "content": "我会帮你分析和修复代码错误"},
-            {"role": "user", "content": "代码位于 nanobot/agent/context.py 文件中"},
-            {"role": "assistant", "content": "我来检查这个文件"},
-            {"role": "user", "content": "错误是在处理长上下文时发生的"},
-            {"role": "assistant", "content": "我找到了问题所在，需要优化压缩算法"}
-        ]
+        # 创建一个非常长的消息列表
+        messages = []
+        for i in range(10):
+            messages.append({"role": "user", "content": f"这是一个非常长的测试消息{i}，" * 20})
+            messages.append({"role": "assistant", "content": f"这是一个非常长的回复消息{i}，" * 20})
 
         compressed_messages, stats = await compressor.compress_messages(messages)
 

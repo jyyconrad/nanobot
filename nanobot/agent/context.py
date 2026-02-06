@@ -5,7 +5,7 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
-from nanobot.agent.memory import MemoryStore
+from nanobot.agent.legacy_memory import MemoryStore
 from nanobot.agent.skills import SkillsLoader
 
 

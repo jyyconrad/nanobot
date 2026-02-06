@@ -5,11 +5,8 @@ ContextExpander 根据任务类型自动加载相关技能和配置，
 动态调整上下文窗口大小以适应任务需求。
 """
 
-import asyncio
 import logging
 from typing import List, Optional
-
-from pydantic import BaseModel
 
 from nanobot.agent.skill_loader import SkillLoader
 
@@ -51,13 +48,19 @@ class ContextExpander:
             logger.debug("未指定任务类型，返回基础上下文")
             return base_context
 
+        # 检查任务类型是否已知
+        task_mapping = self.skill_loader.get_task_type_mapping()
+        if task_type not in task_mapping:
+            logger.debug("未找到任务类型 '%s' 相关的技能", task_type)
+            return f"{base_context}\n\n## 技能上下文\n未找到与任务类型 '{task_type}' 相关的技能"
+
         # 加载任务相关技能
         skills = await self.skill_loader.load_skills_for_task(task_type)
         logger.debug("为任务类型 '%s' 加载了 %d 个技能", task_type, len(skills))
 
         if not skills:
             logger.debug("未找到任务类型 '%s' 相关的技能", task_type)
-            return base_context
+            return f"{base_context}\n\n## 技能上下文\n未找到与任务类型 '{task_type}' 相关的技能"
 
         # 构建技能上下文
         skill_context = await self._build_skill_context(skills)
@@ -171,6 +174,7 @@ class ContextExpander:
 """,
             "research": """# 研究技能
 - 信息收集和分析
+- 数据分析和可视化
 - 数据挖掘支持
 - 文献检索和整理
 - 研究报告生成

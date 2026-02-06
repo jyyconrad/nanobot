@@ -5,12 +5,9 @@ ContextCompressor 使用 LLM 进行智能压缩，保留关键信息（任务、
 同时去除冗余内容，确保上下文在 LLM 窗口限制内。
 """
 
-import asyncio
 import logging
 from dataclasses import dataclass
-from typing import List, Dict, Tuple, Optional
-
-from pydantic import BaseModel
+from typing import Dict, List, Tuple
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -37,7 +34,7 @@ class ContextCompressor:
     async def compress(
         self,
         content: str,
-        max_tokens: int = 4000
+        max_tokens: int = 200
     ) -> Tuple[str, ContextStats]:
         """
         压缩上下文内容到指定大小
@@ -103,20 +100,20 @@ class ContextCompressor:
             content = msg.get("content", "")
             role = msg.get("role", "user")
 
-            if role == "user":
-                for keyword in task_keywords:
-                    if keyword in content:
-                        summaries.append(f"用户要求: {content}")
-                        break
-            else:
-                for keyword in decision_keywords:
-                    if keyword in content:
-                        summaries.append(f"决定: {content}")
-                        break
-                for keyword in result_keywords:
-                    if keyword in content:
-                        summaries.append(f"结果: {content}")
-                        break
+            for keyword in task_keywords:
+                if keyword in content:
+                    summaries.append(f"用户要求: {content}")
+                    break
+
+            for keyword in decision_keywords:
+                if keyword in content:
+                    summaries.append(f"决定: {content}")
+                    break
+
+            for keyword in result_keywords:
+                if keyword in content:
+                    summaries.append(f"结果: {content}")
+                    break
 
         if summaries:
             summary = "\n".join(summaries)
@@ -135,7 +132,7 @@ class ContextCompressor:
     async def compress_messages(
         self,
         messages: List[Dict],
-        max_tokens: int = 4000
+        max_tokens: int = 50
     ) -> Tuple[List[Dict], ContextStats]:
         """
         压缩消息列表
@@ -160,24 +157,23 @@ class ContextCompressor:
             )
             return messages, stats
 
-        # 智能压缩：保留关键消息，总结其他消息
+        # 智能压缩：只保留系统消息和用户消息，对助手消息进行总结
         compressed_messages = []
-        summary_added = False
+        assistant_messages = []
 
         for msg in messages:
-            # 保留系统消息和最近的用户消息
             if msg.get("role") == "system" or msg.get("role") == "user":
                 compressed_messages.append(msg)
-                continue
+            elif msg.get("role") == "assistant":
+                assistant_messages.append(msg)
 
-            # 对其他消息进行总结
-            if not summary_added and len(compressed_messages) > 2:
-                summary = await self.summarize_messages(messages)
-                compressed_messages.append({
-                    "role": "system",
-                    "content": f"消息摘要: {summary}"
-                })
-                summary_added = False
+        # 对助手消息进行总结
+        if assistant_messages:
+            summary = await self.summarize_messages(assistant_messages)
+            compressed_messages.append({
+                "role": "system",
+                "content": f"助手消息摘要: {summary}"
+            })
 
         # 再次检查长度
         compressed_length = sum(len(msg.get("content", "")) for msg in compressed_messages)

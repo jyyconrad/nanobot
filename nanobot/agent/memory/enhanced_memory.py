@@ -8,15 +8,14 @@ EnhancedMemoryStore 是增强的记忆系统，支持：
 - 重要性分级
 """
 
-import asyncio
+import json
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict
 from pathlib import Path
-import json
+from typing import List, Optional
 
-from nanobot.agent.memory.models import Memory, MemorySearchQuery, MemorySearchResult
+from nanobot.agent.memory.models import Memory
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -46,7 +45,12 @@ class EnhancedMemoryStore:
             if memory_file.exists():
                 with open(memory_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    self._memories = [Memory(**item) for item in data]
+                    self._memories = []
+                    for item in data:
+                        # 解析时间戳
+                        if isinstance(item.get("timestamp"), str):
+                            item["timestamp"] = datetime.fromisoformat(item["timestamp"])
+                        self._memories.append(Memory(**item))
                 logger.debug("从文件加载了 %d 条记忆", len(self._memories))
             else:
                 logger.debug("记忆文件不存在，已创建新的记忆存储")
@@ -59,7 +63,17 @@ class EnhancedMemoryStore:
         try:
             memory_file = self.storage_dir / "memories.json"
             with open(memory_file, "w", encoding="utf-8") as f:
-                json.dump([memory.dict() for memory in self._memories], f, ensure_ascii=False, indent=2)
+                serialized = []
+                for memory in self._memories:
+                    serialized.append({
+                        "id": memory.id,
+                        "content": memory.content,
+                        "tags": memory.tags,
+                        "task_id": memory.task_id,
+                        "timestamp": memory.timestamp.isoformat(),
+                        "importance": memory.importance
+                    })
+                json.dump(serialized, f, ensure_ascii=False, indent=2)
             logger.debug("成功保存了 %d 条记忆到文件", len(self._memories))
         except Exception as e:
             logger.warning("保存记忆失败: %s", e)
@@ -304,7 +318,7 @@ class EnhancedMemoryStore:
 
         for memory in list(self._memories):
             if (memory.timestamp < cutoff_date and
-                memory.importance < min_importance):
+                memory.importance <= min_importance):
                 self._memories.remove(memory)
                 delete_count += 1
 
