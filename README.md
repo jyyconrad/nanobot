@@ -295,7 +295,7 @@ nanobot gateway
 
 ## ⚙️ Configuration
 
-Config file: `~/.nanobot/config.json`
+Config file: `~/.nanobot/config.json` (or `config.yaml` for YAML format)
 
 ### Providers
 
@@ -311,15 +311,67 @@ Config file: `~/.nanobot/config.json`
 | `groq` | LLM + **Voice transcription** (Whisper) | [console.groq.com](https://console.groq.com) |
 | `gemini` | LLM (Gemini direct) | [aistudio.google.com](https://aistudio.google.com) |
 
+### New Configuration Options in v0.2.x
+
+v0.2.x introduces enhanced configuration for task management and monitoring:
+
+```yaml
+# agents configuration
+agents:
+  defaults:
+    workspace: "~/.nanobot/workspace"
+    model: "anthropic/claude-opus-4-5"
+    max_tokens: 8192
+    temperature: 0.7
+    max_tool_iterations: 20
+  main_agent:
+    name: "Main Agent"
+    description: "Main orchestration agent for handling user messages"
+    auto_create_subagents: true
+    subagent_timeout: 3600
+    task_monitoring_enabled: true
+  subagents:
+    default_timeout: 1800
+    max_concurrent: 5
+    retry_limit: 3
+    retry_delay: 60
+
+# monitoring configuration
+monitoring:
+  task:
+    enabled: true
+    check_interval: 3600
+    max_task_duration: 86400
+    auto_cleanup: true
+    cleanup_delay: 3600
+  cron:
+    enabled: true
+    config_path: "~/.nanobot/cron-job-config.json"
+    log_level: "INFO"
+```
+
 
 <details>
-<summary><b>Full config example</b></summary>
+<summary><b>Full config example (JSON)</b></summary>
 
 ```json
 {
   "agents": {
     "defaults": {
       "model": "anthropic/claude-opus-4-5"
+    },
+    "main_agent": {
+      "name": "Main Agent",
+      "description": "Main orchestration agent for handling user messages",
+      "auto_create_subagents": true,
+      "subagent_timeout": 3600,
+      "task_monitoring_enabled": true
+    },
+    "subagents": {
+      "default_timeout": 1800,
+      "max_concurrent": 5,
+      "retry_limit": 3,
+      "retry_delay": 60
     }
   },
   "providers": {
@@ -354,8 +406,85 @@ Config file: `~/.nanobot/config.json`
         "apiKey": "BSA..."
       }
     }
+  },
+  "monitoring": {
+    "task": {
+      "enabled": true,
+      "check_interval": 3600,
+      "max_task_duration": 86400,
+      "auto_cleanup": true,
+      "cleanup_delay": 3600
+    },
+    "cron": {
+      "enabled": true,
+      "config_path": "~/.nanobot/cron-job-config.json",
+      "log_level": "INFO"
+    }
   }
 }
+```
+
+</details>
+
+<details>
+<summary><b>Full config example (YAML)</b></summary>
+
+```yaml
+agents:
+  defaults:
+    workspace: "~/.nanobot/workspace"
+    model: "anthropic/claude-opus-4-5"
+    max_tokens: 8192
+    temperature: 0.7
+    max_tool_iterations: 20
+  main_agent:
+    name: "Main Agent"
+    description: "Main orchestration agent for handling user messages"
+    auto_create_subagents: true
+    subagent_timeout: 3600
+    task_monitoring_enabled: true
+  subagents:
+    default_timeout: 1800
+    max_concurrent: 5
+    retry_limit: 3
+    retry_delay: 60
+
+channels:
+  telegram:
+    enabled: true
+    token: "YOUR_TELEGRAM_BOT_TOKEN"
+    allowFrom: ["YOUR_USER_ID"]
+  whatsapp:
+    enabled: false
+  feishu:
+    enabled: false
+
+providers:
+  openrouter:
+    apiKey: "YOUR_API_KEY"
+  groq:
+    apiKey: "YOUR_GROQ_API_KEY"
+
+tools:
+  web:
+    search:
+      apiKey: "YOUR_BRAVE_API_KEY"
+
+monitoring:
+  task:
+    enabled: true
+    check_interval: 3600
+    max_task_duration: 86400
+    auto_cleanup: true
+    cleanup_delay: 3600
+  cron:
+    enabled: true
+    config_path: "~/.nanobot/cron-job-config.json"
+    log_level: "INFO"
+
+gateway:
+  host: "0.0.0.0"
+  port: 9910
 ```
 
 </details>
@@ -369,6 +498,7 @@ Config file: `~/.nanobot/config.json`
 | `nanobot agent` | Interactive chat mode |
 | `nanobot gateway` | Start the gateway |
 | `nanobot status` | Show status |
+| `nanobot config upgrade` | Upgrade config to latest version |
 | `nanobot channels login` | Link WhatsApp (scan QR) |
 | `nanobot channels status` | Show channel status |
 

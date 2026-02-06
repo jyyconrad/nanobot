@@ -1,6 +1,7 @@
 """Configuration schema using Pydantic."""
 
 from pathlib import Path
+from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
@@ -58,6 +59,8 @@ class AgentsConfig(BaseModel):
     """Agent configuration."""
 
     defaults: AgentDefaults = Field(default_factory=AgentDefaults)
+    main_agent: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    subagents: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 
 class ProviderConfig(BaseModel):
@@ -115,6 +118,31 @@ class ToolsConfig(BaseModel):
     exec: ExecToolConfig = Field(default_factory=ExecToolConfig)
 
 
+class TaskMonitoringConfig(BaseModel):
+    """Task monitoring configuration."""
+
+    enabled: bool = True
+    check_interval: int = 3600  # seconds
+    max_task_duration: int = 86400  # seconds
+    auto_cleanup: bool = True
+    cleanup_delay: int = 3600  # seconds
+
+
+class CronJobConfig(BaseModel):
+    """Cron job configuration."""
+
+    enabled: bool = True
+    config_path: str = "~/.nanobot/cron-job-config.json"
+    log_level: str = "INFO"
+
+
+class MonitoringConfig(BaseModel):
+    """Monitoring configuration."""
+
+    task: TaskMonitoringConfig = Field(default_factory=TaskMonitoringConfig)
+    cron: CronJobConfig = Field(default_factory=CronJobConfig)
+
+
 class Config(BaseSettings):
     """Root configuration for nanobot."""
 
@@ -123,6 +151,7 @@ class Config(BaseSettings):
     providers: ProvidersConfig = Field(default_factory=ProvidersConfig)
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
 
     @property
     def workspace_path(self) -> Path:

@@ -2,7 +2,9 @@
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
+
+import yaml
 
 from nanobot.config.schema import Config
 
@@ -18,7 +20,7 @@ def get_data_dir() -> Path:
     return get_data_path()
 
 
-def load_config(config_path: Path | None = None) -> Config:
+def load_config(config_path: Optional[Path] = None) -> Config:
     """
     Load configuration from file or create default.
     
@@ -32,17 +34,22 @@ def load_config(config_path: Path | None = None) -> Config:
 
     if path.exists():
         try:
-            with open(path) as f:
-                data = json.load(f)
+            if path.suffix in (".yaml", ".yml"):
+                with open(path, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+            else:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            
             return Config.model_validate(convert_keys(data))
-        except (json.JSONDecodeError, ValueError) as e:
+        except Exception as e:
             print(f"Warning: Failed to load config from {path}: {e}")
             print("Using default configuration.")
 
     return Config()
 
 
-def save_config(config: Config, config_path: Path | None = None) -> None:
+def save_config(config: Config, config_path: Optional[Path] = None) -> None:
     """
     Save configuration to file.
     
@@ -57,8 +64,12 @@ def save_config(config: Config, config_path: Path | None = None) -> None:
     data = config.model_dump()
     data = convert_to_camel(data)
 
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+    if path.suffix in (".yaml", ".yml"):
+        with open(path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, default_flow_style=False, indent=2)
+    else:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def convert_keys(data: Any) -> Any:
