@@ -151,8 +151,10 @@ class AgentLoop:
 
         # Analyze message to determine if we need to create, update, or cancel tasks
         analysis_result = self.bus.get_message_analyzer().analyze_message(msg)
-        logger.debug(f"Message analysis: {analysis_result.action.value} "
-                   f"(confidence: {analysis_result.confidence:.2f})")
+        logger.debug(
+            f"Message analysis: {analysis_result.action.value} "
+            f"(confidence: {analysis_result.confidence:.2f})"
+        )
 
         # Handle task correction
         if analysis_result.action == AnalysisAction.UPDATE_TASK and analysis_result.target_task_id:
@@ -328,15 +330,17 @@ class AgentLoop:
             channel=origin_channel, chat_id=origin_chat_id, content=final_content
         )
 
-    async def _handle_task_correction(self, msg: InboundMessage, task_id: str, reason: str) -> Optional[OutboundMessage]:
+    async def _handle_task_correction(
+        self, msg: InboundMessage, task_id: str, reason: str
+    ) -> Optional[OutboundMessage]:
         """
         Handle task correction by creating a new subagent with updated task description.
-        
+
         Args:
             msg: Original message
             task_id: Task ID to correct
             reason: Analysis reason
-            
+
         Returns:
             Response message
         """
@@ -356,18 +360,20 @@ class AgentLoop:
         return OutboundMessage(
             channel=msg.channel,
             chat_id=msg.chat_id,
-            content=subagent_msg or f"任务 {task_id} 修正失败"
+            content=subagent_msg or f"任务 {task_id} 修正失败",
         )
 
-    async def _handle_task_cancellation(self, msg: InboundMessage, task_id: str, reason: str) -> Optional[OutboundMessage]:
+    async def _handle_task_cancellation(
+        self, msg: InboundMessage, task_id: str, reason: str
+    ) -> Optional[OutboundMessage]:
         """
         Handle task cancellation.
-        
+
         Args:
             msg: Original message
             task_id: Task ID to cancel
             reason: Analysis reason
-            
+
         Returns:
             Response message
         """
@@ -385,12 +391,10 @@ class AgentLoop:
 
         # Update task status
         task.status = TaskStatus.CANCELLED
-        task.updated_at = datetime.now()
+        task.updated_at = datetime.datetime.now()
 
         return OutboundMessage(
-            channel=msg.channel,
-            chat_id=msg.chat_id,
-            content=f"任务 '{task.current_task}' 已取消"
+            channel=msg.channel, chat_id=msg.chat_id, content=f"任务 '{task.current_task}' 已取消"
         )
 
     async def process_direct(self, content: str, session_key: str = "cli:direct") -> str:

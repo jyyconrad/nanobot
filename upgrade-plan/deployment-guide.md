@@ -127,7 +127,7 @@ cp upgrade-plan/cron-job-config.json ~/.nanobot/
 docker run -d \
   --name nanobot \
   -v ~/.nanobot:/root/.nanobot \
-  -p 18790:18790 \
+  -p 9910:9910 \
   nanobot:v0.2.0 gateway
 ```
 

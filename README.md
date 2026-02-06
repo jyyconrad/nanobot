@@ -407,7 +407,7 @@ docker run -v ~/.nanobot:/root/.nanobot --rm nanobot onboard
 vim ~/.nanobot/config.json
 
 # Run gateway (connects to Telegram/WhatsApp)
-docker run -v ~/.nanobot:/root/.nanobot -p 18790:18790 nanobot gateway
+docker run -v ~/.nanobot:/root/.nanobot -p 9910:9910 nanobot gateway
 
 # Or run a single command
 docker run -v ~/.nanobot:/root/.nanobot --rm nanobot agent -m "Hello!"
