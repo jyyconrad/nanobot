@@ -5,9 +5,20 @@ from .base_subagent import SubagentManager
 from .hooks import HookRegistration, HookType, SubagentHooks
 from .interrupt_handler import InterruptHandler, InterruptRequest, InterruptType
 from .risk_evaluator import RiskAssessment, RiskEvaluator, RiskLevel
+from .manager import SubagentManager as NewSubagentManager
+from .models import (
+    SubagentTask,
+    SubagentResult,
+    SubagentState,
+    SubagentConfig,
+    SubagentMetrics,
+    SubagentPerformance,
+    SubagentStatus
+)
 
 __all__ = [
     "SubagentManager",
+    "NewSubagentManager",
     "AgnoSubagent",
     "AgnoSubagentConfig",
     "AgnoSubagentManager",
@@ -19,5 +30,12 @@ __all__ = [
     "InterruptHandler",
     "HookType",
     "HookRegistration",
-    "SubagentHooks"
+    "SubagentHooks",
+    "SubagentTask",
+    "SubagentResult",
+    "SubagentState",
+    "SubagentConfig",
+    "SubagentMetrics",
+    "SubagentPerformance",
+    "SubagentStatus"
 ]
