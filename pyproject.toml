@@ -84,3 +84,7 @@ ignore = ["E501"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["nanobot"]
+omit = ["nanobot/agent/subagent/base_subagent.py"]
