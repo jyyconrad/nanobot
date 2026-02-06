@@ -3,10 +3,12 @@ Subagent 结果处理程序 - 负责处理子代理返回结果的决策逻辑
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..loop import AgentLoop
 
 from ..task import Task
-from ..loop import AgentLoop
 from .models import DecisionRequest, DecisionResult, SubagentResultRequest
 
 logger = logging.getLogger(__name__)
@@ -23,7 +25,7 @@ class SubagentResultHandler:
     - 错误处理
     """
 
-    def __init__(self, agent_loop: AgentLoop):
+    def __init__(self, agent_loop: "AgentLoop"):
         """
         初始化子代理结果处理程序
         

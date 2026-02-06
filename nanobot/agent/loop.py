@@ -23,6 +23,7 @@ from nanobot.bus.queue import MessageBus
 from nanobot.config.schema import ExecToolConfig
 from nanobot.providers.base import LLMProvider
 from nanobot.session.manager import SessionManager
+from nanobot.agent.main_agent import MainAgent
 
 
 class AgentLoop:
@@ -66,6 +67,9 @@ class AgentLoop:
             brave_api_key=brave_api_key,
             exec_config=self.exec_config,
         )
+
+        # 初始化 MainAgent 实例池
+        self.main_agents: dict[str, MainAgent] = {}
 
         self._running = False
         self._register_default_tools()
@@ -149,102 +153,34 @@ class AgentLoop:
 
         logger.info(f"Processing message from {msg.channel}:{msg.sender_id}")
 
-        # Analyze message to determine if we need to create, update, or cancel tasks
-        analysis_result = self.bus.get_message_analyzer().analyze_message(msg)
-        logger.debug(
-            f"Message analysis: {analysis_result.action.value} "
-            f"(confidence: {analysis_result.confidence:.2f})"
-        )
+        # 获取或创建 MainAgent 实例
+        if msg.session_key not in self.main_agents:
+            logger.debug(f"Creating new MainAgent for session: {msg.session_key}")
+            self.main_agents[msg.session_key] = MainAgent(msg.session_key)
 
-        # Handle task correction
-        if analysis_result.action == AnalysisAction.UPDATE_TASK and analysis_result.target_task_id:
-            logger.info(f"Updating existing task: {analysis_result.target_task_id}")
-            response = await self._handle_task_correction(
-                msg, analysis_result.target_task_id, analysis_result.reason
-            )
-            if response:
-                return response
+        main_agent = self.main_agents[msg.session_key]
 
-        # Handle task cancellation
-        if analysis_result.action == AnalysisAction.CANCEL_TASK and analysis_result.target_task_id:
-            logger.info(f"Cancelling task: {analysis_result.target_task_id}")
-            response = await self._handle_task_cancellation(
-                msg, analysis_result.target_task_id, analysis_result.reason
-            )
-            if response:
-                return response
+        # 使用 MainAgent 处理消息
+        try:
+            response_content = await main_agent.process_message(msg.content)
 
-        # Get or create session
-        session = self.sessions.get_or_create(msg.session_key)
+            # 保存到会话历史
+            session = self.sessions.get_or_create(msg.session_key)
+            session.add_message("user", msg.content)
+            session.add_message("assistant", response_content)
+            self.sessions.save(session)
 
-        # Update tool contexts
-        message_tool = self.tools.get("message")
-        if isinstance(message_tool, MessageTool):
-            message_tool.set_context(msg.channel, msg.chat_id)
-
-        spawn_tool = self.tools.get("spawn")
-        if isinstance(spawn_tool, SpawnTool):
-            spawn_tool.set_context(msg.channel, msg.chat_id)
-
-        # Build initial messages (use get_history for LLM-formatted messages)
-        messages = self.context.build_messages(
-            history=session.get_history(),
-            current_message=msg.content,
-            media=msg.media if msg.media else None,
-        )
-
-        # Agent loop
-        iteration = 0
-        final_content = None
-
-        while iteration < self.max_iterations:
-            iteration += 1
-
-            # Call LLM
-            response = await self.provider.chat(
-                messages=messages, tools=self.tools.get_definitions(), model=self.model
+            return OutboundMessage(
+                channel=msg.channel, chat_id=msg.chat_id, content=response_content
             )
 
-            # Handle tool calls
-            if response.has_tool_calls:
-                # Add assistant message with tool calls
-                tool_call_dicts = [
-                    {
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {
-                            "name": tc.name,
-                            "arguments": json.dumps(tc.arguments),  # Must be JSON string
-                        },
-                    }
-                    for tc in response.tool_calls
-                ]
-                messages = self.context.add_assistant_message(
-                    messages, response.content, tool_call_dicts
-                )
-
-                # Execute tools
-                for tool_call in response.tool_calls:
-                    args_str = json.dumps(tool_call.arguments)
-                    logger.debug(f"Executing tool: {tool_call.name} with arguments: {args_str}")
-                    result = await self.tools.execute(tool_call.name, tool_call.arguments)
-                    messages = self.context.add_tool_result(
-                        messages, tool_call.id, tool_call.name, result
-                    )
-            else:
-                # No tool calls, we're done
-                final_content = response.content
-                break
-
-        if final_content is None:
-            final_content = "I've completed processing but have no response to give."
-
-        # Save to session
-        session.add_message("user", msg.content)
-        session.add_message("assistant", final_content)
-        self.sessions.save(session)
-
-        return OutboundMessage(channel=msg.channel, chat_id=msg.chat_id, content=final_content)
+        except Exception as e:
+            logger.error(f"MainAgent processing failed: {e}", exc_info=True)
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=f"处理消息时发生错误: {str(e)}"
+            )
 
     async def _process_system_message(self, msg: InboundMessage) -> OutboundMessage | None:
         """

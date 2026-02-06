@@ -3,10 +3,12 @@
 """
 
 import logging
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..loop import AgentLoop
 
 from ..task import Task
-from ..loop import AgentLoop
 from .new_message_handler import NewMessageHandler
 from .subagent_result_handler import SubagentResultHandler
 from .correction_handler import CorrectionHandler
@@ -23,7 +25,7 @@ class ExecutionDecisionMaker:
     负责处理各种类型的决策请求，并根据请求类型调用相应的处理程序
     """
 
-    def __init__(self, agent_loop: AgentLoop):
+    def __init__(self, agent_loop: "AgentLoop"):
         """
         初始化决策管理器
         

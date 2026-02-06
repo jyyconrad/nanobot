@@ -3,10 +3,12 @@
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..loop import AgentLoop
 
 from ..task import Task
-from ..loop import AgentLoop
 from .models import DecisionRequest, DecisionResult, NewMessageRequest
 
 logger = logging.getLogger(__name__)
@@ -23,7 +25,7 @@ class NewMessageHandler:
     - 响应策略确定
     """
 
-    def __init__(self, agent_loop: AgentLoop):
+    def __init__(self, agent_loop: "AgentLoop"):
         """
         初始化新消息处理程序
         
