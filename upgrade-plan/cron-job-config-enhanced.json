@@ -1,0 +1,122 @@
+{
+  "version": "2.0",
+  "description": "增强的 Cron 任务配置：支持触发 mainAgent/其他 Agent 执行和状态监听",
+  "jobs": [
+    {
+      "id": "task-progress-monitor",
+      "name": "Task Progress Monitor",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 * * * *",
+        "tz": "Asia/Shanghai"
+      },
+      "action": {
+        "type": "trigger_agent",
+        "target": "mainAgent",
+        "method": "monitor_tasks",
+        "params": {
+          "check_all_tasks": true,
+          "auto_fix": true,
+          "report_issues": true
+        }
+      },
+      "onError": {
+        "retry": 3,
+        "retryInterval": "5m",
+        "notify": true
+      }
+    },
+    {
+      "id": "daily-health-check",
+      "name": "Daily System Health Check",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * *",
+        "tz": "Asia/Shanghai"
+      },
+      "action": {
+        "type": "trigger_agent",
+        "target": "mainAgent",
+        "method": "health_check",
+        "params": {
+          "check_system": true,
+          "check_resources": true,
+          "check_subagents": true,
+          "generate_report": true
+        }
+      }
+    },
+    {
+      "id": "agent-status-monitor",
+      "name": "Agent Status Monitor",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "*/30 * * * *",
+        "tz": "Asia/Shanghai"
+      },
+      "action": {
+        "type": "monitor_status",
+        "targets": [
+          {
+            "agent": "mainAgent",
+            "check": ["running", "responsive", "memory_usage"]
+          },
+          {
+            "agent": "all_subagents",
+            "check": ["running", "timeout_check", "resource_usage"]
+          }
+        ],
+        "alertConditions": {
+          "agent_not_responsive": {
+            "threshold": "5m",
+            "action": "restart"
+          },
+          "memory_usage_high": {
+            "threshold": "80%",
+            "action": "notify"
+          },
+          "subagent_timeout": {
+            "threshold": "30m",
+            "action": "terminate_and_notify"
+          }
+        }
+      }
+    },
+    {
+      "id": "cleanup-tasks",
+      "name": "Clean Up Completed Tasks",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 2 * * *",
+        "tz": "Asia/Shanghai"
+      },
+      "action": {
+        "type": "trigger_agent",
+        "target": "mainAgent",
+        "method": "cleanup_tasks",
+        "params": {
+          "older_than": "7d",
+          "status": ["completed", "failed"],
+          "archive": true
+        }
+      }
+    }
+  ],
+  "globalSettings": {
+    "notification": {
+      "enabled": true,
+      "channel": "cli",
+      "onFailure": true,
+      "onSuccess": false
+    },
+    "execution": {
+      "timeout": "10m",
+      "maxConcurrent": 5,
+      "priority": "normal"
+    }
+  }
+}

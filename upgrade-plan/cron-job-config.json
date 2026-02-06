@@ -1,0 +1,103 @@
+{
+  "version": "2.0",
+  "globalSettings": {
+    "notificationChannel": "telegram",
+    "executionTimeout": 300,
+    "concurrencyLimit": 5,
+    "alertThreshold": 0.3
+  },
+  "jobs": [
+    {
+      "id": "health_check",
+      "name": "每日健康检查",
+      "enabled": true,
+      "schedule": "0 9 * * *",
+      "action": {
+        "type": "trigger_agent",
+        "target": "mainAgent",
+        "method": "health_check",
+        "params": {
+          "checks": ["cpu", "memory", "disk"]
+        }
+      },
+      "description": "每天早上9点执行系统健康检查",
+      "tags": ["monitoring", "health"]
+    },
+    {
+      "id": "progress_monitor",
+      "name": "任务进度监控",
+      "enabled": true,
+      "schedule": "*/30 * * * *",
+      "action": {
+        "type": "monitor_status",
+        "targets": ["subagent"],
+        "alertConditions": {
+          "highFailureRate": {
+            "type": "threshold",
+            "field": "tasks.failed",
+            "operator": ">",
+            "threshold": 5,
+            "severity": "high",
+            "message": "任务失败数过多"
+          },
+          "stalledTasks": {
+            "type": "threshold",
+            "field": "tasks.stalled",
+            "operator": ">",
+            "threshold": 2,
+            "severity": "medium",
+            "message": "有任务停滞"
+          }
+        }
+      },
+      "description": "每30分钟检查任务进度",
+      "tags": ["monitoring", "tasks"]
+    },
+    {
+      "id": "task_cleanup",
+      "name": "任务清理",
+      "enabled": true,
+      "schedule": "0 2 * * *",
+      "action": {
+        "type": "trigger_agent",
+        "target": "mainAgent",
+        "method": "cleanup",
+        "params": {
+          "daysToKeep": 7
+        }
+      },
+      "description": "每天凌晨2点清理过期任务",
+      "tags": ["maintenance"]
+    },
+    {
+      "id": "agent_health",
+      "name": "Agent健康检查",
+      "enabled": true,
+      "schedule": "*/15 * * * *",
+      "action": {
+        "type": "monitor_status",
+        "targets": ["mainAgent"],
+        "alertConditions": {
+          "highSubagentCount": {
+            "type": "threshold",
+            "field": "subagents",
+            "operator": ">",
+            "threshold": 20,
+            "severity": "warning",
+            "message": "子代理数量过多"
+          },
+          "messageBacklog": {
+            "type": "threshold",
+            "field": "message_bus.inbound",
+            "operator": ">",
+            "threshold": 100,
+            "severity": "critical",
+            "message": "消息总线积压严重"
+          }
+        }
+      },
+      "description": "每15分钟检查Agent健康状态",
+      "tags": ["monitoring", "agent"]
+    }
+  ]
+}
