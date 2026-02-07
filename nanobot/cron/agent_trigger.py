@@ -17,35 +17,28 @@ from nanobot.bus.queue import MessageBus
 class AgentTrigger:
     """
     Agent 触发器：负责触发指定 Agent 的方法执行
-    
+
     支持触发 mainAgent 或任意 subagent 的方法，用于实现定时任务的执行。
     """
 
-    def __init__(
-        self,
-        agent_loop: Optional[AgentLoop] = None,
-        bus: Optional[MessageBus] = None
-    ):
+    def __init__(self, agent_loop: Optional[AgentLoop] = None, bus: Optional[MessageBus] = None):
         self._agent_loop = agent_loop
         self._bus = bus
 
     async def trigger_agent(
-        self,
-        target: str,
-        method: str,
-        params: Optional[Dict[str, Any]] = None
+        self, target: str, method: str, params: Optional[Dict[str, Any]] = None
     ) -> Any:
         """
         触发指定 Agent 的方法执行
-        
+
         Args:
             target: 目标 Agent 名称（如 "mainAgent" 或具体的 subagent ID）
             method: 要执行的方法名称
             params: 方法参数
-            
+
         Returns:
             方法执行结果
-            
+
         Raises:
             ValueError: 无效的目标或方法
             Exception: 执行过程中发生的错误
@@ -67,11 +60,11 @@ class AgentTrigger:
     async def _trigger_main_agent(self, method: str, params: Dict[str, Any]) -> Any:
         """
         触发 mainAgent 的方法执行
-        
+
         Args:
             method: 方法名称
             params: 方法参数
-            
+
         Returns:
             方法执行结果
         """
@@ -92,20 +85,15 @@ class AgentTrigger:
         else:
             raise ValueError(f"Unknown method for mainAgent: {method}")
 
-    async def _trigger_subagent(
-        self,
-        subagent_id: str,
-        method: str,
-        params: Dict[str, Any]
-    ) -> Any:
+    async def _trigger_subagent(self, subagent_id: str, method: str, params: Dict[str, Any]) -> Any:
         """
         触发子代理的方法执行
-        
+
         Args:
             subagent_id: 子代理ID
             method: 方法名称
             params: 方法参数
-            
+
         Returns:
             方法执行结果
         """
@@ -113,8 +101,10 @@ class AgentTrigger:
         # 目前只支持基本的状态检查
         if method == "check_status":
             return {
-                "status": "running" if subagent_id in self._agent_loop.subagents._running_tasks else "stopped",
-                "id": subagent_id
+                "status": "running"
+                if subagent_id in self._agent_loop.subagents._running_tasks
+                else "stopped",
+                "id": subagent_id,
             }
         else:
             raise ValueError(f"Unknown method for subagent {subagent_id}: {method}")
@@ -126,13 +116,13 @@ class AgentTrigger:
             "tasks": {
                 "active": len(self._agent_loop.bus.get_task_manager().get_active_tasks()),
                 "completed": len(self._agent_loop.bus.get_task_manager().get_completed_tasks()),
-                "failed": len(self._agent_loop.bus.get_task_manager().get_failed_tasks())
+                "failed": len(self._agent_loop.bus.get_task_manager().get_failed_tasks()),
             },
             "subagents": self._agent_loop.subagents.get_running_count(),
             "message_bus": {
                 "inbound": self._agent_loop.bus.inbound_size,
-                "outbound": self._agent_loop.bus.outbound_size
-            }
+                "outbound": self._agent_loop.bus.outbound_size,
+            },
         }
 
     async def _run_task(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -146,7 +136,7 @@ class AgentTrigger:
                 channel="system",
                 sender_id="cron",
                 chat_id="system:direct",
-                content=f"[Cron Task] {params['task']}"
+                content=f"[Cron Task] {params['task']}",
             )
 
             await self._bus.publish_inbound(msg)
@@ -169,10 +159,7 @@ class AgentTrigger:
 
         # 获取所有任务进度
         tasks = self._agent_loop.bus.get_task_manager().get_all_tasks()
-        return {
-            "total": len(tasks),
-            "tasks": [task.to_dict() for task in tasks]
-        }
+        return {"total": len(tasks), "tasks": [task.to_dict() for task in tasks]}
 
     async def _cleanup_tasks(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """清理任务"""
@@ -187,29 +174,26 @@ class AgentTrigger:
 
         # 简单的健康评估
         is_healthy = (
-            status["status"] == "running" and
-            status["tasks"]["failed"] < 5 and
-            status["subagents"] < 20 and
-            status["message_bus"]["inbound"] < 100
+            status["status"] == "running"
+            and status["tasks"]["failed"] < 5
+            and status["subagents"] < 20
+            and status["message_bus"]["inbound"] < 100
         )
 
         status["health"] = "healthy" if is_healthy else "unhealthy"
         return status
 
     async def trigger_subagent(
-        self,
-        subagent_id: str,
-        method: str,
-        params: Optional[Dict[str, Any]] = None
+        self, subagent_id: str, method: str, params: Optional[Dict[str, Any]] = None
     ) -> Any:
         """
         触发子代理的方法执行（别名方法）
-        
+
         Args:
             subagent_id: 子代理ID
             method: 方法名称
             params: 方法参数
-            
+
         Returns:
             方法执行结果
         """

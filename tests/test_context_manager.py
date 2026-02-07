@@ -9,7 +9,6 @@ ContextManager 单元测试 - 测试上下文管理增强组件
 - 边界条件和错误处理
 """
 
-
 import pytest
 
 from nanobot.agent.context_manager import ContextManager
@@ -83,9 +82,7 @@ class TestContextManager:
 
         # 首先添加一些记忆
         memory_id = await context_manager.memory_store.add_memory(
-            content="这是一个测试记忆",
-            tags=["session", session_id],
-            task_id="test_task_1"
+            content="这是一个测试记忆", tags=["session", session_id], task_id="test_task_1"
         )
 
         # 构建上下文
@@ -114,7 +111,7 @@ class TestContextManager:
             {"role": "user", "content": "代码位于 nanobot/agent/context.py 文件中"},
             {"role": "assistant", "content": "我来检查这个文件"},
             {"role": "user", "content": "错误是在处理长上下文时发生的"},
-            {"role": "assistant", "content": "我找到了问题所在，需要优化压缩算法"}
+            {"role": "assistant", "content": "我找到了问题所在，需要优化压缩算法"},
         ]
 
         compressed, stats = await context_manager.compress_context(messages)
@@ -135,21 +132,15 @@ class TestContextManager:
 
         # 添加测试记忆
         await context_manager.memory_store.add_memory(
-            content="测试代码优化",
-            tags=["coding", "test"],
-            task_id=task_id
+            content="测试代码优化", tags=["coding", "test"], task_id=task_id
         )
         await context_manager.memory_store.add_memory(
-            content="测试文档写作",
-            tags=["writing", "test"],
-            task_id=task_id
+            content="测试文档写作", tags=["writing", "test"], task_id=task_id
         )
 
         # 搜索记忆
         memories = await context_manager.memory_store.search_memory(
-            query="测试",
-            tags=["coding"],
-            task_id=task_id
+            query="测试", tags=["coding"], task_id=task_id
         )
 
         # 验证搜索结果

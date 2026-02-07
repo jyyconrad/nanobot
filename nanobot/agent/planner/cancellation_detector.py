@@ -4,9 +4,9 @@
 负责识别用户输入中的取消指令，用于终止正在执行的任务。
 """
 
-import asyncio
 import re
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 from nanobot.agent.planner.models import CancellationPattern
@@ -14,31 +14,28 @@ from nanobot.agent.planner.models import CancellationPattern
 
 class CancellationDetector(BaseModel):
     """取消检测器"""
-    cancellation_patterns: List[CancellationPattern] = Field(default_factory=lambda: [
-        CancellationPattern(
-            patterns=["取消.*任务", "停止.*任务", "终止.*任务", "取消.*操作", "停止.*操作"],
-            weight=1.0
-        ),
-        CancellationPattern(
-            patterns=["取消.*", "停止.*", "终止.*", "放弃.*"],
-            weight=0.9
-        ),
-        CancellationPattern(
-            patterns=["我.*不想.*", "不要.*", "不必.*", "不需要.*", "不用.*"],
-            weight=0.8
-        ),
-        CancellationPattern(
-            patterns=["出错.*", "失败.*", "有问题.*", "错误.*"],
-            weight=0.7
-        )
-    ])
 
-    confirmation_patterns: List[str] = Field(default_factory=lambda: [
-        "确定.*取消", "确认.*取消", "是否.*取消", "真的.*取消"
-    ])
+    cancellation_patterns: List[CancellationPattern] = Field(
+        default_factory=lambda: [
+            CancellationPattern(
+                patterns=["取消.*任务", "停止.*任务", "终止.*任务", "取消.*操作", "停止.*操作"],
+                weight=1.0,
+            ),
+            CancellationPattern(patterns=["取消.*", "停止.*", "终止.*", "放弃.*"], weight=0.9),
+            CancellationPattern(
+                patterns=["我.*不想.*", "不要.*", "不必.*", "不需要.*", "不用.*"], weight=0.8
+            ),
+            CancellationPattern(patterns=["出错.*", "失败.*", "有问题.*", "错误.*"], weight=0.7),
+        ]
+    )
+
+    confirmation_patterns: List[str] = Field(
+        default_factory=lambda: ["确定.*取消", "确认.*取消", "是否.*取消", "真的.*取消"]
+    )
 
     class Config:
         """配置类"""
+
         arbitrary_types_allowed = True
 
     async def is_cancellation(self, user_input: str) -> bool:
@@ -112,7 +109,7 @@ class CancellationDetector(BaseModel):
                 r"因为(.+?)取消",
                 r"由于(.+?)取消",
                 r"取消.*因为(.+?)",
-                r"取消.*由于(.+?)$"
+                r"取消.*由于(.+?)$",
             ]
 
             for pattern in reason_patterns:
@@ -196,8 +193,12 @@ class CancellationDetector(BaseModel):
         """
         # 如果是明确的取消指令，不需要确认
         explicit_patterns = [
-            r"取消.*任务", r"停止.*任务", r"终止.*任务",
-            r"取消.*操作", r"停止.*操作", r"确认.*取消"
+            r"取消.*任务",
+            r"停止.*任务",
+            r"终止.*任务",
+            r"取消.*操作",
+            r"停止.*操作",
+            r"确认.*取消",
         ]
 
         for pattern in explicit_patterns:
@@ -241,7 +242,7 @@ class CancellationDetector(BaseModel):
                 r"停止(.+?)任务",
                 r"终止(.+?)任务",
                 r"取消(.+?)操作",
-                r"停止(.+?)操作"
+                r"停止(.+?)操作",
             ]
 
             for pattern in target_patterns:

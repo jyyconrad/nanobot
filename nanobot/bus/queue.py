@@ -14,7 +14,7 @@ class MessageBus:
     """
     Async message bus that decouples chat channels from the agent core
     with intelligent message routing based on task context.
-    
+
     Channels push messages to the inbound queue, and the agent processes
     them and pushes responses to the outbound queue.
     """
@@ -22,7 +22,9 @@ class MessageBus:
     def __init__(self):
         self.inbound: asyncio.Queue[InboundMessage] = asyncio.Queue()
         self.outbound: asyncio.Queue[OutboundMessage] = asyncio.Queue()
-        self._outbound_subscribers: dict[str, list[Callable[[OutboundMessage], Awaitable[None]]]] = {}
+        self._outbound_subscribers: dict[
+            str, list[Callable[[OutboundMessage], Awaitable[None]]]
+        ] = {}
         self._running = False
         self._message_analyzer = MessageAnalyzer()
         self._task_manager = TaskManager()
@@ -44,9 +46,7 @@ class MessageBus:
         return await self.outbound.get()
 
     def subscribe_outbound(
-        self,
-        channel: str,
-        callback: Callable[[OutboundMessage], Awaitable[None]]
+        self, channel: str, callback: Callable[[OutboundMessage], Awaitable[None]]
     ) -> None:
         """Subscribe to outbound messages for a specific channel."""
         if channel not in self._outbound_subscribers:

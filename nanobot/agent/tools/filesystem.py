@@ -21,13 +21,8 @@ class ReadFileTool(Tool):
     def parameters(self) -> dict[str, Any]:
         return {
             "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "The file path to read"
-                }
-            },
-            "required": ["path"]
+            "properties": {"path": {"type": "string", "description": "The file path to read"}},
+            "required": ["path"],
         }
 
     async def execute(self, path: str, **kwargs: Any) -> str:
@@ -62,16 +57,10 @@ class WriteFileTool(Tool):
         return {
             "type": "object",
             "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "The file path to write to"
-                },
-                "content": {
-                    "type": "string",
-                    "description": "The content to write"
-                }
+                "path": {"type": "string", "description": "The file path to write to"},
+                "content": {"type": "string", "description": "The content to write"},
             },
-            "required": ["path", "content"]
+            "required": ["path", "content"],
         }
 
     async def execute(self, path: str, content: str, **kwargs: Any) -> str:
@@ -102,20 +91,11 @@ class EditFileTool(Tool):
         return {
             "type": "object",
             "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "The file path to edit"
-                },
-                "old_text": {
-                    "type": "string",
-                    "description": "The exact text to find and replace"
-                },
-                "new_text": {
-                    "type": "string",
-                    "description": "The text to replace with"
-                }
+                "path": {"type": "string", "description": "The file path to edit"},
+                "old_text": {"type": "string", "description": "The exact text to find and replace"},
+                "new_text": {"type": "string", "description": "The text to replace with"},
             },
-            "required": ["path", "old_text", "new_text"]
+            "required": ["path", "old_text", "new_text"],
         }
 
     async def execute(self, path: str, old_text: str, new_text: str, **kwargs: Any) -> str:
@@ -159,13 +139,8 @@ class ListDirTool(Tool):
     def parameters(self) -> dict[str, Any]:
         return {
             "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "The directory path to list"
-                }
-            },
-            "required": ["path"]
+            "properties": {"path": {"type": "string", "description": "The directory path to list"}},
+            "required": ["path"],
         }
 
     async def execute(self, path: str, **kwargs: Any) -> str:

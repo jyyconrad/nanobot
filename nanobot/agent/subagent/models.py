@@ -2,9 +2,9 @@
 Subagent 数据模型
 """
 
-from typing import Optional, Dict, Any, List
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 class SubagentStatus(str, Enum):
     """Subagent 状态枚举"""
+
     PENDING = "PENDING"
     ASSIGNED = "ASSIGNED"
     RUNNING = "RUNNING"
@@ -22,6 +23,7 @@ class SubagentStatus(str, Enum):
 
 class SubagentTask(BaseModel):
     """Subagent 任务模型"""
+
     task_id: str = Field(default_factory=lambda: str(uuid4()), description="任务唯一标识符")
     description: str = Field(..., description="任务描述")
     config: Dict[str, Any] = Field(default_factory=dict, description="任务配置")
@@ -34,6 +36,7 @@ class SubagentTask(BaseModel):
 
 class SubagentState(BaseModel):
     """Subagent 状态模型"""
+
     task_id: str = Field(..., description="任务唯一标识符")
     status: SubagentStatus = Field(SubagentStatus.PENDING, description="状态")
     progress: float = Field(0.0, description="进度 (0-1)")
@@ -45,6 +48,7 @@ class SubagentState(BaseModel):
 
 class SubagentResult(BaseModel):
     """Subagent 结果模型"""
+
     task_id: str = Field(..., description="任务唯一标识符")
     output: str = Field(..., description="任务输出")
     success: bool = Field(True, description="是否成功")
@@ -56,6 +60,7 @@ class SubagentResult(BaseModel):
 
 class SubagentConfig(BaseModel):
     """Subagent 配置模型"""
+
     agent_type: str = Field("default", description="代理类型")
     skills: List[str] = Field(default_factory=list, description="技能列表")
     max_tokens: int = Field(4096, description="最大令牌数")
@@ -69,6 +74,7 @@ class SubagentConfig(BaseModel):
 
 class SubagentMetrics(BaseModel):
     """Subagent 性能指标模型"""
+
     execution_time: float = Field(0.0, description="执行时间 (秒)")
     tokens_used: int = Field(0, description="使用的令牌数")
     api_calls: int = Field(0, description="API 调用次数")
@@ -79,6 +85,7 @@ class SubagentMetrics(BaseModel):
 
 class SubagentPerformance(BaseModel):
     """Subagent 性能报告模型"""
+
     task_id: str = Field(..., description="任务唯一标识符")
     metrics: SubagentMetrics = Field(..., description="性能指标")
     success_rate: float = Field(0.0, description="成功率 (0-1)")

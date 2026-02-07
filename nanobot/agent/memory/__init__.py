@@ -25,5 +25,5 @@ __all__ = [
     "MemorySearchQuery",
     "MemorySearchResult",
     "MemoryUpdate",
-    "MemoryBatch"
+    "MemoryBatch",
 ]

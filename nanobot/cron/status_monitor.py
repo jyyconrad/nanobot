@@ -20,7 +20,7 @@ from nanobot.cron.agent_trigger import AgentTrigger
 class AgentStatusMonitor:
     """
     Agent 状态监听器：监听 Agent 状态并根据条件触发响应
-    
+
     主要功能：
     - 定期监控 Agent 和任务状态
     - 根据预设条件检查状态
@@ -32,7 +32,7 @@ class AgentStatusMonitor:
         task_manager: TaskManager,
         subagent_manager: SubagentManager,
         agent_trigger: AgentTrigger,
-        bus: MessageBus
+        bus: MessageBus,
     ):
         self._task_manager = task_manager
         self._subagent_manager = subagent_manager
@@ -42,11 +42,11 @@ class AgentStatusMonitor:
     async def monitor_agent(self, agent: str, checks: List[str]) -> Dict[str, Any]:
         """
         监听指定 Agent 的状态
-        
+
         Args:
             agent: 目标 Agent
             checks: 要执行的检查类型列表
-            
+
         Returns:
             监听结果
         """
@@ -70,20 +70,15 @@ class AgentStatusMonitor:
         if alerts:
             await self._handle_alerts(alerts)
 
-        return {
-            "agent": agent,
-            "status": status,
-            "checks": results,
-            "alerts": alerts
-        }
+        return {"agent": agent, "status": status, "checks": results, "alerts": alerts}
 
     async def _get_agent_status(self, agent: str) -> Dict[str, Any]:
         """
         获取 Agent 状态
-        
+
         Args:
             agent: Agent 名称
-            
+
         Returns:
             Agent 状态信息
         """
@@ -95,19 +90,16 @@ class AgentStatusMonitor:
             return await self._agent_trigger.trigger_agent(agent, "check_status")
 
     async def _perform_check(
-        self,
-        agent: str,
-        check_type: str,
-        status: Dict[str, Any]
+        self, agent: str, check_type: str, status: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         执行特定类型的检查
-        
+
         Args:
             agent: Agent 名称
             check_type: 检查类型
             status: Agent 状态信息
-            
+
         Returns:
             检查结果
         """
@@ -140,9 +132,9 @@ class AgentStatusMonitor:
                         "type": "high_failure_rate",
                         "severity": "high",
                         "message": f"High failure rate detected: {failure_rate:.1%}",
-                        "suggested_action": "Investigate failing tasks"
+                        "suggested_action": "Investigate failing tasks",
                     },
-                    "failure_rate": failure_rate
+                    "failure_rate": failure_rate,
                 }
 
         return {"success": True, "failure_rate": 0}
@@ -155,9 +147,7 @@ class AgentStatusMonitor:
         active_tasks = self._task_manager.get_active_tasks()
 
         for task in active_tasks:
-            time_since_update = (
-                asyncio.get_event_loop().time() - task.updated_at.timestamp()
-            )
+            time_since_update = asyncio.get_event_loop().time() - task.updated_at.timestamp()
             if time_since_update > 300:  # 5分钟
                 stalled_tasks.append(task.id)
 
@@ -169,9 +159,9 @@ class AgentStatusMonitor:
                     "severity": "medium",
                     "message": f"Found {len(stalled_tasks)} stalled tasks",
                     "suggested_action": "Restart or cancel stalled tasks",
-                    "task_ids": stalled_tasks
+                    "task_ids": stalled_tasks,
                 },
-                "stalled_tasks": len(stalled_tasks)
+                "stalled_tasks": len(stalled_tasks),
             }
 
         return {"success": True, "stalled_tasks": 0}
@@ -187,9 +177,9 @@ class AgentStatusMonitor:
                     "type": "high_subagent_count",
                     "severity": "medium",
                     "message": f"High subagent count detected: {subagent_count}",
-                    "suggested_action": "Check for zombie processes"
+                    "suggested_action": "Check for zombie processes",
                 },
-                "subagent_count": subagent_count
+                "subagent_count": subagent_count,
             }
 
         return {"success": True, "subagent_count": subagent_count}
@@ -205,9 +195,9 @@ class AgentStatusMonitor:
                     "type": "message_bus_backlog",
                     "severity": "high",
                     "message": f"Message bus backlog: {bus_status['inbound']} inbound messages",
-                    "suggested_action": "Check agent processing speed"
+                    "suggested_action": "Check agent processing speed",
                 },
-                "backlog_size": bus_status["inbound"]
+                "backlog_size": bus_status["inbound"],
             }
 
         return {"success": True, "backlog_size": 0}
@@ -220,9 +210,7 @@ class AgentStatusMonitor:
         running_tasks = self._task_manager.get_tasks_by_status(TaskStatus.RUNNING)
 
         for task in running_tasks:
-            runtime = (
-                asyncio.get_event_loop().time() - task.created_at.timestamp()
-            )
+            runtime = asyncio.get_event_loop().time() - task.created_at.timestamp()
             if runtime > 1800:  # 30分钟
                 timeout_tasks.append(task.id)
 
@@ -234,9 +222,9 @@ class AgentStatusMonitor:
                     "severity": "high",
                     "message": f"Found {len(timeout_tasks)} timed out tasks",
                     "suggested_action": "Cancel timed out tasks",
-                    "task_ids": timeout_tasks
+                    "task_ids": timeout_tasks,
                 },
-                "timeout_tasks": len(timeout_tasks)
+                "timeout_tasks": len(timeout_tasks),
             }
 
         return {"success": True, "timeout_tasks": 0}
@@ -244,7 +232,7 @@ class AgentStatusMonitor:
     async def _handle_alerts(self, alerts: List[Dict[str, Any]]):
         """
         处理告警
-        
+
         Args:
             alerts: 告警列表
         """
@@ -297,14 +285,16 @@ class AgentStatusMonitor:
         """处理高子代理数量"""
         logger.warning(f"High subagent count detected: {alert['message']}")
 
-    async def check_conditions(self, status: Dict[str, Any], conditions: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def check_conditions(
+        self, status: Dict[str, Any], conditions: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         检查指定条件是否满足
-        
+
         Args:
             status: Agent 状态
             conditions: 要检查的条件
-            
+
         Returns:
             满足条件的列表
         """
@@ -319,19 +309,16 @@ class AgentStatusMonitor:
         return alerts
 
     async def _check_condition(
-        self,
-        name: str,
-        config: Dict[str, Any],
-        status: Dict[str, Any]
+        self, name: str, config: Dict[str, Any], status: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
         检查单个条件
-        
+
         Args:
             name: 条件名称
             config: 条件配置
             status: Agent 状态
-            
+
         Returns:
             告警信息（如条件满足），否则返回None
         """
@@ -348,10 +335,7 @@ class AgentStatusMonitor:
         return None
 
     async def _check_threshold_condition(
-        self,
-        name: str,
-        config: Dict[str, Any],
-        status: Dict[str, Any]
+        self, name: str, config: Dict[str, Any], status: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """检查阈值条件"""
         field = config.get("field")
@@ -372,7 +356,7 @@ class AgentStatusMonitor:
                     "message": config.get("message", f"{field} exceeds {threshold}"),
                     "field": field,
                     "value": value,
-                    "threshold": threshold
+                    "threshold": threshold,
                 }
             elif operator == "<" and value < threshold:
                 return {
@@ -382,7 +366,7 @@ class AgentStatusMonitor:
                     "message": config.get("message", f"{field} falls below {threshold}"),
                     "field": field,
                     "value": value,
-                    "threshold": threshold
+                    "threshold": threshold,
                 }
 
         except Exception as e:
@@ -391,10 +375,7 @@ class AgentStatusMonitor:
         return None
 
     async def _check_absent_condition(
-        self,
-        name: str,
-        config: Dict[str, Any],
-        status: Dict[str, Any]
+        self, name: str, config: Dict[str, Any], status: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """检查不存在条件"""
         # 简化实现
@@ -402,10 +383,7 @@ class AgentStatusMonitor:
         return None
 
     async def _check_contains_condition(
-        self,
-        name: str,
-        config: Dict[str, Any],
-        status: Dict[str, Any]
+        self, name: str, config: Dict[str, Any], status: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """检查包含条件"""
         # 简化实现

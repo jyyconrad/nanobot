@@ -4,51 +4,72 @@
 负责识别用户输入中的任务类型。
 """
 
-import asyncio
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 from pydantic import BaseModel, Field
 
-from nanobot.agent.planner.models import TaskType, TaskPattern, TaskDetectionResult
+from nanobot.agent.planner.models import TaskDetectionResult, TaskPattern, TaskType
 
 
 class TaskDetector(BaseModel):
     """任务检测器"""
-    patterns: List[TaskPattern] = Field(default_factory=lambda: [
-        TaskPattern(
-            task_type=TaskType.CODE_GENERATION,
-            patterns=["写.*代码", "编写.*函数", "编写.*程序", "实现.*功能", "实现.*程序", "开发.*应用", "修复.*bug", "重构.*代码", "优化.*性能"],
-            weight=1.0
-        ),
-        TaskPattern(
-            task_type=TaskType.TEXT_SUMMARIZATION,
-            patterns=["总结.*", "概括.*", "摘要.*", "简述.*", "整理.*要点", "提取.*要点"],
-            weight=0.9
-        ),
-        TaskPattern(
-            task_type=TaskType.DATA_ANALYSIS,
-            patterns=["分析.*数据", "统计.*信息", "处理.*数据", "可视化.*结果", "计算.*指标", "统计.*行为"],
-            weight=0.85
-        ),
-        TaskPattern(
-            task_type=TaskType.WEB_SEARCH,
-            patterns=["搜索.*", "查找.*", "查询.*", "了解.*", "研究.*"],
-            weight=0.8
-        ),
-        TaskPattern(
-            task_type=TaskType.FILE_OPERATION,
-            patterns=["创建.*文件", "删除.*文件", "修改.*文件", "读取.*文件", "写入.*文件"],
-            weight=0.75
-        ),
-        TaskPattern(
-            task_type=TaskType.SYSTEM_COMMAND,
-            patterns=["运行.*命令", "执行.*脚本", "安装.*软件", "配置.*环境", "部署.*服务"],
-            weight=0.7
-        )
-    ])
+
+    patterns: List[TaskPattern] = Field(
+        default_factory=lambda: [
+            TaskPattern(
+                task_type=TaskType.CODE_GENERATION,
+                patterns=[
+                    "写.*代码",
+                    "编写.*函数",
+                    "编写.*程序",
+                    "实现.*功能",
+                    "实现.*程序",
+                    "开发.*应用",
+                    "修复.*bug",
+                    "重构.*代码",
+                    "优化.*性能",
+                ],
+                weight=1.0,
+            ),
+            TaskPattern(
+                task_type=TaskType.TEXT_SUMMARIZATION,
+                patterns=["总结.*", "概括.*", "摘要.*", "简述.*", "整理.*要点", "提取.*要点"],
+                weight=0.9,
+            ),
+            TaskPattern(
+                task_type=TaskType.DATA_ANALYSIS,
+                patterns=[
+                    "分析.*数据",
+                    "统计.*信息",
+                    "处理.*数据",
+                    "可视化.*结果",
+                    "计算.*指标",
+                    "统计.*行为",
+                ],
+                weight=0.85,
+            ),
+            TaskPattern(
+                task_type=TaskType.WEB_SEARCH,
+                patterns=["搜索.*", "查找.*", "查询.*", "了解.*", "研究.*"],
+                weight=0.8,
+            ),
+            TaskPattern(
+                task_type=TaskType.FILE_OPERATION,
+                patterns=["创建.*文件", "删除.*文件", "修改.*文件", "读取.*文件", "写入.*文件"],
+                weight=0.75,
+            ),
+            TaskPattern(
+                task_type=TaskType.SYSTEM_COMMAND,
+                patterns=["运行.*命令", "执行.*脚本", "安装.*软件", "配置.*环境", "部署.*服务"],
+                weight=0.7,
+            ),
+        ]
+    )
 
     class Config:
         """配置类"""
+
         arbitrary_types_allowed = True
 
     async def detect_task_type(self, user_input: str) -> TaskType:
@@ -99,9 +120,7 @@ class TaskDetector(BaseModel):
             total_score = sum(scores.values())
             if total_score == 0:
                 return TaskDetectionResult(
-                    task_type=TaskType.OTHER,
-                    confidence=0.3,
-                    matched_patterns=[]
+                    task_type=TaskType.OTHER, confidence=0.3, matched_patterns=[]
                 )
 
             # 找到最高得分的任务类型
@@ -120,9 +139,7 @@ class TaskDetector(BaseModel):
             confidence = min(best_score / total_score, 1.0)
 
             return TaskDetectionResult(
-                task_type=best_type,
-                confidence=confidence,
-                matched_patterns=matched_patterns
+                task_type=best_type, confidence=confidence, matched_patterns=matched_patterns
             )
 
         except Exception as e:
@@ -238,18 +255,16 @@ class TaskDetector(BaseModel):
                         if re.search(regex, user_input, re.IGNORECASE):
                             matched_patterns.append(regex)
 
-            results.append({
-                "task_type": task_type,
-                "confidence": confidence,
-                "matched_patterns": matched_patterns
-            })
+            results.append(
+                {
+                    "task_type": task_type,
+                    "confidence": confidence,
+                    "matched_patterns": matched_patterns,
+                }
+            )
 
         # 如果没有匹配，添加默认类型
         if not results:
-            results.append({
-                "task_type": TaskType.OTHER,
-                "confidence": 0.5,
-                "matched_patterns": []
-            })
+            results.append({"task_type": TaskType.OTHER, "confidence": 0.5, "matched_patterns": []})
 
         return results

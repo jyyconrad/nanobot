@@ -2,16 +2,13 @@
 测试修正处理程序
 """
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from pydantic import ValidationError
 
 from nanobot.agent.decision.correction_handler import CorrectionHandler
-from nanobot.agent.decision.models import (
-    DecisionRequest,
-    DecisionResult,
-    CorrectionRequest
-)
+from nanobot.agent.decision.models import CorrectionRequest, DecisionRequest, DecisionResult
 from nanobot.agent.loop import AgentLoop
 from nanobot.agent.task import Task
 
@@ -49,12 +46,8 @@ class TestCorrectionHandler:
         """测试处理有效修正请求"""
         request = DecisionRequest(
             request_type="correction",
-            data={
-                "message_id": "msg123",
-                "correction": "修正内容",
-                "task_id": "task123"
-            },
-            task=mock_task
+            data={"message_id": "msg123", "correction": "修正内容", "task_id": "task123"},
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -66,7 +59,7 @@ class TestCorrectionHandler:
         """测试处理无效数据请求"""
         request = DecisionRequest(
             request_type="correction",
-            data={}  # 缺少必填字段
+            data={},  # 缺少必填字段
         )
 
         result = await handler.handle_request(request)
@@ -80,12 +73,8 @@ class TestCorrectionHandler:
 
         request = DecisionRequest(
             request_type="correction",
-            data={
-                "message_id": "msg123",
-                "correction": "修改任务参数",
-                "task_id": "task123"
-            },
-            task=mock_task
+            data={"message_id": "msg123", "correction": "修改任务参数", "task_id": "task123"},
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -99,12 +88,8 @@ class TestCorrectionHandler:
 
         request = DecisionRequest(
             request_type="correction",
-            data={
-                "message_id": "msg123",
-                "correction": "重新执行任务",
-                "task_id": "task123"
-            },
-            task=mock_task
+            data={"message_id": "msg123", "correction": "重新执行任务", "task_id": "task123"},
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -118,12 +103,8 @@ class TestCorrectionHandler:
 
         request = DecisionRequest(
             request_type="correction",
-            data={
-                "message_id": "msg123",
-                "correction": "重新执行任务",
-                "task_id": "task123"
-            },
-            task=mock_task
+            data={"message_id": "msg123", "correction": "重新执行任务", "task_id": "task123"},
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -138,9 +119,9 @@ class TestCorrectionHandler:
             data={
                 "message_id": "msg123",
                 "correction": "修正后的内容",
-                "original_message_id": "msg456"
+                "original_message_id": "msg456",
             },
-            task=None
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -155,9 +136,9 @@ class TestCorrectionHandler:
             data={
                 "message_id": "msg123",
                 "correction": "一般修正内容",
-                "context": {"key": "value"}
+                "context": {"key": "value"},
             },
-            task=None
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -169,10 +150,7 @@ class TestCorrectionHandler:
         with pytest.raises(ValidationError):
             CorrectionRequest()
 
-        valid_request = CorrectionRequest(
-            message_id="msg123",
-            correction="测试修正"
-        )
+        valid_request = CorrectionRequest(message_id="msg123", correction="测试修正")
         assert valid_request.message_id == "msg123"
         assert valid_request.correction == "测试修正"
         assert valid_request.task_id is None
@@ -185,7 +163,7 @@ class TestCorrectionHandler:
             correction="带上下文的修正",
             task_id="task123",
             original_message_id="msg456",
-            context=context
+            context=context,
         )
         assert request.task_id == "task123"
         assert request.original_message_id == "msg456"
@@ -194,35 +172,17 @@ class TestCorrectionHandler:
     @pytest.mark.asyncio
     async def test_analyze_correction_type(self, handler):
         """测试分析修正类型"""
-        redo_correction = CorrectionRequest(
-            message_id="msg123",
-            correction="重新做"
-        )
+        redo_correction = CorrectionRequest(message_id="msg123", correction="重新做")
 
-        modify_correction = CorrectionRequest(
-            message_id="msg124",
-            correction="修改参数"
-        )
+        modify_correction = CorrectionRequest(message_id="msg124", correction="修改参数")
 
-        add_correction = CorrectionRequest(
-            message_id="msg125",
-            correction="补充内容"
-        )
+        add_correction = CorrectionRequest(message_id="msg125", correction="补充内容")
 
-        delete_correction = CorrectionRequest(
-            message_id="msg126",
-            correction="删除项"
-        )
+        delete_correction = CorrectionRequest(message_id="msg126", correction="删除项")
 
-        adjust_correction = CorrectionRequest(
-            message_id="msg127",
-            correction="调整设置"
-        )
+        adjust_correction = CorrectionRequest(message_id="msg127", correction="调整设置")
 
-        general_correction = CorrectionRequest(
-            message_id="msg128",
-            correction="其他修正"
-        )
+        general_correction = CorrectionRequest(message_id="msg128", correction="其他修正")
 
         type1 = await handler._analyze_correction_type(redo_correction)
         type2 = await handler._analyze_correction_type(modify_correction)

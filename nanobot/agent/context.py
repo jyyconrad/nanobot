@@ -12,7 +12,7 @@ from nanobot.agent.skills import SkillsLoader
 class ContextBuilder:
     """
     Builds the context (system prompt + messages) for the agent.
-    
+
     Assembles bootstrap files, memory, skills, and conversation history
     into a coherent prompt for the LLM.
     """
@@ -27,10 +27,10 @@ class ContextBuilder:
     def build_system_prompt(self, skill_names: list[str] | None = None) -> str:
         """
         Build the system prompt from bootstrap files, memory, and skills.
-        
+
         Args:
             skill_names: Optional list of skills to include.
-        
+
         Returns:
             Complete system prompt.
         """
@@ -72,6 +72,7 @@ Skills with available="false" need dependencies installed first - you can try in
     def _get_identity(self) -> str:
         """Get the core identity section."""
         from datetime import datetime
+
         now = datetime.now().strftime("%Y-%m-%d %H:%M (%A)")
         workspace_path = str(self.workspace.expanduser().resolve())
 
@@ -165,46 +166,39 @@ When remembering something, write to {workspace_path}/memory/MEMORY.md"""
         return images + [{"type": "text", "text": text}]
 
     def add_tool_result(
-        self,
-        messages: list[dict[str, Any]],
-        tool_call_id: str,
-        tool_name: str,
-        result: str
+        self, messages: list[dict[str, Any]], tool_call_id: str, tool_name: str, result: str
     ) -> list[dict[str, Any]]:
         """
         Add a tool result to the message list.
-        
+
         Args:
             messages: Current message list.
             tool_call_id: ID of the tool call.
             tool_name: Name of the tool.
             result: Tool execution result.
-        
+
         Returns:
             Updated message list.
         """
-        messages.append({
-            "role": "tool",
-            "tool_call_id": tool_call_id,
-            "name": tool_name,
-            "content": result
-        })
+        messages.append(
+            {"role": "tool", "tool_call_id": tool_call_id, "name": tool_name, "content": result}
+        )
         return messages
 
     def add_assistant_message(
         self,
         messages: list[dict[str, Any]],
         content: str | None,
-        tool_calls: list[dict[str, Any]] | None = None
+        tool_calls: list[dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Add an assistant message to the message list.
-        
+
         Args:
             messages: Current message list.
             content: Message content.
             tool_calls: Optional tool calls.
-        
+
         Returns:
             Updated message list.
         """

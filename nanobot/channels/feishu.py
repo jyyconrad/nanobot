@@ -23,6 +23,7 @@ try:
         Emoji,
         P2ImMessageReceiveV1,
     )
+
     FEISHU_AVAILABLE = True
 except ImportError:
     FEISHU_AVAILABLE = False
@@ -41,9 +42,9 @@ MSG_TYPE_MAP = {
 class FeishuChannel(BaseChannel):
     """
     Feishu/Lark channel using WebSocket long connection.
-    
+
     Uses WebSocket to receive events - no public IP or webhook required.
-    
+
     Requires:
     - App ID and App Secret from Feishu Open Platform
     - Bot capability enabled
@@ -75,26 +76,30 @@ class FeishuChannel(BaseChannel):
         self._loop = asyncio.get_running_loop()
 
         # Create Lark client for sending messages
-        self._client = lark.Client.builder() \
-            .app_id(self.config.app_id) \
-            .app_secret(self.config.app_secret) \
-            .log_level(lark.LogLevel.INFO) \
+        self._client = (
+            lark.Client.builder()
+            .app_id(self.config.app_id)
+            .app_secret(self.config.app_secret)
+            .log_level(lark.LogLevel.INFO)
             .build()
+        )
 
         # Create event handler (only register message receive, ignore other events)
-        event_handler = lark.EventDispatcherHandler.builder(
-            self.config.encrypt_key or "",
-            self.config.verification_token or "",
-        ).register_p2_im_message_receive_v1(
-            self._on_message_sync
-        ).build()
+        event_handler = (
+            lark.EventDispatcherHandler.builder(
+                self.config.encrypt_key or "",
+                self.config.verification_token or "",
+            )
+            .register_p2_im_message_receive_v1(self._on_message_sync)
+            .build()
+        )
 
         # Create WebSocket client for long connection
         self._ws_client = lark.ws.Client(
             self.config.app_id,
             self.config.app_secret,
             event_handler=event_handler,
-            log_level=lark.LogLevel.INFO
+            log_level=lark.LogLevel.INFO,
         )
 
         # Start WebSocket client in a separate thread
@@ -127,13 +132,16 @@ class FeishuChannel(BaseChannel):
     def _add_reaction_sync(self, message_id: str, emoji_type: str) -> None:
         """Sync helper for adding reaction (runs in thread pool)."""
         try:
-            request = CreateMessageReactionRequest.builder() \
-                .message_id(message_id) \
+            request = (
+                CreateMessageReactionRequest.builder()
+                .message_id(message_id)
                 .request_body(
                     CreateMessageReactionRequestBody.builder()
                     .reaction_type(Emoji.builder().emoji_type(emoji_type).build())
                     .build()
-                ).build()
+                )
+                .build()
+            )
 
             response = self._client.im.v1.message_reaction.create(request)
 
@@ -147,7 +155,7 @@ class FeishuChannel(BaseChannel):
     async def _add_reaction(self, message_id: str, emoji_type: str = "THUMBSUP") -> None:
         """
         Add a reaction emoji to a message (non-blocking).
-        
+
         Common emoji types: THUMBSUP, OK, EYES, DONE, OnIt, HEART
         """
         if not self._client or not Emoji:
@@ -173,15 +181,18 @@ class FeishuChannel(BaseChannel):
             # Build text message content
             content = json.dumps({"text": msg.content})
 
-            request = CreateMessageRequest.builder() \
-                .receive_id_type(receive_id_type) \
+            request = (
+                CreateMessageRequest.builder()
+                .receive_id_type(receive_id_type)
                 .request_body(
                     CreateMessageRequestBody.builder()
                     .receive_id(msg.chat_id)
                     .msg_type("text")
                     .content(content)
                     .build()
-                ).build()
+                )
+                .build()
+            )
 
             response = self._client.im.v1.message.create(request)
 
@@ -256,7 +267,7 @@ class FeishuChannel(BaseChannel):
                     "message_id": message_id,
                     "chat_type": chat_type,
                     "msg_type": msg_type,
-                }
+                },
             )
 
         except Exception as e:

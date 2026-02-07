@@ -65,25 +65,23 @@ class EnhancedMemoryStore:
             with open(memory_file, "w", encoding="utf-8") as f:
                 serialized = []
                 for memory in self._memories:
-                    serialized.append({
-                        "id": memory.id,
-                        "content": memory.content,
-                        "tags": memory.tags,
-                        "task_id": memory.task_id,
-                        "timestamp": memory.timestamp.isoformat(),
-                        "importance": memory.importance
-                    })
+                    serialized.append(
+                        {
+                            "id": memory.id,
+                            "content": memory.content,
+                            "tags": memory.tags,
+                            "task_id": memory.task_id,
+                            "timestamp": memory.timestamp.isoformat(),
+                            "importance": memory.importance,
+                        }
+                    )
                 json.dump(serialized, f, ensure_ascii=False, indent=2)
             logger.debug("成功保存了 %d 条记忆到文件", len(self._memories))
         except Exception as e:
             logger.warning("保存记忆失败: %s", e)
 
     async def add_memory(
-        self,
-        content: str,
-        tags: List[str] = None,
-        task_id: str = None,
-        importance: int = 0
+        self, content: str, tags: List[str] = None, task_id: str = None, importance: int = 0
     ) -> str:
         """
         添加新记忆
@@ -97,12 +95,7 @@ class EnhancedMemoryStore:
         Returns:
             记忆的唯一标识符
         """
-        logger.debug(
-            "添加新记忆，内容长度: %d, 标签: %s, 任务 ID: %s",
-            len(content),
-            tags,
-            task_id
-        )
+        logger.debug("添加新记忆，内容长度: %d, 标签: %s, 任务 ID: %s", len(content), tags, task_id)
 
         memory = Memory(
             id=str(uuid.uuid4()),
@@ -110,7 +103,7 @@ class EnhancedMemoryStore:
             tags=tags or [],
             task_id=task_id,
             timestamp=datetime.now(),
-            importance=importance
+            importance=importance,
         )
 
         self._memories.append(memory)
@@ -120,11 +113,7 @@ class EnhancedMemoryStore:
         return memory.id
 
     async def search_memory(
-        self,
-        query: str = "",
-        tags: List[str] = None,
-        task_id: str = None,
-        limit: int = 50
+        self, query: str = "", tags: List[str] = None, task_id: str = None, limit: int = 50
     ) -> List[Memory]:
         """
         搜索记忆
@@ -139,11 +128,7 @@ class EnhancedMemoryStore:
             匹配的记忆列表
         """
         logger.debug(
-            "搜索记忆，查询: '%s', 标签: %s, 任务 ID: %s, 限制: %d",
-            query,
-            tags,
-            task_id,
-            limit
+            "搜索记忆，查询: '%s', 标签: %s, 任务 ID: %s, 限制: %d", query, tags, task_id, limit
         )
 
         start_time = datetime.now()
@@ -168,9 +153,7 @@ class EnhancedMemoryStore:
             results.append(memory)
 
         # 按重要性和时间排序（重要性高的在前，时间近的在前）
-        results.sort(
-            key=lambda x: (-x.importance, -x.timestamp.timestamp())
-        )
+        results.sort(key=lambda x: (-x.importance, -x.timestamp.timestamp()))
 
         # 限制结果数量
         limited_results = results[:limit]
@@ -178,9 +161,7 @@ class EnhancedMemoryStore:
         search_time_ms = (datetime.now() - start_time).total_seconds() * 1000
 
         logger.debug(
-            "搜索完成，找到 %d 条匹配的记忆，耗时: %.2fms",
-            len(limited_results),
-            search_time_ms
+            "搜索完成，找到 %d 条匹配的记忆，耗时: %.2fms", len(limited_results), search_time_ms
         )
 
         return limited_results
@@ -197,10 +178,7 @@ class EnhancedMemoryStore:
         """
         logger.debug("获取任务 '%s' 相关的记忆", task_id)
 
-        task_memories = [
-            memory for memory in self._memories
-            if memory.task_id == task_id
-        ]
+        task_memories = [memory for memory in self._memories if memory.task_id == task_id]
 
         task_memories.sort(key=lambda x: x.timestamp)
 
@@ -229,11 +207,7 @@ class EnhancedMemoryStore:
         return None
 
     async def update_memory(
-        self,
-        memory_id: str,
-        content: str = None,
-        tags: List[str] = None,
-        importance: int = None
+        self, memory_id: str, content: str = None, tags: List[str] = None, importance: int = None
     ) -> bool:
         """
         更新记忆
@@ -248,11 +222,7 @@ class EnhancedMemoryStore:
             更新是否成功
         """
         logger.debug(
-            "更新记忆 ID: %s，内容: %s, 标签: %s, 重要性: %s",
-            memory_id,
-            content,
-            tags,
-            importance
+            "更新记忆 ID: %s，内容: %s, 标签: %s, 重要性: %s", memory_id, content, tags, importance
         )
 
         memory = await self.get_memory(memory_id)
@@ -296,11 +266,7 @@ class EnhancedMemoryStore:
         logger.debug("记忆删除成功，ID: %s", memory_id)
         return True
 
-    async def clean_old_memories(
-        self,
-        days: int = 30,
-        min_importance: int = 0
-    ) -> int:
+    async def clean_old_memories(self, days: int = 30, min_importance: int = 0) -> int:
         """
         清理旧记忆
 
@@ -317,8 +283,7 @@ class EnhancedMemoryStore:
         delete_count = 0
 
         for memory in list(self._memories):
-            if (memory.timestamp < cutoff_date and
-                memory.importance <= min_importance):
+            if memory.timestamp < cutoff_date and memory.importance <= min_importance:
                 self._memories.remove(memory)
                 delete_count += 1
 

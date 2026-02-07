@@ -1,7 +1,7 @@
 """Configuration schema using Pydantic."""
 
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings

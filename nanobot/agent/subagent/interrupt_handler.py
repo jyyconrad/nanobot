@@ -45,11 +45,15 @@ class InterruptHandler:
         self._pending_interrupts: Dict[str, InterruptRequest] = {}
         self._paused_subagents: Set[str] = set()
         self._interrupt_types = {
-            "cancel": InterruptType(type="cancel", priority=5, description="Cancel task immediately"),
-            "correct": InterruptType(type="correct", priority=4, description="Correct task description"),
+            "cancel": InterruptType(
+                type="cancel", priority=5, description="Cancel task immediately"
+            ),
+            "correct": InterruptType(
+                type="correct", priority=4, description="Correct task description"
+            ),
             "pause": InterruptType(type="pause", priority=3, description="Pause task execution"),
             "resume": InterruptType(type="resume", priority=2, description="Resume paused task"),
-            "status": InterruptType(type="status", priority=1, description="Check task status")
+            "status": InterruptType(type="status", priority=1, description="Check task status"),
         }
 
     async def check_for_interrupt(self, subagent_id: str) -> bool:
@@ -88,7 +92,7 @@ class InterruptHandler:
             "correct": self._handle_correct,
             "pause": self._handle_pause,
             "resume": self._handle_resume,
-            "status": self._handle_status
+            "status": self._handle_status,
         }
         return handlers.get(interrupt_type)
 
@@ -113,7 +117,7 @@ class InterruptHandler:
             label=f"Correction: {subagent.label}",
             origin_channel="system",
             origin_chat_id="direct",
-            session_key=""
+            session_key="",
         )
 
         logger.info(f"Subagent [{subagent_id}] corrected to [{new_subagent_id}]")
@@ -172,13 +176,11 @@ class InterruptHandler:
             request_id=f"intr_{subagent_id}_{datetime.now().timestamp()}",
             subagent_id=subagent_id,
             type=interrupt_type,
-            message=message
+            message=message,
         )
 
         self._pending_interrupts[subagent_id] = request
-        logger.debug(
-            f"Added {interrupt_type} interrupt for subagent [{subagent_id}]: {message}"
-        )
+        logger.debug(f"Added {interrupt_type} interrupt for subagent [{subagent_id}]: {message}")
 
         return request
 
@@ -280,12 +282,13 @@ class InterruptHandler:
     async def _extract_subagent_id(self, content: str) -> Optional[str]:
         """Extract subagent ID from message content."""
         import re
-        match = re.search(r'\[([a-z0-9]{8})\]', content)
+
+        match = re.search(r"\[([a-z0-9]{8})\]", content)
         if match:
             return match.group(1)
 
         # Look for subagent ID patterns
-        match = re.search(r'subagent\s+(\w+)', content)
+        match = re.search(r"subagent\s+(\w+)", content)
         if match:
             return match.group(1)
 
@@ -299,8 +302,9 @@ class InterruptHandler:
 
         # Remove any subagent ID patterns
         import re
-        content = re.sub(r'\[[a-z0-9]{8}\]', '', content)
-        content = re.sub(r'subagent\s+\w+', '', content)
+
+        content = re.sub(r"\[[a-z0-9]{8}\]", "", content)
+        content = re.sub(r"subagent\s+\w+", "", content)
 
         return content.strip()
 

@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ContextStats:
     """上下文统计信息"""
+
     original_length: int
     compressed_length: int
     compression_ratio: float
@@ -43,10 +44,7 @@ class ContextManager:
         self.memory_store = EnhancedMemoryStore()
 
     async def build_context(
-        self,
-        session_id: str,
-        task_type: Optional[str] = None,
-        max_tokens: int = 4000
+        self, session_id: str, task_type: Optional[str] = None, max_tokens: int = 4000
     ) -> Tuple[str, ContextStats]:
         """
         构建完整的上下文
@@ -77,30 +75,22 @@ class ContextManager:
         skill_context = await self._load_skill_context(task_type)
 
         # 合并所有上下文
-        full_context = "\n\n".join([
-            base_context,
-            memory_context,
-            skill_context
-        ])
+        full_context = "\n\n".join([base_context, memory_context, skill_context])
 
         # 4. 压缩上下文到指定大小
-        compressed_context, stats = await self.compressor.compress(
-            full_context, max_tokens
-        )
+        compressed_context, stats = await self.compressor.compress(full_context, max_tokens)
 
         logger.debug(
             "上下文构建完成，原始长度: %d, 压缩后长度: %d, 压缩率: %.2f",
             stats.original_length,
             stats.compressed_length,
-            stats.compression_ratio
+            stats.compression_ratio,
         )
 
         return compressed_context, stats
 
     async def compress_context(
-        self,
-        messages: List[Dict],
-        max_tokens: int = 200
+        self, messages: List[Dict], max_tokens: int = 200
     ) -> Tuple[str, ContextStats]:
         """
         压缩对话上下文
@@ -113,17 +103,12 @@ class ContextManager:
             压缩后的上下文和统计信息
         """
         # 首先将消息转换为文本
-        text_content = "\n".join([
-            f"{msg.get('role', 'user')}: {msg.get('content', '')}"
-            for msg in messages
-        ])
+        text_content = "\n".join(
+            [f"{msg.get('role', 'user')}: {msg.get('content', '')}" for msg in messages]
+        )
         return await self.compressor.compress(text_content, max_tokens)
 
-    async def expand_context(
-        self,
-        base_context: str,
-        task_type: Optional[str] = None
-    ) -> str:
+    async def expand_context(self, base_context: str, task_type: Optional[str] = None) -> str:
         """
         智能扩展上下文（加载任务相关技能）
 
@@ -155,18 +140,14 @@ class ContextManager:
 
         从增强记忆系统中加载相关记忆
         """
-        memories = await self.memory_store.search_memory(
-            query="", tags=["session", session_id]
-        )
+        memories = await self.memory_store.search_memory(query="", tags=["session", session_id])
 
         if not memories:
             return "## 记忆上下文\n暂无相关记忆"
 
         memory_texts = []
         for memory in memories:
-            memory_texts.append(
-                f"- [{memory.timestamp}] {memory.content}"
-            )
+            memory_texts.append(f"- [{memory.timestamp}] {memory.content}")
 
         return "## 记忆上下文\n" + "\n".join(memory_texts)
 

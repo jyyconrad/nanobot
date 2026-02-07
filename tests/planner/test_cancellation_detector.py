@@ -2,8 +2,9 @@
 CancellationDetector 单元测试
 """
 
+
 import pytest
-import asyncio
+
 from nanobot.agent.planner.cancellation_detector import CancellationDetector
 
 
@@ -22,12 +23,7 @@ class TestCancellationDetector:
     async def test_is_cancellation_explicit(self):
         """测试明确取消指令检测"""
         detector = CancellationDetector()
-        test_cases = [
-            "取消当前任务",
-            "停止执行操作",
-            "终止任务",
-            "放弃当前操作"
-        ]
+        test_cases = ["取消当前任务", "停止执行操作", "终止任务", "放弃当前操作"]
 
         for input_text in test_cases:
             assert await detector.is_cancellation(input_text) is True
@@ -36,12 +32,7 @@ class TestCancellationDetector:
     async def test_is_cancellation_confirmation(self):
         """测试取消确认检测"""
         detector = CancellationDetector()
-        test_cases = [
-            "确定取消任务",
-            "确认取消操作",
-            "是否取消当前任务",
-            "真的要取消吗"
-        ]
+        test_cases = ["确定取消任务", "确认取消操作", "是否取消当前任务", "真的要取消吗"]
 
         for input_text in test_cases:
             assert await detector.is_cancellation(input_text) is True
@@ -50,12 +41,7 @@ class TestCancellationDetector:
     async def test_is_cancellation_implied(self):
         """测试隐含取消指令检测"""
         detector = CancellationDetector()
-        test_cases = [
-            "我不想继续了",
-            "不要继续执行了",
-            "不必再运行了",
-            "不需要继续了"
-        ]
+        test_cases = ["我不想继续了", "不要继续执行了", "不必再运行了", "不需要继续了"]
 
         for input_text in test_cases:
             assert await detector.is_cancellation(input_text) is True
@@ -68,7 +54,7 @@ class TestCancellationDetector:
             "程序出错了，停止执行",
             "操作失败了，取消任务",
             "有问题，终止操作",
-            "代码有错误，停止运行"
+            "代码有错误，停止运行",
         ]
 
         for input_text in test_cases:
@@ -78,12 +64,7 @@ class TestCancellationDetector:
     async def test_is_not_cancellation(self):
         """测试非取消指令检测"""
         detector = CancellationDetector()
-        test_cases = [
-            "继续执行任务",
-            "请继续操作",
-            "我想继续",
-            "任务完成了吗"
-        ]
+        test_cases = ["继续执行任务", "请继续操作", "我想继续", "任务完成了吗"]
 
         for input_text in test_cases:
             assert await detector.is_cancellation(input_text) is False

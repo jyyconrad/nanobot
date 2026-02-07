@@ -4,12 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from nanobot.agent.subagent.risk_evaluator import (
-    RiskLevel,
-    RiskAssessment,
-    RiskEvaluator
-)
 from nanobot.agent.subagent.agno_subagent import AgnoSubagentManager
+from nanobot.agent.subagent.risk_evaluator import RiskAssessment, RiskEvaluator, RiskLevel
 
 
 @pytest.fixture
@@ -27,10 +23,7 @@ class TestRiskLevel:
     def test_risk_level_creation(self):
         """Test RiskLevel initialization."""
         risk_level = RiskLevel(
-            level="high",
-            score=85,
-            description="High risk operation",
-            requires_approval=True
+            level="high", score=85, description="High risk operation", requires_approval=True
         )
 
         assert risk_level.level == "high"
@@ -41,7 +34,9 @@ class TestRiskLevel:
     def test_risk_level_comparison(self):
         """Test risk level comparison based on score."""
         low_risk = RiskLevel(level="low", score=20, description="Low risk", requires_approval=False)
-        high_risk = RiskLevel(level="high", score=80, description="High risk", requires_approval=True)
+        high_risk = RiskLevel(
+            level="high", score=80, description="High risk", requires_approval=True
+        )
 
         assert high_risk.score > low_risk.score
         assert high_risk.requires_approval != low_risk.requires_approval
@@ -53,10 +48,7 @@ class TestRiskAssessment:
     def test_risk_assessment_creation(self):
         """Test RiskAssessment initialization."""
         risk_level = RiskLevel(
-            level="medium",
-            score=55,
-            description="Medium risk operation",
-            requires_approval=False
+            level="medium", score=55, description="Medium risk operation", requires_approval=False
         )
 
         assessment = RiskAssessment(
@@ -64,7 +56,7 @@ class TestRiskAssessment:
             arguments={"command": "rm -rf temp"},
             risk_level=risk_level,
             rationale="Dangerous command pattern detected",
-            mitigation="Use trash instead of rm -rf"
+            mitigation="Use trash instead of rm -rf",
         )
 
         assert assessment.tool_name == "exec"
@@ -182,8 +174,10 @@ class TestRiskEvaluator:
         assert assessment.risk_level.level == "critical"
         assert assessment.risk_level.score > 90
         assert assessment.risk_level.requires_approval is True
-        assert ("Restricted command detected" in assessment.rationale or 
-                "Dangerous command pattern detected" in assessment.rationale)
+        assert (
+            "Restricted command detected" in assessment.rationale
+            or "Dangerous command pattern detected" in assessment.rationale
+        )
 
     @pytest.mark.asyncio
     async def test_evaluate_dangerous_pattern(self, mock_manager):
@@ -256,7 +250,7 @@ class TestRiskEvaluator:
         tool_call2.name = "exec"
         tool_call2.arguments = {"command": "sudo rm -rf /"}
 
-        with patch.object(evaluator, '_request_approval') as mock_request:
+        with patch.object(evaluator, "_request_approval") as mock_request:
             result = await evaluator.evaluate_tool_calls("test-1234", [tool_call1, tool_call2])
             assert result is False
             assert mock_request.called
@@ -270,18 +264,16 @@ class TestRiskEvaluator:
             tool_name="exec",
             arguments={"command": "sudo rm -rf /"},
             risk_level=RiskLevel(
-                level="critical",
-                score=95,
-                description="Critical risk",
-                requires_approval=True
+                level="critical", score=95, description="Critical risk", requires_approval=True
             ),
             rationale="Dangerous command pattern detected",
-            mitigation="Avoid this command"
+            mitigation="Avoid this command",
         )
 
         # Make the mock publish method awaitable
         async def mock_publish(msg):
             pass
+
         mock_manager.bus.publish_inbound = mock_publish
 
         await evaluator._request_approval("test-1234", assessment)
@@ -295,13 +287,10 @@ class TestRiskEvaluator:
             tool_name="exec",
             arguments={"command": "rm -rf temp"},
             risk_level=RiskLevel(
-                level="high",
-                score=80,
-                description="High risk",
-                requires_approval=True
+                level="high", score=80, description="High risk", requires_approval=True
             ),
             rationale="Dangerous command pattern",
-            mitigation="Use trash"
+            mitigation="Use trash",
         )
 
         result = await evaluator.approve_operation("test-1234", assessment)
@@ -316,13 +305,10 @@ class TestRiskEvaluator:
             tool_name="exec",
             arguments={"command": "rm -rf temp"},
             risk_level=RiskLevel(
-                level="high",
-                score=80,
-                description="High risk",
-                requires_approval=True
+                level="high", score=80, description="High risk", requires_approval=True
             ),
             rationale="Dangerous command pattern",
-            mitigation="Use trash"
+            mitigation="Use trash",
         )
 
         result = await evaluator.reject_operation("test-1234", assessment)

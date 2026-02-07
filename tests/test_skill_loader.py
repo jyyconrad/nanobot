@@ -8,7 +8,6 @@ SkillLoader 单元测试 - 测试技能加载功能
 - 配置加载
 """
 
-
 import pytest
 
 from nanobot.agent.skill_loader import SkillLoader
@@ -35,10 +34,7 @@ class TestSkillLoader:
     @pytest.mark.asyncio
     async def test_load_skills_with_explicit_skills(self, skill_loader):
         """测试使用显式技能"""
-        skills = await skill_loader.load_skills_for_task(
-            "coding",
-            explicit_skills=["security"]
-        )
+        skills = await skill_loader.load_skills_for_task("coding", explicit_skills=["security"])
 
         assert "security" in skills
         assert "coding" in skills
@@ -63,9 +59,7 @@ class TestSkillLoader:
     @pytest.mark.asyncio
     async def test_validate_skills(self, skill_loader):
         """测试技能验证"""
-        valid_skills = await skill_loader.validate_skills(
-            ["coding", "invalid_skill"]
-        )
+        valid_skills = await skill_loader.validate_skills(["coding", "invalid_skill"])
 
         assert len(valid_skills) == 1
         assert "coding" in valid_skills
@@ -73,9 +67,7 @@ class TestSkillLoader:
     @pytest.mark.asyncio
     async def test_validate_all_valid_skills(self, skill_loader):
         """测试验证所有有效技能"""
-        valid_skills = await skill_loader.validate_skills(
-            ["coding", "writing"]
-        )
+        valid_skills = await skill_loader.validate_skills(["coding", "writing"])
 
         assert len(valid_skills) == 2
         assert "coding" in valid_skills
@@ -90,9 +82,7 @@ class TestSkillLoader:
     @pytest.mark.asyncio
     async def test_validate_all_invalid_skills(self, skill_loader):
         """测试验证所有无效技能"""
-        valid_skills = await skill_loader.validate_skills(
-            ["invalid1", "invalid2"]
-        )
+        valid_skills = await skill_loader.validate_skills(["invalid1", "invalid2"])
         assert valid_skills == []
 
     @pytest.mark.asyncio

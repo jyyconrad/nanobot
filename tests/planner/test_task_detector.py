@@ -2,10 +2,11 @@
 TaskDetector 单元测试
 """
 
+
 import pytest
-import asyncio
-from nanobot.agent.planner.task_detector import TaskDetector
+
 from nanobot.agent.planner.models import TaskType
+from nanobot.agent.planner.task_detector import TaskDetector
 
 
 class TestTaskDetector:
@@ -26,7 +27,7 @@ class TestTaskDetector:
             "编写一个Python函数",
             "实现一个计算器程序",
             "修复这个bug",
-            "重构代码以提高性能"
+            "重构代码以提高性能",
         ]
 
         for input_text in test_cases:
@@ -37,12 +38,7 @@ class TestTaskDetector:
     async def test_detect_task_type_text_summarization(self):
         """测试文本摘要任务检测"""
         detector = TaskDetector()
-        test_cases = [
-            "总结这篇文章",
-            "概括主要内容",
-            "提取关键要点",
-            "简述这篇报告"
-        ]
+        test_cases = ["总结这篇文章", "概括主要内容", "提取关键要点", "简述这篇报告"]
 
         for input_text in test_cases:
             task_type = await detector.detect_task_type(input_text)
@@ -52,12 +48,7 @@ class TestTaskDetector:
     async def test_detect_task_type_data_analysis(self):
         """测试数据分析任务检测"""
         detector = TaskDetector()
-        test_cases = [
-            "分析销售数据",
-            "统计用户行为",
-            "处理实验数据",
-            "可视化分析结果"
-        ]
+        test_cases = ["分析销售数据", "统计用户行为", "处理实验数据", "可视化分析结果"]
 
         for input_text in test_cases:
             task_type = await detector.detect_task_type(input_text)
@@ -67,12 +58,7 @@ class TestTaskDetector:
     async def test_detect_task_type_web_search(self):
         """测试网络搜索任务检测"""
         detector = TaskDetector()
-        test_cases = [
-            "搜索最新新闻",
-            "查找相关信息",
-            "查询天气情况",
-            "研究这个主题"
-        ]
+        test_cases = ["搜索最新新闻", "查找相关信息", "查询天气情况", "研究这个主题"]
 
         for input_text in test_cases:
             task_type = await detector.detect_task_type(input_text)
@@ -82,12 +68,7 @@ class TestTaskDetector:
     async def test_detect_task_type_file_operation(self):
         """测试文件操作任务检测"""
         detector = TaskDetector()
-        test_cases = [
-            "创建一个新文件",
-            "删除这个文件",
-            "修改文件内容",
-            "读取文件数据"
-        ]
+        test_cases = ["创建一个新文件", "删除这个文件", "修改文件内容", "读取文件数据"]
 
         for input_text in test_cases:
             task_type = await detector.detect_task_type(input_text)
@@ -97,12 +78,7 @@ class TestTaskDetector:
     async def test_detect_task_type_system_command(self):
         """测试系统命令任务检测"""
         detector = TaskDetector()
-        test_cases = [
-            "运行系统命令",
-            "执行脚本",
-            "安装软件",
-            "配置环境"
-        ]
+        test_cases = ["运行系统命令", "执行脚本", "安装软件", "配置环境"]
 
         for input_text in test_cases:
             task_type = await detector.detect_task_type(input_text)
@@ -112,11 +88,7 @@ class TestTaskDetector:
     async def test_detect_task_type_other(self):
         """测试其他类型任务检测"""
         detector = TaskDetector()
-        test_cases = [
-            "你好",
-            "今天天气怎么样？",
-            "再见"
-        ]
+        test_cases = ["你好", "今天天气怎么样？", "再见"]
 
         for input_text in test_cases:
             task_type = await detector.detect_task_type(input_text)
@@ -150,12 +122,16 @@ class TestTaskDetector:
 
         # 高置信度
         high_confidence_input = "编写一个Python函数"
-        high_confidence = await detector.get_confidence(high_confidence_input, TaskType.CODE_GENERATION)
+        high_confidence = await detector.get_confidence(
+            high_confidence_input, TaskType.CODE_GENERATION
+        )
         assert high_confidence > 0.7
 
         # 低置信度
         low_confidence_input = "你好"
-        low_confidence = await detector.get_confidence(low_confidence_input, TaskType.CODE_GENERATION)
+        low_confidence = await detector.get_confidence(
+            low_confidence_input, TaskType.CODE_GENERATION
+        )
         assert low_confidence < 0.3
 
     @pytest.mark.asyncio

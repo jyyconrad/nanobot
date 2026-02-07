@@ -9,6 +9,7 @@ from typing import Optional
 from loguru import logger
 
 from nanobot.agent.context import ContextBuilder
+from nanobot.agent.main_agent import MainAgent
 from nanobot.agent.subagent import SubagentManager
 from nanobot.agent.task import TaskStatus
 from nanobot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
@@ -18,12 +19,10 @@ from nanobot.agent.tools.shell import ExecTool
 from nanobot.agent.tools.spawn import SpawnTool
 from nanobot.agent.tools.web import WebFetchTool, WebSearchTool
 from nanobot.bus.events import InboundMessage, OutboundMessage
-from nanobot.bus.message_analyzer import AnalysisAction
 from nanobot.bus.queue import MessageBus
 from nanobot.config.schema import ExecToolConfig
 from nanobot.providers.base import LLMProvider
 from nanobot.session.manager import SessionManager
-from nanobot.agent.main_agent import MainAgent
 
 
 class AgentLoop:
@@ -177,9 +176,7 @@ class AgentLoop:
         except Exception as e:
             logger.error(f"MainAgent processing failed: {e}", exc_info=True)
             return OutboundMessage(
-                channel=msg.channel,
-                chat_id=msg.chat_id,
-                content=f"处理消息时发生错误: {str(e)}"
+                channel=msg.channel, chat_id=msg.chat_id, content=f"处理消息时发生错误: {str(e)}"
             )
 
     async def _process_system_message(self, msg: InboundMessage) -> OutboundMessage | None:

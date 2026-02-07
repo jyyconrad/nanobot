@@ -2,8 +2,9 @@
 CorrectionDetector 单元测试
 """
 
+
 import pytest
-import asyncio
+
 from nanobot.agent.planner.correction_detector import CorrectionDetector
 
 
@@ -22,12 +23,7 @@ class TestCorrectionDetector:
     async def test_detect_correction_change(self):
         """测试修改类型修正检测"""
         detector = CorrectionDetector()
-        test_cases = [
-            "修改代码中的错误",
-            "变更文件内容",
-            "更改输入参数",
-            "调整算法参数"
-        ]
+        test_cases = ["修改代码中的错误", "变更文件内容", "更改输入参数", "调整算法参数"]
 
         for input_text in test_cases:
             correction = await detector.detect_correction(input_text)
@@ -40,12 +36,7 @@ class TestCorrectionDetector:
     async def test_detect_correction_add(self):
         """测试添加类型修正检测"""
         detector = CorrectionDetector()
-        test_cases = [
-            "添加新功能",
-            "增加输入验证",
-            "补充文档说明",
-            "新增测试用例"
-        ]
+        test_cases = ["添加新功能", "增加输入验证", "补充文档说明", "新增测试用例"]
 
         for input_text in test_cases:
             correction = await detector.detect_correction(input_text)
@@ -58,12 +49,7 @@ class TestCorrectionDetector:
     async def test_detect_correction_remove(self):
         """测试删除类型修正检测"""
         detector = CorrectionDetector()
-        test_cases = [
-            "删除不必要的代码",
-            "移除多余的文件",
-            "去掉无效的配置",
-            "取消过时的功能"
-        ]
+        test_cases = ["删除不必要的代码", "移除多余的文件", "去掉无效的配置", "取消过时的功能"]
 
         for input_text in test_cases:
             correction = await detector.detect_correction(input_text)
@@ -76,12 +62,7 @@ class TestCorrectionDetector:
     async def test_detect_correction_fix(self):
         """测试修复类型修正检测"""
         detector = CorrectionDetector()
-        test_cases = [
-            "修复代码中的错误",
-            "修正计算错误",
-            "改错语法问题",
-            "修复运行时异常"
-        ]
+        test_cases = ["修复代码中的错误", "修正计算错误", "改错语法问题", "修复运行时异常"]
 
         for input_text in test_cases:
             correction = await detector.detect_correction(input_text)
@@ -94,12 +75,7 @@ class TestCorrectionDetector:
     async def test_detect_correction_improve(self):
         """测试优化类型修正检测"""
         detector = CorrectionDetector()
-        test_cases = [
-            "优化算法性能",
-            "改进用户体验",
-            "提升代码可读性",
-            "完善错误处理"
-        ]
+        test_cases = ["优化算法性能", "改进用户体验", "提升代码可读性", "完善错误处理"]
 
         for input_text in test_cases:
             correction = await detector.detect_correction(input_text)
@@ -112,12 +88,7 @@ class TestCorrectionDetector:
     async def test_detect_correction_clarify(self):
         """测试澄清类型修正检测"""
         detector = CorrectionDetector()
-        test_cases = [
-            "澄清需求说明",
-            "说明参数用途",
-            "解释功能说明",
-            "明确设计思路"
-        ]
+        test_cases = ["澄清需求说明", "说明参数用途", "解释功能说明", "明确设计思路"]
 
         for input_text in test_cases:
             correction = await detector.detect_correction(input_text)
@@ -130,12 +101,7 @@ class TestCorrectionDetector:
     async def test_detect_correction_negation(self):
         """测试否定句检测"""
         detector = CorrectionDetector()
-        test_cases = [
-            "不是修改代码",
-            "不要变更文件",
-            "不必删除功能",
-            "不需要添加内容"
-        ]
+        test_cases = ["不是修改代码", "不要变更文件", "不必删除功能", "不需要添加内容"]
 
         for input_text in test_cases:
             correction = await detector.detect_correction(input_text)

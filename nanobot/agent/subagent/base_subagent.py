@@ -40,6 +40,7 @@ class SubagentManager:
         exec_config: Optional[Any] = None,
     ):
         from nanobot.config.schema import ExecToolConfig
+
         self.provider = provider
         self.workspace = workspace
         self.bus = bus
@@ -90,7 +91,7 @@ class SubagentManager:
             subagent_id=subagent_id,
             session_key=session_key,
             channel=origin_channel,
-            chat_id=origin_chat_id
+            chat_id=origin_chat_id,
         )
         task_id = self._task_manager.create_task(task_obj)
         self._task_map[subagent_id] = task_id
@@ -124,11 +125,13 @@ class SubagentManager:
             tools.register(ReadFileTool())
             tools.register(WriteFileTool())
             tools.register(ListDirTool())
-            tools.register(ExecTool(
-                working_dir=str(self.workspace),
-                timeout=self.exec_config.timeout,
-                restrict_to_workspace=self.exec_config.restrict_to_workspace,
-            ))
+            tools.register(
+                ExecTool(
+                    working_dir=str(self.workspace),
+                    timeout=self.exec_config.timeout,
+                    restrict_to_workspace=self.exec_config.restrict_to_workspace,
+                )
+            )
             tools.register(WebSearchTool(api_key=self.brave_api_key))
             tools.register(WebFetchTool())
 
@@ -149,15 +152,13 @@ class SubagentManager:
 
                 # Update progress
                 progress = (iteration / max_iterations) * 100
-                self._task_manager.update_task(task_id, {
-                    "progress": progress,
-                    "updated_at": datetime.now()
-                })
+                self._task_manager.update_task(
+                    task_id, {"progress": progress, "updated_at": datetime.now()}
+                )
 
                 # Track progress
                 self._progress_tracker.track_progress(
-                    task_id, progress,
-                    f"Iteration {iteration}/{max_iterations}"
+                    task_id, progress, f"Iteration {iteration}/{max_iterations}"
                 )
 
                 response = await self.provider.chat(
@@ -179,22 +180,26 @@ class SubagentManager:
                         }
                         for tc in response.tool_calls
                     ]
-                    messages.append({
-                        "role": "assistant",
-                        "content": response.content or "",
-                        "tool_calls": tool_call_dicts,
-                    })
+                    messages.append(
+                        {
+                            "role": "assistant",
+                            "content": response.content or "",
+                            "tool_calls": tool_call_dicts,
+                        }
+                    )
 
                     # Execute tools
                     for tool_call in response.tool_calls:
                         logger.debug(f"Subagent [{subagent_id}] executing: {tool_call.name}")
                         result = await tools.execute(tool_call.name, tool_call.arguments)
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tool_call.id,
-                            "name": tool_call.name,
-                            "content": result,
-                        })
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": tool_call.id,
+                                "name": tool_call.name,
+                                "content": result,
+                            }
+                        )
                 else:
                     final_result = response.content
                     break
@@ -252,7 +257,9 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
         )
 
         await self.bus.publish_inbound(msg)
-        logger.debug(f"Subagent [{task_id}] announced result to {origin['channel']}:{origin['chat_id']}")
+        logger.debug(
+            f"Subagent [{task_id}] announced result to {origin['channel']}:{origin['chat_id']}"
+        )
 
     def _build_subagent_prompt(self, task: str) -> str:
         """Build a focused system prompt for the subagent."""
@@ -368,7 +375,7 @@ When you have completed the task, provide a clear summary of your findings or ac
             label=f"Correction: {original_task.current_task[:25]}...",
             origin_channel=original_task.channel,
             origin_chat_id=original_task.chat_id,
-            session_key=original_task.session_key
+            session_key=original_task.session_key,
         )
 
         # Update original task as cancelled and create new task record

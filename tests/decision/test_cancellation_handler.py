@@ -2,16 +2,13 @@
 测试取消处理程序
 """
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from pydantic import ValidationError
 
 from nanobot.agent.decision.cancellation_handler import CancellationHandler
-from nanobot.agent.decision.models import (
-    DecisionRequest,
-    DecisionResult,
-    CancellationRequest
-)
+from nanobot.agent.decision.models import CancellationRequest, DecisionRequest, DecisionResult
 from nanobot.agent.loop import AgentLoop
 from nanobot.agent.task import Task
 
@@ -49,12 +46,8 @@ class TestCancellationHandler:
         """测试处理有效取消请求"""
         request = DecisionRequest(
             request_type="cancellation",
-            data={
-                "message_id": "msg123",
-                "cancellation_reason": "用户取消",
-                "task_id": "task123"
-            },
-            task=mock_task
+            data={"message_id": "msg123", "cancellation_reason": "用户取消", "task_id": "task123"},
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -66,7 +59,7 @@ class TestCancellationHandler:
         """测试处理无效数据请求"""
         request = DecisionRequest(
             request_type="cancellation",
-            data={}  # 缺少必填字段
+            data={},  # 缺少必填字段
         )
 
         result = await handler.handle_request(request)
@@ -83,9 +76,9 @@ class TestCancellationHandler:
             data={
                 "message_id": "msg123",
                 "cancellation_reason": "任务不再需要",
-                "task_id": "task123"
+                "task_id": "task123",
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -102,9 +95,9 @@ class TestCancellationHandler:
             data={
                 "message_id": "msg123",
                 "cancellation_reason": "任务已完成",
-                "task_id": "task123"
+                "task_id": "task123",
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -128,9 +121,9 @@ class TestCancellationHandler:
             data={
                 "message_id": "msg123",
                 "cancellation_reason": "通过ID取消",
-                "task_id": "task123"
+                "task_id": "task123",
             },
-            task=None
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -149,9 +142,9 @@ class TestCancellationHandler:
             data={
                 "message_id": "msg123",
                 "cancellation_reason": "任务不存在",
-                "task_id": "nonexistent_task"
+                "task_id": "nonexistent_task",
             },
-            task=None
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -176,11 +169,8 @@ class TestCancellationHandler:
 
         request = DecisionRequest(
             request_type="cancellation",
-            data={
-                "message_id": "msg123",
-                "cancellation_reason": "取消所有任务"
-            },
-            task=None
+            data={"message_id": "msg123", "cancellation_reason": "取消所有任务"},
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -197,11 +187,8 @@ class TestCancellationHandler:
 
         request = DecisionRequest(
             request_type="cancellation",
-            data={
-                "message_id": "msg123",
-                "cancellation_reason": "取消任务"
-            },
-            task=None
+            data={"message_id": "msg123", "cancellation_reason": "取消任务"},
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -221,11 +208,8 @@ class TestCancellationHandler:
 
         request = DecisionRequest(
             request_type="cancellation",
-            data={
-                "message_id": "msg123",
-                "cancellation_reason": "取消任务"
-            },
-            task=None
+            data={"message_id": "msg123", "cancellation_reason": "取消任务"},
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -237,9 +221,7 @@ class TestCancellationHandler:
         with pytest.raises(ValidationError):
             CancellationRequest()
 
-        valid_request = CancellationRequest(
-            message_id="msg123"
-        )
+        valid_request = CancellationRequest(message_id="msg123")
         assert valid_request.message_id == "msg123"
         assert valid_request.cancellation_reason is None
 
@@ -250,7 +232,7 @@ class TestCancellationHandler:
             message_id="msg123",
             cancellation_reason="用户主动取消",
             task_id="task123",
-            context=context
+            context=context,
         )
         assert request.cancellation_reason == "用户主动取消"
         assert request.task_id == "task123"
@@ -260,14 +242,10 @@ class TestCancellationHandler:
     async def test_validate_cancellation_request(self, handler):
         """测试验证取消请求"""
         valid_request = CancellationRequest(
-            message_id="msg123",
-            cancellation_reason="有效的取消原因"
+            message_id="msg123", cancellation_reason="有效的取消原因"
         )
 
-        invalid_request = CancellationRequest(
-            message_id="msg123",
-            cancellation_reason="短"
-        )
+        invalid_request = CancellationRequest(message_id="msg123", cancellation_reason="短")
 
         result1 = await handler._validate_cancellation_request(valid_request)
         result2 = await handler._validate_cancellation_request(invalid_request)

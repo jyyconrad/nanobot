@@ -2,8 +2,9 @@
 ComplexityAnalyzer 单元测试
 """
 
+
 import pytest
-import asyncio
+
 from nanobot.agent.planner.complexity_analyzer import ComplexityAnalyzer
 from nanobot.agent.planner.task_planner import TaskType
 
@@ -112,15 +113,21 @@ class TestComplexityAnalyzer:
 
         # 简单任务
         simple_input = "计算两个数的和"
-        simple_complexity = await analyzer.analyze_complexity(simple_input, TaskType.CODE_GENERATION)
+        simple_complexity = await analyzer.analyze_complexity(
+            simple_input, TaskType.CODE_GENERATION
+        )
 
         # 中等复杂任务
         medium_input = "编写一个Python函数来计算斐波那契数列"
-        medium_complexity = await analyzer.analyze_complexity(medium_input, TaskType.CODE_GENERATION)
+        medium_complexity = await analyzer.analyze_complexity(
+            medium_input, TaskType.CODE_GENERATION
+        )
 
         # 复杂任务
         complex_input = "实现一个高性能的图像识别系统，包含数据预处理、特征提取、模型训练和评估"
-        complex_complexity = await analyzer.analyze_complexity(complex_input, TaskType.CODE_GENERATION)
+        complex_complexity = await analyzer.analyze_complexity(
+            complex_input, TaskType.CODE_GENERATION
+        )
 
         assert simple_complexity < medium_complexity < complex_complexity
 

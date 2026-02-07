@@ -7,7 +7,7 @@ from typing import Any
 class Tool(ABC):
     """
     Abstract base class for agent tools.
-    
+
     Tools are capabilities that the agent can use to interact with
     the environment, such as reading files, executing commands, etc.
     """
@@ -43,10 +43,10 @@ class Tool(ABC):
     async def execute(self, **kwargs: Any) -> str:
         """
         Execute the tool with given parameters.
-        
+
         Args:
             **kwargs: Tool-specific parameters.
-        
+
         Returns:
             String result of the tool execution.
         """
@@ -84,10 +84,12 @@ class Tool(ABC):
                     errors.append(f"missing required {path + '.' + k if path else k}")
             for k, v in val.items():
                 if k in props:
-                    errors.extend(self._validate(v, props[k], path + '.' + k if path else k))
+                    errors.extend(self._validate(v, props[k], path + "." + k if path else k))
         if t == "array" and "items" in schema:
             for i, item in enumerate(val):
-                errors.extend(self._validate(item, schema["items"], f"{path}[{i}]" if path else f"[{i}]"))
+                errors.extend(
+                    self._validate(item, schema["items"], f"{path}[{i}]" if path else f"[{i}]")
+                )
         return errors
 
     def to_schema(self) -> dict[str, Any]:
@@ -98,5 +100,5 @@ class Tool(ABC):
                 "name": self.name,
                 "description": self.description,
                 "parameters": self.parameters,
-            }
+            },
         }

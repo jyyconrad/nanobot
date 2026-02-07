@@ -4,19 +4,20 @@
 负责分析用户输入，识别任务类型，评估复杂度，并制定执行计划。
 """
 
-import asyncio
 from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel, Field
 
-from nanobot.agent.planner.models import TaskType, TaskPriority, TaskPlan
-from nanobot.agent.planner.complexity_analyzer import ComplexityAnalyzer
-from nanobot.agent.planner.task_detector import TaskDetector
-from nanobot.agent.planner.correction_detector import CorrectionDetector
 from nanobot.agent.planner.cancellation_detector import CancellationDetector
+from nanobot.agent.planner.complexity_analyzer import ComplexityAnalyzer
+from nanobot.agent.planner.correction_detector import CorrectionDetector
+from nanobot.agent.planner.models import TaskPlan, TaskPriority, TaskType
+from nanobot.agent.planner.task_detector import TaskDetector
 
 
 class TaskPlanner(BaseModel):
     """任务规划器"""
+
     complexity_analyzer: ComplexityAnalyzer = Field(default_factory=ComplexityAnalyzer)
     task_detector: TaskDetector = Field(default_factory=TaskDetector)
     correction_detector: CorrectionDetector = Field(default_factory=CorrectionDetector)
@@ -24,9 +25,12 @@ class TaskPlanner(BaseModel):
 
     class Config:
         """配置类"""
+
         arbitrary_types_allowed = True
 
-    async def plan_task(self, user_input: str, context: Optional[Dict[str, Any]] = None) -> Union[TaskPlan, Dict[str, str]]:
+    async def plan_task(
+        self, user_input: str, context: Optional[Dict[str, Any]] = None
+    ) -> Union[TaskPlan, Dict[str, str]]:
         """
         规划任务执行计划
 
@@ -42,16 +46,13 @@ class TaskPlanner(BaseModel):
             if await self.cancellation_detector.is_cancellation(user_input):
                 return {
                     "action": "cancel",
-                    "reason": await self.cancellation_detector.get_reason(user_input)
+                    "reason": await self.cancellation_detector.get_reason(user_input),
                 }
 
             # 检查是否是修正指令
             correction = await self.correction_detector.detect_correction(user_input, context)
             if correction:
-                return {
-                    "action": "correct",
-                    "correction": correction
-                }
+                return {"action": "correct", "correction": correction}
 
             # 检测任务类型
             task_type = await self.task_detector.detect_task_type(user_input)
@@ -67,7 +68,13 @@ class TaskPlanner(BaseModel):
         except Exception as e:
             raise Exception(f"任务规划失败: {str(e)}")
 
-    async def _generate_plan(self, user_input: str, task_type: TaskType, complexity: float, context: Optional[Dict[str, Any]] = None) -> TaskPlan:
+    async def _generate_plan(
+        self,
+        user_input: str,
+        task_type: TaskType,
+        complexity: float,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> TaskPlan:
         """
         生成任务执行计划
 
@@ -98,10 +105,16 @@ class TaskPlanner(BaseModel):
             complexity=complexity,
             steps=steps,
             estimated_time=estimated_time,
-            requires_approval=requires_approval
+            requires_approval=requires_approval,
         )
 
-    async def _generate_steps(self, user_input: str, task_type: TaskType, complexity: float, context: Optional[Dict[str, Any]] = None) -> List[str]:
+    async def _generate_steps(
+        self,
+        user_input: str,
+        task_type: TaskType,
+        complexity: float,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> List[str]:
         """
         生成任务执行步骤
 
@@ -118,53 +131,19 @@ class TaskPlanner(BaseModel):
         steps = []
 
         if task_type == TaskType.CODE_GENERATION:
-            steps = [
-                "分析代码需求",
-                "设计代码结构",
-                "编写代码实现",
-                "测试代码功能",
-                "优化代码性能"
-            ]
+            steps = ["分析代码需求", "设计代码结构", "编写代码实现", "测试代码功能", "优化代码性能"]
         elif task_type == TaskType.TEXT_SUMMARIZATION:
-            steps = [
-                "分析文本内容",
-                "提取关键信息",
-                "生成摘要",
-                "优化摘要质量"
-            ]
+            steps = ["分析文本内容", "提取关键信息", "生成摘要", "优化摘要质量"]
         elif task_type == TaskType.DATA_ANALYSIS:
-            steps = [
-                "分析数据需求",
-                "收集数据",
-                "清理数据",
-                "分析数据",
-                "可视化结果"
-            ]
+            steps = ["分析数据需求", "收集数据", "清理数据", "分析数据", "可视化结果"]
         elif task_type == TaskType.WEB_SEARCH:
-            steps = [
-                "分析搜索需求",
-                "执行搜索",
-                "处理搜索结果",
-                "总结结果"
-            ]
+            steps = ["分析搜索需求", "执行搜索", "处理搜索结果", "总结结果"]
         elif task_type == TaskType.FILE_OPERATION:
-            steps = [
-                "分析文件操作需求",
-                "执行文件操作",
-                "验证操作结果"
-            ]
+            steps = ["分析文件操作需求", "执行文件操作", "验证操作结果"]
         elif task_type == TaskType.SYSTEM_COMMAND:
-            steps = [
-                "分析系统命令需求",
-                "执行系统命令",
-                "检查命令结果"
-            ]
+            steps = ["分析系统命令需求", "执行系统命令", "检查命令结果"]
         else:
-            steps = [
-                "分析任务需求",
-                "执行任务",
-                "检查结果"
-            ]
+            steps = ["分析任务需求", "执行任务", "检查结果"]
 
         # 根据复杂度调整步骤数量
         if complexity < 0.3:

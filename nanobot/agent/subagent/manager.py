@@ -3,12 +3,10 @@ SubagentManager - Subagent 管理类
 """
 
 import logging
-from typing import Dict, Optional, List
-
-from pydantic import BaseModel
+from typing import Dict, List, Optional
 
 from nanobot.agent.subagent.agno_subagent import AgnoSubagent
-from nanobot.agent.subagent.models import SubagentTask, SubagentResult, SubagentState
+from nanobot.agent.subagent.models import SubagentResult, SubagentState, SubagentTask
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +48,7 @@ class SubagentManager:
         self.subagents[task.task_id] = subagent
         self.tasks[task.task_id] = task
         self.states[task.task_id] = SubagentState(
-            task_id=task.task_id,
-            status="ASSIGNED",
-            progress=0.0
+            task_id=task.task_id, status="ASSIGNED", progress=0.0
         )
 
         # 启动 Subagent 执行

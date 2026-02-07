@@ -11,22 +11,23 @@ from nanobot.config.schema import Config
 
 def get_config_path() -> Path:
     """Get the default configuration file path."""
-    return Path.home() / ".nanobot" / "config.json"
+    return Path.home() / ".nanobot" / "nanobot_config.yaml"
 
 
 def get_data_dir() -> Path:
     """Get the nanobot data directory."""
     from nanobot.utils.helpers import get_data_path
+
     return get_data_path()
 
 
 def load_config(config_path: Optional[Path] = None) -> Config:
     """
     Load configuration from file or create default.
-    
+
     Args:
         config_path: Optional path to config file. Uses default if not provided.
-    
+
     Returns:
         Loaded configuration object.
     """
@@ -40,7 +41,7 @@ def load_config(config_path: Optional[Path] = None) -> Config:
             else:
                 with open(path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-            
+
             return Config.model_validate(convert_keys(data))
         except Exception as e:
             print(f"Warning: Failed to load config from {path}: {e}")
@@ -52,7 +53,7 @@ def load_config(config_path: Optional[Path] = None) -> Config:
 def save_config(config: Config, config_path: Optional[Path] = None) -> None:
     """
     Save configuration to file.
-    
+
     Args:
         config: Configuration to save.
         config_path: Optional path to save to. Uses default if not provided.

@@ -27,11 +27,7 @@ class ContextExpander:
     def __init__(self):
         self.skill_loader = SkillLoader()
 
-    async def expand(
-        self,
-        base_context: str,
-        task_type: Optional[str] = None
-    ) -> str:
+    async def expand(self, base_context: str, task_type: Optional[str] = None) -> str:
         """
         扩展上下文
 
@@ -66,10 +62,7 @@ class ContextExpander:
         skill_context = await self._build_skill_context(skills)
 
         # 合并到基础上下文
-        expanded_context = "\n\n".join([
-            base_context,
-            skill_context
-        ])
+        expanded_context = "\n\n".join([base_context, skill_context])
 
         logger.debug("上下文扩展完成，扩展后长度: %d", len(expanded_context))
 
@@ -178,7 +171,7 @@ class ContextExpander:
 - 数据挖掘支持
 - 文献检索和整理
 - 研究报告生成
-"""
+""",
         }
 
         content = skill_templates.get(skill_name.lower())

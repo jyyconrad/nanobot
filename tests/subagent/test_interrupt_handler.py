@@ -6,12 +6,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from nanobot.agent.subagent.interrupt_handler import (
-    InterruptType,
-    InterruptRequest,
-    InterruptHandler
-)
 from nanobot.agent.subagent.agno_subagent import AgnoSubagentManager
+from nanobot.agent.subagent.interrupt_handler import (
+    InterruptHandler,
+    InterruptRequest,
+    InterruptType,
+)
 from nanobot.bus.events import InboundMessage
 
 
@@ -20,13 +20,18 @@ def mock_manager():
     """Create a mock AgnoSubagentManager."""
     manager = MagicMock(spec=AgnoSubagentManager)
     manager.bus = MagicMock()
+
     async def mock_publish(*args, **kwargs):
         pass
+
     manager.bus.publish_inbound = mock_publish
+
     async def mock_cancel(*args, **kwargs):
         return True
+
     async def mock_spawn(*args, **kwargs):
         return "new-subagent-id"
+
     manager.cancel_subagent = mock_cancel
     manager.spawn = mock_spawn
     manager._subagent_map = {}
@@ -39,9 +44,7 @@ class TestInterruptType:
     def test_interrupt_type_creation(self):
         """Test InterruptType initialization."""
         interrupt_type = InterruptType(
-            type="cancel",
-            priority=5,
-            description="Cancel task immediately"
+            type="cancel", priority=5, description="Cancel task immediately"
         )
 
         assert interrupt_type.type == "cancel"
@@ -58,7 +61,7 @@ class TestInterruptRequest:
             request_id="intr-1234",
             subagent_id="test-1234",
             type="cancel",
-            message="Cancel the task"
+            message="Cancel the task",
         )
 
         assert request.request_id == "intr-1234"
@@ -74,7 +77,7 @@ class TestInterruptRequest:
             request_id="intr-1234",
             subagent_id="test-1234",
             type="cancel",
-            message="Cancel the task"
+            message="Cancel the task",
         )
 
         request.processed = True
@@ -160,9 +163,11 @@ class TestInterruptHandler:
         request = await handler.add_interrupt("test-1234", "cancel", "Cancel task")
         assert "test-1234" in handler._pending_interrupts
 
-        with patch.object(handler, '_handle_interrupt') as mock_handle:
+        with patch.object(handler, "_handle_interrupt") as mock_handle:
+
             async def mock_handle_func(*args, **kwargs):
                 pass
+
             mock_handle.side_effect = mock_handle_func
             has_interrupt = await handler.check_for_interrupt("test-1234")
             assert has_interrupt is True
@@ -200,12 +205,14 @@ class TestInterruptHandler:
             channel="system",
             sender_id="user",
             chat_id="direct",
-            content="Cancel subagent [abcd1234]"
+            content="Cancel subagent [abcd1234]",
         )
 
-        with patch.object(handler, 'add_interrupt') as mock_add:
+        with patch.object(handler, "add_interrupt") as mock_add:
+
             async def mock_add_func(*args, **kwargs):
                 return None
+
             mock_add.side_effect = mock_add_func
             result = await handler.handle_message_interrupt(message)
             assert result is True
@@ -220,12 +227,14 @@ class TestInterruptHandler:
             channel="system",
             sender_id="user",
             chat_id="direct",
-            content="Pause subagent [abcd1234]"
+            content="Pause subagent [abcd1234]",
         )
 
-        with patch.object(handler, 'add_interrupt') as mock_add:
+        with patch.object(handler, "add_interrupt") as mock_add:
+
             async def mock_add_func(*args, **kwargs):
                 return None
+
             mock_add.side_effect = mock_add_func
             result = await handler.handle_message_interrupt(message)
             assert result is True
@@ -240,12 +249,14 @@ class TestInterruptHandler:
             channel="system",
             sender_id="user",
             chat_id="direct",
-            content="Correct subagent [abcd1234] to do something else"
+            content="Correct subagent [abcd1234] to do something else",
         )
 
-        with patch.object(handler, 'add_interrupt') as mock_add:
+        with patch.object(handler, "add_interrupt") as mock_add:
+
             async def mock_add_func(*args, **kwargs):
                 return None
+
             mock_add.side_effect = mock_add_func
             result = await handler.handle_message_interrupt(message)
             assert result is True
@@ -257,10 +268,7 @@ class TestInterruptHandler:
         handler = InterruptHandler(mock_manager)
 
         message = InboundMessage(
-            channel="system",
-            sender_id="user",
-            chat_id="direct",
-            content="Unknown command"
+            channel="system", sender_id="user", chat_id="direct", content="Unknown command"
         )
 
         result = await handler.handle_message_interrupt(message)
@@ -290,10 +298,7 @@ class TestInterruptHandler:
         mock_subagent2 = MagicMock()
         mock_subagent2.status = "running"
 
-        handler.manager._subagent_map = {
-            "test-1234": mock_subagent1,
-            "test-5678": mock_subagent2
-        }
+        handler.manager._subagent_map = {"test-1234": mock_subagent1, "test-5678": mock_subagent2}
 
         await handler.pause_all_subagents()
         assert len(handler._paused_subagents) == 2
@@ -326,7 +331,7 @@ class TestInterruptHandler:
 
         handler._paused_subagents.add("test-1234")
 
-        with patch('asyncio.sleep') as mock_sleep:
+        with patch("asyncio.sleep") as mock_sleep:
             mock_sleep.side_effect = lambda x: asyncio.sleep(0)
             result = await handler.wait_for_resume("test-1234", timeout=0.001)
             assert result is False
@@ -337,9 +342,11 @@ class TestInterruptHandler:
         handler = InterruptHandler(mock_manager)
         subagent_id = "test-1234"
 
-        with patch.object(handler, '_handle_cancel') as mock_handle:
+        with patch.object(handler, "_handle_cancel") as mock_handle:
+
             async def mock_handle_func(*args, **kwargs):
                 pass
+
             mock_handle.side_effect = mock_handle_func
             request = await handler.add_interrupt(subagent_id, "cancel")
             await handler._handle_interrupt(subagent_id, request)

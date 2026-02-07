@@ -43,8 +43,22 @@ class RiskEvaluator:
         self.bus: MessageBus = manager.bus
         self._high_risk_tools: Set[str] = {"exec"}
         self._restricted_commands: Set[str] = {
-            "rm", "rmdir", "rm -rf", "sudo", "su", "chmod", "chown", "mv", "dd",
-            "format", "mkfs", "fdisk", "parted", "wipefs", "shred", "unlink"
+            "rm",
+            "rmdir",
+            "rm -rf",
+            "sudo",
+            "su",
+            "chmod",
+            "chown",
+            "mv",
+            "dd",
+            "format",
+            "mkfs",
+            "fdisk",
+            "parted",
+            "wipefs",
+            "shred",
+            "unlink",
         }
         self._dangerous_patterns: List[str] = [
             r"rm\s+-rf",
@@ -56,14 +70,10 @@ class RiskEvaluator:
             r"fdisk\s+.*",
             r"parted\s+.*",
             r"wipefs\s+.*",
-            r"shred\s+.*"
+            r"shred\s+.*",
         ]
 
-    async def evaluate_tool_calls(
-        self,
-        subagent_id: str,
-        tool_calls: List[Any]
-    ) -> bool:
+    async def evaluate_tool_calls(self, subagent_id: str, tool_calls: List[Any]) -> bool:
         """
         Evaluate tool calls for risk and determine if they should be allowed.
 
@@ -89,16 +99,10 @@ class RiskEvaluator:
                 await self._request_approval(subagent_id, assessment)
                 return False
 
-        logger.debug(
-            f"All tool calls evaluated as safe: {[a.tool_name for a in assessments]}"
-        )
+        logger.debug(f"All tool calls evaluated as safe: {[a.tool_name for a in assessments]}")
         return True
 
-    async def _evaluate_single_tool_call(
-        self,
-        subagent_id: str,
-        tool_call: Any
-    ) -> RiskAssessment:
+    async def _evaluate_single_tool_call(self, subagent_id: str, tool_call: Any) -> RiskAssessment:
         """Evaluate a single tool call for risk."""
         tool_name = tool_call.name
         arguments = tool_call.arguments
@@ -109,10 +113,7 @@ class RiskEvaluator:
             return await self._evaluate_low_risk_tool(subagent_id, tool_name, arguments)
 
     async def _evaluate_high_risk_tool(
-        self,
-        subagent_id: str,
-        tool_name: str,
-        arguments: dict
+        self, subagent_id: str, tool_name: str, arguments: dict
     ) -> RiskAssessment:
         """Evaluate high-risk tools like shell commands."""
         command = arguments.get("command", "")
@@ -150,7 +151,7 @@ class RiskEvaluator:
             level=risk_level,
             score=risk_score,
             description=self._get_risk_description(risk_level),
-            requires_approval=risk_score >= 70
+            requires_approval=risk_score >= 70,
         )
 
         mitigation = await self._get_mitigation_suggestions(tool_name, arguments, risk_level)
@@ -160,21 +161,15 @@ class RiskEvaluator:
             arguments=arguments,
             risk_level=risk_level_obj,
             rationale=rationale,
-            mitigation=mitigation
+            mitigation=mitigation,
         )
 
     async def _evaluate_low_risk_tool(
-        self,
-        subagent_id: str,
-        tool_name: str,
-        arguments: dict
+        self, subagent_id: str, tool_name: str, arguments: dict
     ) -> RiskAssessment:
         """Evaluate low-risk tools like read file, list dir, etc."""
         risk_level = RiskLevel(
-            level="low",
-            score=10,
-            description="Low-risk operation",
-            requires_approval=False
+            level="low", score=10, description="Low-risk operation", requires_approval=False
         )
 
         return RiskAssessment(
@@ -182,7 +177,7 @@ class RiskEvaluator:
             arguments=arguments,
             risk_level=risk_level,
             rationale=f"Low-risk tool call: {tool_name}",
-            mitigation=None
+            mitigation=None,
         )
 
     async def _request_approval(self, subagent_id: str, assessment: RiskAssessment):
@@ -195,7 +190,7 @@ Agno Subagent [{subagent_id}] is attempting to execute a high-risk operation:
 **Risk Level:** {assessment.risk_level.level} ({assessment.risk_level.score}/100)
 **Arguments:** {assessment.arguments}
 **Rationale:** {assessment.rationale}
-**Mitigation:** {assessment.mitigation or 'None'}
+**Mitigation:** {assessment.mitigation or "None"}
 
 Please review this operation. Do you want to allow it to proceed?
 """
@@ -231,10 +226,7 @@ Please review this operation. Do you want to allow it to proceed?
         return descriptions.get(level, "Unknown risk level")
 
     async def _get_mitigation_suggestions(
-        self,
-        tool_name: str,
-        arguments: dict,
-        risk_level: str
+        self, tool_name: str, arguments: dict, risk_level: str
     ) -> Optional[str]:
         """Get mitigation suggestions based on tool and arguments."""
         if risk_level == "critical":
@@ -285,10 +277,9 @@ Please review this operation. Do you want to allow it to proceed?
         Returns:
             Risk assessment
         """
-        return await self._evaluate_single_tool_call("custom", type('ToolCall', (object,), {
-            'name': tool_name,
-            'arguments': arguments
-        }))
+        return await self._evaluate_single_tool_call(
+            "custom", type("ToolCall", (object,), {"name": tool_name, "arguments": arguments})
+        )
 
     async def evaluate_command_safety(self, command: str) -> RiskAssessment:
         """
@@ -300,7 +291,7 @@ Please review this operation. Do you want to allow it to proceed?
         Returns:
             Risk assessment
         """
-        return await self._evaluate_single_tool_call("custom", type('ToolCall', (object,), {
-            'name': 'exec',
-            'arguments': {'command': command}
-        }))
+        return await self._evaluate_single_tool_call(
+            "custom",
+            type("ToolCall", (object,), {"name": "exec", "arguments": {"command": command}}),
+        )

@@ -2,16 +2,13 @@
 测试子代理结果处理程序
 """
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from pydantic import ValidationError
 
+from nanobot.agent.decision.models import DecisionRequest, DecisionResult, SubagentResultRequest
 from nanobot.agent.decision.subagent_result_handler import SubagentResultHandler
-from nanobot.agent.decision.models import (
-    DecisionRequest,
-    DecisionResult,
-    SubagentResultRequest
-)
 from nanobot.agent.loop import AgentLoop
 from nanobot.agent.task import Task
 
@@ -57,9 +54,9 @@ class TestSubagentResultHandler:
                 "task_id": "task123",
                 "result": {"success": True, "data": "test data"},
                 "status": "success",
-                "duration": 1.5
+                "duration": 1.5,
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -71,7 +68,7 @@ class TestSubagentResultHandler:
         """测试处理无效数据请求"""
         request = DecisionRequest(
             request_type="subagent_result",
-            data={}  # 缺少必填字段
+            data={},  # 缺少必填字段
         )
 
         result = await handler.handle_request(request)
@@ -90,9 +87,9 @@ class TestSubagentResultHandler:
                 "task_id": "task123",
                 "result": {"success": True, "data": "test data"},
                 "status": "success",
-                "duration": 1.5
+                "duration": 1.5,
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -112,9 +109,9 @@ class TestSubagentResultHandler:
                 "task_id": "task123",
                 "result": {"success": True, "data": "test data"},
                 "status": "success",
-                "duration": 1.5
+                "duration": 1.5,
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -136,9 +133,9 @@ class TestSubagentResultHandler:
                 "result": {},
                 "status": "error",
                 "error": "Test error",
-                "duration": 0.5
+                "duration": 0.5,
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -160,9 +157,9 @@ class TestSubagentResultHandler:
                 "result": {},
                 "status": "error",
                 "error": "Test error",
-                "duration": 0.5
+                "duration": 0.5,
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -179,9 +176,9 @@ class TestSubagentResultHandler:
                 "task_id": "task123",
                 "result": {},
                 "status": "cancelled",
-                "duration": 0.2
+                "duration": 0.2,
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -198,9 +195,9 @@ class TestSubagentResultHandler:
                 "task_id": "task123",
                 "result": {},
                 "status": "unknown",
-                "duration": 0.1
+                "duration": 0.1,
             },
-            task=mock_task
+            task=mock_task,
         )
 
         result = await handler.handle_request(request)
@@ -217,9 +214,9 @@ class TestSubagentResultHandler:
                 "task_id": "task123",
                 "result": {"success": True, "data": "test data"},
                 "status": "success",
-                "duration": 1.5
+                "duration": 1.5,
             },
-            task=None
+            task=None,
         )
 
         result = await handler.handle_request(request)
@@ -236,7 +233,7 @@ class TestSubagentResultHandler:
             task_id="task123",
             result={"success": True},
             status="success",
-            duration=1.5
+            duration=1.5,
         )
         assert valid_request.subagent_id == "sub123"
         assert valid_request.task_id == "task123"
@@ -251,7 +248,7 @@ class TestSubagentResultHandler:
             result={},
             status="error",
             duration=0.5,
-            error="Test error message"
+            error="Test error message",
         )
         assert request.status == "error"
         assert request.error == "Test error message"

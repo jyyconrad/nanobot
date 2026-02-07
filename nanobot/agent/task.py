@@ -14,17 +14,19 @@ from typing import List, Optional
 
 class TaskStatus(Enum):
     """任务状态枚举"""
-    PENDING = "pending"       # 待执行
-    RUNNING = "running"       # 执行中
-    COMPLETED = "completed"   # 已完成
-    FAILED = "failed"         # 失败
-    CANCELLED = "cancelled"   # 已取消
-    PAUSED = "paused"         # 暂停
+
+    PENDING = "pending"  # 待执行
+    RUNNING = "running"  # 执行中
+    COMPLETED = "completed"  # 已完成
+    FAILED = "failed"  # 失败
+    CANCELLED = "cancelled"  # 已取消
+    PAUSED = "paused"  # 暂停
 
 
 @dataclass
 class Task:
     """任务数据模型"""
+
     # 任务唯一标识
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
@@ -111,7 +113,7 @@ class Task:
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
             "result": self.result,
             "history": self.history,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     @classmethod
@@ -129,7 +131,7 @@ class Task:
             chat_id=data.get("chat_id", ""),
             result=data.get("result"),
             history=data.get("history", []),
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
         )
 
         task.status = TaskStatus(data.get("status", "pending"))

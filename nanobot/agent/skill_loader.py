@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class SkillMapping(BaseModel):
     """技能映射配置"""
+
     task_type: str
     skills: List[str]
 
@@ -68,7 +69,7 @@ class SkillLoader:
             "writing": ["writing", "research"],
             "research": ["research", "writing"],
             "translation": ["writing"],
-            "analysis": ["research", "planning"]
+            "analysis": ["research", "planning"],
         }
 
         logger.debug("使用默认技能映射")
@@ -81,9 +82,7 @@ class SkillLoader:
         return ["planning", "writing"]
 
     async def load_skills_for_task(
-        self,
-        task_type: str,
-        explicit_skills: Optional[List[str]] = None
+        self, task_type: str, explicit_skills: Optional[List[str]] = None
     ) -> List[str]:
         """
         根据任务类型加载技能
@@ -95,11 +94,7 @@ class SkillLoader:
         Returns:
             技能列表（去重后）
         """
-        logger.debug(
-            "加载任务类型 '%s' 的技能，显式技能: %s",
-            task_type,
-            explicit_skills
-        )
+        logger.debug("加载任务类型 '%s' 的技能，显式技能: %s", task_type, explicit_skills)
 
         skills = []
 
@@ -186,7 +181,7 @@ class SkillLoader:
             "planning": "规划技能 - 任务分解和项目管理",
             "writing": "写作技能 - 内容创作和文档生成",
             "research": "研究技能 - 信息收集和数据分析",
-            "translation": "翻译技能 - 多语言翻译支持"
+            "translation": "翻译技能 - 多语言翻译支持",
         }
 
         content = skill_contents.get(skill_name.lower())

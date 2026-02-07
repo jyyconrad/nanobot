@@ -2,8 +2,9 @@
 测试执行决策管理器
 """
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from pydantic import ValidationError
 
 from nanobot.agent.decision.decision_maker import ExecutionDecisionMaker
@@ -45,10 +46,7 @@ class TestExecutionDecisionMaker:
         )
         decision_maker.register_handler("test_type", mock_handler)
 
-        request = DecisionRequest(
-            request_type="test_type",
-            data={"test": "data"}
-        )
+        request = DecisionRequest(request_type="test_type", data={"test": "data"})
 
         result = await decision_maker.make_decision(request)
         assert result.success
@@ -58,10 +56,7 @@ class TestExecutionDecisionMaker:
     @pytest.mark.asyncio
     async def test_make_decision_with_unsupported_request_type(self, decision_maker):
         """测试使用不支持的请求类型的决策"""
-        request = DecisionRequest(
-            request_type="unsupported_type",
-            data={"test": "data"}
-        )
+        request = DecisionRequest(request_type="unsupported_type", data={"test": "data"})
 
         result = await decision_maker.make_decision(request)
         assert not result.success
@@ -73,15 +68,10 @@ class TestExecutionDecisionMaker:
         """测试处理程序错误"""
         # 模拟处理程序抛出异常
         mock_handler = Mock()
-        mock_handler.handle_request = AsyncMock(
-            side_effect=Exception("Test error")
-        )
+        mock_handler.handle_request = AsyncMock(side_effect=Exception("Test error"))
         decision_maker.register_handler("error_type", mock_handler)
 
-        request = DecisionRequest(
-            request_type="error_type",
-            data={"test": "data"}
-        )
+        request = DecisionRequest(request_type="error_type", data={"test": "data"})
 
         result = await decision_maker.make_decision(request)
         assert not result.success
@@ -112,8 +102,7 @@ class TestExecutionDecisionMaker:
             DecisionRequest()
 
         valid_request = DecisionRequest(
-            request_type="new_message",
-            data={"content": "test message"}
+            request_type="new_message", data={"content": "test message"}
         )
         assert valid_request.request_type == "new_message"
         assert valid_request.data == {"content": "test message"}
@@ -134,12 +123,7 @@ class TestDecisionResult:
         """测试包含数据和消息的决策结果"""
         data = {"key": "value"}
         message = "Test message"
-        result = DecisionResult(
-            success=True,
-            action="test_action",
-            data=data,
-            message=message
-        )
+        result = DecisionResult(success=True, action="test_action", data=data, message=message)
         assert result.data == data
         assert result.message == message
 

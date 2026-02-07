@@ -13,7 +13,7 @@ from nanobot.config.schema import Config
 class ChannelManager:
     """
     Manages chat channels and coordinates message routing.
-    
+
     Responsibilities:
     - Initialize enabled channels (Telegram, WhatsApp, etc.)
     - Start/stop channels
@@ -35,6 +35,7 @@ class ChannelManager:
         if self.config.channels.telegram.enabled:
             try:
                 from nanobot.channels.telegram import TelegramChannel
+
                 self.channels["telegram"] = TelegramChannel(
                     self.config.channels.telegram,
                     self.bus,
@@ -48,9 +49,8 @@ class ChannelManager:
         if self.config.channels.whatsapp.enabled:
             try:
                 from nanobot.channels.whatsapp import WhatsAppChannel
-                self.channels["whatsapp"] = WhatsAppChannel(
-                    self.config.channels.whatsapp, self.bus
-                )
+
+                self.channels["whatsapp"] = WhatsAppChannel(self.config.channels.whatsapp, self.bus)
                 logger.info("WhatsApp channel enabled")
             except ImportError as e:
                 logger.warning(f"WhatsApp channel not available: {e}")
@@ -59,9 +59,8 @@ class ChannelManager:
         if self.config.channels.feishu.enabled:
             try:
                 from nanobot.channels.feishu import FeishuChannel
-                self.channels["feishu"] = FeishuChannel(
-                    self.config.channels.feishu, self.bus
-                )
+
+                self.channels["feishu"] = FeishuChannel(self.config.channels.feishu, self.bus)
                 logger.info("Feishu channel enabled")
             except ImportError as e:
                 logger.warning(f"Feishu channel not available: {e}")
@@ -110,10 +109,7 @@ class ChannelManager:
 
         while True:
             try:
-                msg = await asyncio.wait_for(
-                    self.bus.consume_outbound(),
-                    timeout=1.0
-                )
+                msg = await asyncio.wait_for(self.bus.consume_outbound(), timeout=1.0)
 
                 channel = self.channels.get(msg.channel)
                 if channel:
@@ -136,10 +132,7 @@ class ChannelManager:
     def get_status(self) -> dict[str, Any]:
         """Get status of all channels."""
         return {
-            name: {
-                "enabled": True,
-                "running": channel.is_running
-            }
+            name: {"enabled": True, "running": channel.is_running}
             for name, channel in self.channels.items()
         }
 

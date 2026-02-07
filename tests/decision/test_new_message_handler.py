@@ -2,16 +2,13 @@
 测试新消息处理程序
 """
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from pydantic import ValidationError
 
+from nanobot.agent.decision.models import DecisionRequest, DecisionResult, NewMessageRequest
 from nanobot.agent.decision.new_message_handler import NewMessageHandler
-from nanobot.agent.decision.models import (
-    DecisionRequest,
-    DecisionResult,
-    NewMessageRequest
-)
 from nanobot.agent.loop import AgentLoop
 
 
@@ -45,8 +42,8 @@ class TestNewMessageHandler:
                 "content": "请帮我查询天气",
                 "sender_id": "user456",
                 "timestamp": 1234567890,
-                "conversation_id": "conv789"
-            }
+                "conversation_id": "conv789",
+            },
         )
 
         result = await handler.handle_request(request)
@@ -58,7 +55,7 @@ class TestNewMessageHandler:
         """测试处理无效数据请求"""
         request = DecisionRequest(
             request_type="new_message",
-            data={}  # 缺少必填字段
+            data={},  # 缺少必填字段
         )
 
         result = await handler.handle_request(request)
@@ -75,8 +72,8 @@ class TestNewMessageHandler:
                 "content": "取消任务",
                 "sender_id": "user456",
                 "timestamp": 1234567890,
-                "conversation_id": "conv789"
-            }
+                "conversation_id": "conv789",
+            },
         )
 
         result = await handler.handle_request(request)
@@ -93,8 +90,8 @@ class TestNewMessageHandler:
                 "content": "不对，我要查的是明天的天气",
                 "sender_id": "user456",
                 "timestamp": 1234567890,
-                "conversation_id": "conv789"
-            }
+                "conversation_id": "conv789",
+            },
         )
 
         result = await handler.handle_request(request)
@@ -111,8 +108,8 @@ class TestNewMessageHandler:
                 "content": "查一下今天的天气？",
                 "sender_id": "user456",
                 "timestamp": 1234567890,
-                "conversation_id": "conv789"
-            }
+                "conversation_id": "conv789",
+            },
         )
 
         result = await handler.handle_request(request)
@@ -129,8 +126,8 @@ class TestNewMessageHandler:
                 "content": "帮我创建一个待办事项",
                 "sender_id": "user456",
                 "timestamp": 1234567890,
-                "conversation_id": "conv789"
-            }
+                "conversation_id": "conv789",
+            },
         )
 
         result = await handler.handle_request(request)
@@ -147,7 +144,7 @@ class TestNewMessageHandler:
             content="测试消息",
             sender_id="user456",
             timestamp=1234567890,
-            conversation_id="conv789"
+            conversation_id="conv789",
         )
         assert valid_request.message_id == "msg123"
         assert valid_request.content == "测试消息"
@@ -162,7 +159,7 @@ class TestNewMessageHandler:
             sender_id="user456",
             timestamp=1234567890,
             conversation_id="conv789",
-            message_type="image"
+            message_type="image",
         )
         assert request.message_type == "image"
 
@@ -175,7 +172,7 @@ class TestNewMessageHandler:
             content="这是一个有效的任务请求",
             sender_id="user456",
             timestamp=1234567890,
-            conversation_id="conv789"
+            conversation_id="conv789",
         )
 
         invalid_message = NewMessageRequest(
@@ -183,7 +180,7 @@ class TestNewMessageHandler:
             content="Hi",
             sender_id="user456",
             timestamp=1234567890,
-            conversation_id="conv789"
+            conversation_id="conv789",
         )
 
         # 由于 _should_create_task 是私有方法，我们使用特殊方式访问
@@ -201,7 +198,7 @@ class TestNewMessageHandler:
             content="帮助",
             sender_id="user456",
             timestamp=1234567890,
-            conversation_id="conv789"
+            conversation_id="conv789",
         )
 
         query_message = NewMessageRequest(
@@ -209,7 +206,7 @@ class TestNewMessageHandler:
             content="查询天气",
             sender_id="user456",
             timestamp=1234567890,
-            conversation_id="conv789"
+            conversation_id="conv789",
         )
 
         create_message = NewMessageRequest(
@@ -217,7 +214,7 @@ class TestNewMessageHandler:
             content="创建任务",
             sender_id="user456",
             timestamp=1234567890,
-            conversation_id="conv789"
+            conversation_id="conv789",
         )
 
         intent1 = await handler._extract_intent(help_message)

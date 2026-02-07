@@ -20,7 +20,7 @@ from nanobot.agent.task_manager import TaskManager
 class ProgressTracker:
     """
     任务进度跟踪器：监控任务执行进度和状态
-    
+
     主要功能：
     - 实时监控任务进度
     - 收集任务执行过程信息
@@ -35,7 +35,7 @@ class ProgressTracker:
     def track_progress(self, task_id: str, progress: float, message: str = ""):
         """
         跟踪任务进度
-        
+
         Args:
             task_id: 任务ID
             progress: 进度值（0-100）
@@ -44,21 +44,19 @@ class ProgressTracker:
         if task_id not in self._progress_history:
             self._progress_history[task_id] = []
 
-        self._progress_history[task_id].append({
-            "timestamp": datetime.now().isoformat(),
-            "progress": progress,
-            "message": message
-        })
+        self._progress_history[task_id].append(
+            {"timestamp": datetime.now().isoformat(), "progress": progress, "message": message}
+        )
 
         logger.debug(f"Task {task_id} progress: {progress:.1f}% - {message}")
 
     def get_task_progress(self, task_id: str) -> Dict:
         """
         获取任务进度详情
-        
+
         Args:
             task_id: 任务ID
-            
+
         Returns:
             包含任务信息和进度历史的字典
         """
@@ -74,13 +72,13 @@ class ProgressTracker:
             "current_progress": task.progress,
             "status": task.status.value,
             "time_elapsed": self._calculate_time_elapsed(task),
-            "estimated_completion": self._estimate_completion(task, history)
+            "estimated_completion": self._estimate_completion(task, history),
         }
 
     def get_all_progress(self) -> List[Dict]:
         """
         获取所有任务进度
-        
+
         Returns:
             所有任务的进度信息列表
         """
@@ -95,7 +93,7 @@ class ProgressTracker:
     def get_active_progress(self) -> List[Dict]:
         """
         获取活跃任务进度
-        
+
         Returns:
             活跃任务的进度信息列表
         """
@@ -110,7 +108,7 @@ class ProgressTracker:
     def get_completion_stats(self) -> Dict:
         """
         获取任务完成统计
-        
+
         Returns:
             任务完成统计信息
         """
@@ -136,13 +134,13 @@ class ProgressTracker:
             "failed": failed,
             "running": running,
             "pending": pending,
-            "completion_rate": completed / len(all_tasks) if all_tasks else 0
+            "completion_rate": completed / len(all_tasks) if all_tasks else 0,
         }
 
     def get_progress_summary(self) -> Dict:
         """
         获取进度总结
-        
+
         Returns:
             进度总结信息
         """
@@ -151,22 +149,24 @@ class ProgressTracker:
 
         avg_progress = 0.0
         if active_progress:
-            avg_progress = sum(task["current_progress"] for task in active_progress) / len(active_progress)
+            avg_progress = sum(task["current_progress"] for task in active_progress) / len(
+                active_progress
+            )
 
         return {
             "stats": stats,
             "active_tasks": len(active_progress),
             "average_progress": avg_progress,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
 
     def _calculate_time_elapsed(self, task: Task) -> str:
         """
         计算任务执行时间
-        
+
         Args:
             task: 任务对象
-            
+
         Returns:
             格式化的时间字符串
         """
@@ -186,11 +186,11 @@ class ProgressTracker:
     def _estimate_completion(self, task: Task, history: List[Dict]) -> Optional[str]:
         """
         估算任务完成时间
-        
+
         Args:
             task: 任务对象
             history: 进度历史
-            
+
         Returns:
             估算的完成时间字符串，或None
         """
@@ -230,7 +230,7 @@ class ProgressTracker:
     def clear_history(self, task_id: Optional[str] = None):
         """
         清除进度历史
-        
+
         Args:
             task_id: 可选的任务ID，如未提供则清除所有历史
         """
@@ -245,14 +245,14 @@ class ProgressTracker:
     def export_report(self) -> Dict:
         """
         导出详细进度报告
-        
+
         Returns:
             包含完整报告的字典
         """
         report = {
             "summary": self.get_progress_summary(),
             "tasks": self.get_all_progress(),
-            "generated_at": datetime.now().isoformat()
+            "generated_at": datetime.now().isoformat(),
         }
 
         return report
@@ -260,28 +260,29 @@ class ProgressTracker:
     def get_tasks_by_progress_range(self, min_progress: float, max_progress: float) -> List[Dict]:
         """
         获取指定进度范围内的任务
-        
+
         Args:
             min_progress: 最小进度
             max_progress: 最大进度
-            
+
         Returns:
             符合条件的任务列表
         """
         all_progress = self.get_all_progress()
 
         return [
-            task for task in all_progress
+            task
+            for task in all_progress
             if min_progress <= task["current_progress"] <= max_progress
         ]
 
     def get_stalled_tasks(self, time_threshold: int = 300) -> List[Dict]:
         """
         找出可能已停滞的任务
-        
+
         Args:
             time_threshold: 停滞时间阈值（秒）
-            
+
         Returns:
             可能已停滞的任务列表
         """

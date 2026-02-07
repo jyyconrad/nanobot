@@ -1,16 +1,11 @@
 """Tests for SubagentHooks component."""
 
-import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from nanobot.agent.subagent.hooks import (
-    HookType,
-    HookRegistration,
-    SubagentHooks
-)
 from nanobot.agent.subagent.agno_subagent import AgnoSubagentManager
+from nanobot.agent.subagent.hooks import HookRegistration, HookType, SubagentHooks
 
 
 @pytest.fixture
@@ -26,9 +21,7 @@ class TestHookType:
     def test_hook_type_creation(self):
         """Test HookType initialization."""
         hook_type = HookType(
-            name="pre_run",
-            priority=1,
-            description="Before subagent starts running"
+            name="pre_run", priority=1, description="Before subagent starts running"
         )
 
         assert hook_type.name == "pre_run"
@@ -51,10 +44,7 @@ class TestHookRegistration:
         callback = lambda x: x
 
         registration = HookRegistration(
-            hook_type="pre_run",
-            callback=callback,
-            priority=5,
-            enabled=True
+            hook_type="pre_run", callback=callback, priority=5, enabled=True
         )
 
         assert registration.hook_type == "pre_run"
@@ -136,6 +126,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def test_callback(subagent_id, **kwargs):
             results.append(subagent_id)
 
@@ -151,6 +142,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def test_callback(subagent_id, **kwargs):
             results.append(kwargs.get("data"))
 
@@ -166,6 +158,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def low_priority(subagent_id):
             results.append("low")
 
@@ -184,6 +177,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def test_callback(subagent_id):
             results.append(subagent_id)
 
@@ -272,6 +266,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def callback(subagent_id):
             results.append(subagent_id)
 
@@ -285,6 +280,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def callback(subagent_id):
             results.append(subagent_id)
 
@@ -298,6 +294,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def callback(subagent_id, tools=None):
             results.append(tools)
 
@@ -311,6 +308,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def pre_callback(subagent_id, iteration):
             results.append(f"pre_{iteration}")
 
@@ -332,6 +330,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def pre_callback(subagent_id, tool_call):
             results.append(f"pre_{tool_call}")
 
@@ -353,6 +352,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def pre_callback(subagent_id, result):
             results.append(f"pre_{result}")
 
@@ -374,11 +374,12 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def pre_callback(subagent_id):
-            results.append(f"pre")
+            results.append("pre")
 
         async def post_callback(subagent_id):
-            results.append(f"post")
+            results.append("post")
 
         await hooks.register_hook("pre_cancel", pre_callback)
         await hooks.register_hook("post_cancel", post_callback)
@@ -395,6 +396,7 @@ class TestSubagentHooks:
         hooks = SubagentHooks(mock_manager)
 
         results = []
+
         async def pre_callback(subagent_id, error):
             results.append(f"pre_{error}")
 

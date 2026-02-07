@@ -3,26 +3,26 @@ MainAgent 主代理类 - 协调所有组件的核心入口
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel
 
-from nanobot.agent.context_manager import ContextManager
-from nanobot.agent.planner.task_planner import TaskPlanner
+from nanobot.agent.context_manager import ContextManager, ContextStats
 from nanobot.agent.decision.decision_maker import ExecutionDecisionMaker
-from nanobot.agent.subagent.manager import SubagentManager
+from nanobot.agent.decision.models import DecisionRequest, DecisionResult
 from nanobot.agent.hooks import MainAgentHooks
 from nanobot.agent.planner.models import TaskPlan
-from nanobot.agent.decision.models import DecisionResult, DecisionRequest
-from nanobot.agent.subagent.models import SubagentTask, SubagentResult, SubagentState
-from nanobot.agent.context_manager import ContextStats
+from nanobot.agent.planner.task_planner import TaskPlanner
+from nanobot.agent.subagent.manager import SubagentManager
+from nanobot.agent.subagent.models import SubagentResult, SubagentState, SubagentTask
 
 logger = logging.getLogger(__name__)
 
 
 class MainAgentState(BaseModel):
     """MainAgent 状态模型"""
+
     session_id: str
     current_task: Optional[str] = None
     subagent_tasks: Dict[str, SubagentTask] = {}
@@ -112,9 +112,7 @@ class MainAgent:
 
         # 执行决策
         decision = await self._make_decision(
-            "new_message",
-            message=message,
-            planning_result=planning_result
+            "new_message", message=message, planning_result=planning_result
         )
         await self.hooks.after_decision(decision)
 
@@ -129,14 +127,18 @@ class MainAgent:
 
         # 检测是否是任务修正或取消
         # 注意：需要检查 task_planner 是否有这些方法
-        if hasattr(self.task_planner, 'cancellation_detector') and \
-           hasattr(self.task_planner.cancellation_detector, 'is_cancellation'):
+        if hasattr(self.task_planner, "cancellation_detector") and hasattr(
+            self.task_planner.cancellation_detector, "is_cancellation"
+        ):
             if await self.task_planner.cancellation_detector.is_cancellation(message):
                 return await self._handle_task_cancellation()
 
-        if hasattr(self.task_planner, 'correction_detector') and \
-           hasattr(self.task_planner.correction_detector, 'detect_correction'):
-            correction = await self.task_planner.correction_detector.detect_correction(message, None)
+        if hasattr(self.task_planner, "correction_detector") and hasattr(
+            self.task_planner.correction_detector, "detect_correction"
+        ):
+            correction = await self.task_planner.correction_detector.detect_correction(
+                message, None
+            )
             if correction:
                 return await self._handle_task_correction(message)
 
@@ -165,16 +167,10 @@ class MainAgent:
         if hook_result.block:
             logger.debug(f"MainAgent[{self.session_id}] 决策被钩子阻止")
             return DecisionResult(
-                success=True,
-                action="reply",
-                message=hook_result.modified_message or "决策被阻止"
+                success=True, action="reply", message=hook_result.modified_message or "决策被阻止"
             )
 
-        request = DecisionRequest(
-            request_type=trigger,
-            data=kwargs,
-            context=kwargs.get("context")
-        )
+        request = DecisionRequest(request_type=trigger, data=kwargs, context=kwargs.get("context"))
         decision = await self.decision_maker.make_decision(request)
         logger.debug(f"MainAgent[{self.session_id}] 决策结果: {decision}")
 
@@ -218,7 +214,7 @@ class MainAgent:
             description=decision.data.get("subagent_task"),
             config=decision.data.get("subagent_config") or {},
             agent_type=decision.data.get("subagent_config", {}).get("agent_type"),
-            skills=decision.data.get("subagent_config", {}).get("skills")
+            skills=decision.data.get("subagent_config", {}).get("skills"),
         )
 
         # 触发 Subagent 生成钩子
@@ -228,9 +224,7 @@ class MainAgent:
         await self.subagent_manager.spawn_subagent(task)
         self.state.subagent_tasks[task.task_id] = task
         self.state.subagent_states[task.task_id] = SubagentState(
-            task_id=task.task_id,
-            status="ASSIGNED",
-            progress=0.0
+            task_id=task.task_id, status="ASSIGNED", progress=0.0
         )
 
         logger.info(f"MainAgent[{self.session_id}] 已生成 Subagent: {task.task_id}")
@@ -241,7 +235,8 @@ class MainAgent:
         """处理等待结果决策"""
         # 检查是否有正在运行的 Subagent
         running_tasks = [
-            task_id for task_id, state in self.state.subagent_states.items()
+            task_id
+            for task_id, state in self.state.subagent_states.items()
             if state.status in ["ASSIGNED", "RUNNING"]
         ]
 
@@ -268,10 +263,7 @@ class MainAgent:
         await self.hooks.on_subagent_result(result)
 
         # 决策下一步动作
-        decision = await self._make_decision(
-            "subagent_result",
-            result=result
-        )
+        decision = await self._make_decision("subagent_result", result=result)
         await self.hooks.after_decision(decision)
 
         # 执行决策
@@ -326,9 +318,9 @@ class MainAgent:
         # 简单的结果聚合（可以根据需要扩展）
         aggregated = []
         for result in results:
-            if hasattr(result, 'output'):
+            if hasattr(result, "output"):
                 aggregated.append(f"任务 {result.task_id} 结果:\n{result.output}")
-            elif hasattr(result, 'result'):
+            elif hasattr(result, "result"):
                 aggregated.append(f"任务 {result.task_id} 结果:\n{result.result}")
             else:
                 aggregated.append(f"任务 {result.task_id} 已完成")
@@ -349,9 +341,12 @@ class MainAgent:
             "session_id": self.session_id,
             "current_task": self.state.current_task,
             "subagent_count": len(self.state.subagent_tasks),
-            "running_count": len([
-                state for state in self.state.subagent_states.values()
-                if state.status in ["ASSIGNED", "RUNNING"]
-            ]),
-            "context_stats": self.state.context_stats.dict() if self.state.context_stats else None
+            "running_count": len(
+                [
+                    state
+                    for state in self.state.subagent_states.values()
+                    if state.status in ["ASSIGNED", "RUNNING"]
+                ]
+            ),
+            "context_stats": self.state.context_stats.dict() if self.state.context_stats else None,
         }

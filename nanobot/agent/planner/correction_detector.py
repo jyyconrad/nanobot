@@ -4,9 +4,9 @@
 负责识别用户输入中的修正指令，用于调整之前的任务。
 """
 
-import asyncio
 import re
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 from nanobot.agent.planner.models import Correction, CorrectionPattern
@@ -14,48 +14,42 @@ from nanobot.agent.planner.models import Correction, CorrectionPattern
 
 class CorrectionDetector(BaseModel):
     """修正检测器"""
-    correction_patterns: List[CorrectionPattern] = Field(default_factory=lambda: [
-        CorrectionPattern(
-            type="change",
-            patterns=["修改.*", "变更.*", "更改.*", "调整.*", "替换.*"],
-            weight=1.0
-        ),
-        CorrectionPattern(
-            type="add",
-            patterns=["添加.*", "增加.*", "补充.*", "新增.*"],
-            weight=0.9
-        ),
-        CorrectionPattern(
-            type="remove",
-            patterns=["删除.*", "移除.*", "去掉.*", "取消.*"],
-            weight=0.85
-        ),
-        CorrectionPattern(
-            type="fix",
-            patterns=["修复.*", "修正.*", "改错.*"],
-            weight=0.8
-        ),
-        CorrectionPattern(
-            type="improve",
-            patterns=["优化.*", "改进.*", "提升.*", "完善.*"],
-            weight=0.75
-        ),
-        CorrectionPattern(
-            type="clarify",
-            patterns=["澄清.*", "说明.*", "解释.*", "明确.*"],
-            weight=0.7
-        )
-    ])
 
-    negation_patterns: List[str] = Field(default_factory=lambda: [
-        "不是.*", "不要.*", "不必.*", "不需要.*", "不用.*"
-    ])
+    correction_patterns: List[CorrectionPattern] = Field(
+        default_factory=lambda: [
+            CorrectionPattern(
+                type="change",
+                patterns=["修改.*", "变更.*", "更改.*", "调整.*", "替换.*"],
+                weight=1.0,
+            ),
+            CorrectionPattern(
+                type="add", patterns=["添加.*", "增加.*", "补充.*", "新增.*"], weight=0.9
+            ),
+            CorrectionPattern(
+                type="remove", patterns=["删除.*", "移除.*", "去掉.*", "取消.*"], weight=0.85
+            ),
+            CorrectionPattern(type="fix", patterns=["修复.*", "修正.*", "改错.*"], weight=0.8),
+            CorrectionPattern(
+                type="improve", patterns=["优化.*", "改进.*", "提升.*", "完善.*"], weight=0.75
+            ),
+            CorrectionPattern(
+                type="clarify", patterns=["澄清.*", "说明.*", "解释.*", "明确.*"], weight=0.7
+            ),
+        ]
+    )
+
+    negation_patterns: List[str] = Field(
+        default_factory=lambda: ["不是.*", "不要.*", "不必.*", "不需要.*", "不用.*"]
+    )
 
     class Config:
         """配置类"""
+
         arbitrary_types_allowed = True
 
-    async def detect_correction(self, user_input: str, context: Optional[Dict[str, Any]] = None) -> Optional[Correction]:
+    async def detect_correction(
+        self, user_input: str, context: Optional[Dict[str, Any]] = None
+    ) -> Optional[Correction]:
         """
         检测修正指令
 
@@ -141,12 +135,7 @@ class CorrectionDetector(BaseModel):
         # 提取修正目标
         target = await self._extract_correction_target(user_input)
 
-        return Correction(
-            type=best_type,
-            content=content,
-            target=target,
-            confidence=confidence
-        )
+        return Correction(type=best_type, content=content, target=target, confidence=confidence)
 
     async def _extract_correction_content(self, user_input: str, correction_type: str) -> str:
         """
@@ -178,7 +167,7 @@ class CorrectionDetector(BaseModel):
             r"针对(.+?)的",
             r"关于(.+?)的",
             r"修改(.+?)$",
-            r"变更(.+?)$"
+            r"变更(.+?)$",
         ]
 
         for pattern in target_patterns:
@@ -188,7 +177,9 @@ class CorrectionDetector(BaseModel):
 
         return None
 
-    async def _detect_correction_from_context(self, user_input: str, context: Dict[str, Any]) -> Optional[Correction]:
+    async def _detect_correction_from_context(
+        self, user_input: str, context: Dict[str, Any]
+    ) -> Optional[Correction]:
         """
         从上下文检测修正
 
@@ -214,7 +205,7 @@ class CorrectionDetector(BaseModel):
                         type="adjust",
                         content=user_input,
                         target=last_task.get("description"),
-                        confidence=0.7
+                        confidence=0.7,
                     )
 
         return None

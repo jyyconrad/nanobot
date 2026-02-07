@@ -24,17 +24,23 @@ from nanobot.providers.base import LLMProvider
 class AgnoSubagentConfig(BaseModel):
     """Configuration model for Agno Subagent."""
 
-    max_iterations: int = Field(default=15, description="Maximum number of iterations per subagent task")
+    max_iterations: int = Field(
+        default=15, description="Maximum number of iterations per subagent task"
+    )
     timeout: int = Field(default=300, description="Task timeout in seconds")
     model: Optional[str] = Field(default=None, description="LLM model to use for subagent")
     brave_api_key: Optional[str] = Field(default=None, description="Brave API key for web search")
-    restrict_to_workspace: bool = Field(default=True, description="Restrict shell commands to workspace")
+    restrict_to_workspace: bool = Field(
+        default=True, description="Restrict shell commands to workspace"
+    )
 
 
 class AgnoSubagent(BaseModel):
     """Data model representing an Agno Subagent instance."""
 
-    subagent_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8], description="Unique subagent identifier")
+    subagent_id: str = Field(
+        default_factory=lambda: str(uuid.uuid4())[:8], description="Unique subagent identifier"
+    )
     task_id: str = Field(..., description="Associated task identifier")
     task: str = Field(..., description="Task description")
     label: str = Field(..., description="Human-readable task label")
@@ -130,7 +136,7 @@ class AgnoSubagentManager:
             subagent_id=subagent_id,
             session_key=session_key,
             channel=origin_channel,
-            chat_id=origin_chat_id
+            chat_id=origin_chat_id,
         )
         task_id = self._task_manager.create_task(task_obj)
 
@@ -140,17 +146,20 @@ class AgnoSubagentManager:
             task_id=task_id,
             task=task,
             label=display_label,
-            status=TaskStatus.RUNNING
+            status=TaskStatus.RUNNING,
         )
         self._subagent_map[subagent_id] = agno_subagent
         self._task_map[task_id] = subagent_id
 
         # Create background task
         bg_task = asyncio.create_task(
-            self._run_subagent(subagent_id, task, display_label, {
-                "channel": origin_channel,
-                "chat_id": origin_chat_id
-            }, task_id)
+            self._run_subagent(
+                subagent_id,
+                task,
+                display_label,
+                {"channel": origin_channel, "chat_id": origin_chat_id},
+                task_id,
+            )
         )
         self._running_tasks[subagent_id] = bg_task
 
@@ -204,11 +213,17 @@ class AgnoSubagentManager:
 
                 if response.has_tool_calls:
                     # Evaluate tool call risks
-                    if await self._risk_evaluator.evaluate_tool_calls(subagent_id, response.tool_calls):
+                    if await self._risk_evaluator.evaluate_tool_calls(
+                        subagent_id, response.tool_calls
+                    ):
                         logger.info(f"Agno Subagent [{subagent_id}] executing tool calls")
-                        await self._execute_tool_calls(subagent_id, response.tool_calls, tools, messages)
+                        await self._execute_tool_calls(
+                            subagent_id, response.tool_calls, tools, messages
+                        )
                     else:
-                        logger.warning(f"Agno Subagent [{subagent_id}] tool calls blocked due to high risk")
+                        logger.warning(
+                            f"Agno Subagent [{subagent_id}] tool calls blocked due to high risk"
+                        )
                         final_result = "Task execution was blocked due to high-risk operations requiring human approval"
                         break
                 else:
@@ -243,11 +258,13 @@ class AgnoSubagentManager:
         tools.register(ReadFileTool())
         tools.register(WriteFileTool())
         tools.register(ListDirTool())
-        tools.register(ExecTool(
-            working_dir=str(self.workspace),
-            timeout=self.config.timeout,
-            restrict_to_workspace=self.config.restrict_to_workspace,
-        ))
+        tools.register(
+            ExecTool(
+                working_dir=str(self.workspace),
+                timeout=self.config.timeout,
+                restrict_to_workspace=self.config.restrict_to_workspace,
+            )
+        )
         tools.register(WebSearchTool(api_key=self.config.brave_api_key))
         tools.register(WebFetchTool())
 
@@ -260,41 +277,44 @@ class AgnoSubagentManager:
         subagent_id: str,
         tool_calls: List[Any],
         tools: ToolRegistry,
-        messages: List[Dict[str, Any]]
+        messages: List[Dict[str, Any]],
     ):
         """Execute tool calls and update message history."""
         tool_call_dicts = []
         for tc in tool_calls:
-            tool_call_dicts.append({
-                "id": tc.id,
-                "type": "function",
-                "function": {
-                    "name": tc.name,
-                    "arguments": tc.arguments,
-                },
-            })
+            tool_call_dicts.append(
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.name,
+                        "arguments": tc.arguments,
+                    },
+                }
+            )
 
-        messages.append({
-            "role": "assistant",
-            "content": "",
-            "tool_calls": tool_call_dicts,
-        })
+        messages.append(
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": tool_call_dicts,
+            }
+        )
 
         for tool_call in tool_calls:
             logger.debug(f"Agno Subagent [{subagent_id}] executing: {tool_call.name}")
             result = await tools.execute(tool_call.name, tool_call.arguments)
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "name": tool_call.name,
-                "content": result,
-            })
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": tool_call.name,
+                    "content": result,
+                }
+            )
 
     async def _update_subagent_progress(
-        self,
-        subagent_id: str,
-        iteration: int,
-        final_result: Optional[str] = None
+        self, subagent_id: str, iteration: int, final_result: Optional[str] = None
     ):
         """Update subagent progress and task status."""
         if subagent_id not in self._subagent_map:
@@ -305,15 +325,15 @@ class AgnoSubagentManager:
         self._subagent_map[subagent_id].progress = progress
         self._subagent_map[subagent_id].updated_at = datetime.now()
 
-        self._task_manager.update_task(self._subagent_map[subagent_id].task_id, {
-            "progress": progress,
-            "updated_at": datetime.now()
-        })
+        self._task_manager.update_task(
+            self._subagent_map[subagent_id].task_id,
+            {"progress": progress, "updated_at": datetime.now()},
+        )
 
         self._progress_tracker.track_progress(
             self._subagent_map[subagent_id].task_id,
             progress,
-            f"Iteration {iteration}/{self.config.max_iterations}"
+            f"Iteration {iteration}/{self.config.max_iterations}",
         )
 
     async def _complete_subagent(self, subagent_id: str, final_result: str, task_id: str):
@@ -383,7 +403,9 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
         )
 
         await self.bus.publish_inbound(msg)
-        logger.debug(f"Agno Subagent [{subagent_id}] announced result to {origin['channel']}:{origin['chat_id']}")
+        logger.debug(
+            f"Agno Subagent [{subagent_id}] announced result to {origin['channel']}:{origin['chat_id']}"
+        )
 
     def _build_agno_prompt(self, task: str) -> str:
         """Build a focused system prompt for Agno Subagent."""

@@ -8,7 +8,6 @@ ContextCompressor 单元测试 - 测试上下文压缩功能
 - 边界条件和错误处理
 """
 
-
 import pytest
 
 from nanobot.agent.context_compressor import ContextCompressor
@@ -51,7 +50,7 @@ class TestContextCompressor:
             {"role": "user", "content": "代码位于 nanobot/agent/context.py 文件中"},
             {"role": "assistant", "content": "我来检查这个文件"},
             {"role": "user", "content": "错误是在处理长上下文时发生的"},
-            {"role": "assistant", "content": "我找到了问题所在，需要优化压缩算法"}
+            {"role": "assistant", "content": "我找到了问题所在，需要优化压缩算法"},
         ]
 
         summary = await compressor.summarize_messages(messages)
@@ -85,7 +84,7 @@ class TestContextCompressor:
         messages = [
             {"role": "system", "content": "系统初始化"},
             {"role": "user", "content": "我需要你帮我修复一个代码错误"},
-            {"role": "assistant", "content": "我会帮你分析和修复代码错误"}
+            {"role": "assistant", "content": "我会帮你分析和修复代码错误"},
         ]
 
         compressed_messages, stats = await compressor.compress_messages(messages)
@@ -118,7 +117,7 @@ class TestContextCompressor:
             {"role": "user", "content": "我需要你帮我完成一个编码任务"},
             {"role": "assistant", "content": "我会帮你完成这个任务"},
             {"role": "user", "content": "任务要求编写一个 ContextManager 类"},
-            {"role": "assistant", "content": "我来帮你编写这个类"}
+            {"role": "assistant", "content": "我来帮你编写这个类"},
         ]
 
         summary = await compressor.summarize_messages(messages)
@@ -133,7 +132,7 @@ class TestContextCompressor:
             {"role": "user", "content": "我需要你帮我做个决定"},
             {"role": "assistant", "content": "我会帮你分析选项"},
             {"role": "user", "content": "我应该使用 Python 还是 JavaScript？"},
-            {"role": "assistant", "content": "我建议使用 Python，因为它更适合这个任务"}
+            {"role": "assistant", "content": "我建议使用 Python，因为它更适合这个任务"},
         ]
 
         summary = await compressor.summarize_messages(messages)
@@ -148,7 +147,7 @@ class TestContextCompressor:
             {"role": "user", "content": "任务完成了吗？"},
             {"role": "assistant", "content": "任务已经成功完成"},
             {"role": "user", "content": "结果是什么？"},
-            {"role": "assistant", "content": "我们成功优化了代码性能，提升了 30%"}
+            {"role": "assistant", "content": "我们成功优化了代码性能，提升了 30%"},
         ]
 
         summary = await compressor.summarize_messages(messages)

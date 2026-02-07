@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class DecisionRequest(BaseModel):
     """决策请求数据模型"""
+
     request_type: str = Field(..., description="请求类型")
     data: Dict[str, Any] = Field(default_factory=dict, description="请求数据")
     task: Optional[Any] = Field(None, description="关联任务")
@@ -17,6 +18,7 @@ class DecisionRequest(BaseModel):
 
 class DecisionResult(BaseModel):
     """决策结果数据模型"""
+
     success: bool = Field(default=True, description="决策是否成功")
     action: str = Field(..., description="建议的行动")
     data: Dict[str, Any] = Field(default_factory=dict, description="结果数据")
@@ -25,6 +27,7 @@ class DecisionResult(BaseModel):
 
 class NewMessageRequest(BaseModel):
     """新消息请求数据模型"""
+
     message_id: str = Field(..., description="消息ID")
     content: str = Field(..., description="消息内容")
     sender_id: str = Field(..., description="发送者ID")
@@ -35,6 +38,7 @@ class NewMessageRequest(BaseModel):
 
 class SubagentResultRequest(BaseModel):
     """子代理结果请求数据模型"""
+
     subagent_id: str = Field(..., description="子代理ID")
     task_id: str = Field(..., description="任务ID")
     result: Dict[str, Any] = Field(..., description="子代理返回结果")
@@ -45,6 +49,7 @@ class SubagentResultRequest(BaseModel):
 
 class CorrectionRequest(BaseModel):
     """修正请求数据模型"""
+
     message_id: str = Field(..., description="消息ID")
     correction: str = Field(..., description="修正内容")
     original_message_id: Optional[str] = Field(None, description="原始消息ID")
@@ -54,6 +59,7 @@ class CorrectionRequest(BaseModel):
 
 class CancellationRequest(BaseModel):
     """取消请求数据模型"""
+
     message_id: str = Field(..., description="消息ID")
     cancellation_reason: Optional[str] = Field(None, description="取消原因")
     task_id: Optional[str] = Field(None, description="关联任务ID")

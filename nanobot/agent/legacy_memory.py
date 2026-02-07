@@ -9,7 +9,7 @@ from nanobot.utils.helpers import ensure_dir, today_date
 class MemoryStore:
     """
     Memory system for the agent.
-    
+
     Supports daily notes (memory/YYYY-MM-DD.md) and long-term memory (MEMORY.md).
     """
 
@@ -56,10 +56,10 @@ class MemoryStore:
     def get_recent_memories(self, days: int = 7) -> str:
         """
         Get memories from the last N days.
-        
+
         Args:
             days: Number of days to look back.
-        
+
         Returns:
             Combined memory content.
         """
@@ -90,7 +90,7 @@ class MemoryStore:
     def get_memory_context(self) -> str:
         """
         Get memory context for the agent.
-        
+
         Returns:
             Formatted memory context including long-term and recent memories.
         """

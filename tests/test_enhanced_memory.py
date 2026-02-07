@@ -30,9 +30,7 @@ class TestEnhancedMemoryStore:
     async def test_add_and_retrieve_memory(self, memory_store):
         """测试添加和检索记忆"""
         memory_id = await memory_store.add_memory(
-            content="测试记忆内容",
-            tags=["test"],
-            task_id="test_task"
+            content="测试记忆内容", tags=["test"], task_id="test_task"
         )
 
         memory = await memory_store.get_memory(memory_id)
@@ -45,20 +43,14 @@ class TestEnhancedMemoryStore:
     async def test_search_memory(self, memory_store):
         """测试记忆搜索功能"""
         await memory_store.add_memory(
-            content="Python 编码技能",
-            tags=["coding", "python"],
-            task_id="coding_task"
+            content="Python 编码技能", tags=["coding", "python"], task_id="coding_task"
         )
         await memory_store.add_memory(
-            content="JavaScript 编码技能",
-            tags=["coding", "javascript"],
-            task_id="coding_task"
+            content="JavaScript 编码技能", tags=["coding", "javascript"], task_id="coding_task"
         )
 
         results = await memory_store.search_memory(
-            query="Python",
-            tags=["coding"],
-            task_id="coding_task"
+            query="Python", tags=["coding"], task_id="coding_task"
         )
 
         assert len(results) == 1
@@ -67,21 +59,9 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_get_task_memories(self, memory_store):
         """测试获取任务相关记忆"""
-        await memory_store.add_memory(
-            content="任务开始",
-            tags=["task"],
-            task_id="test_task_1"
-        )
-        await memory_store.add_memory(
-            content="任务进行中",
-            tags=["task"],
-            task_id="test_task_1"
-        )
-        await memory_store.add_memory(
-            content="无关记忆",
-            tags=["general"],
-            task_id="other_task"
-        )
+        await memory_store.add_memory(content="任务开始", tags=["task"], task_id="test_task_1")
+        await memory_store.add_memory(content="任务进行中", tags=["task"], task_id="test_task_1")
+        await memory_store.add_memory(content="无关记忆", tags=["general"], task_id="other_task")
 
         task_memories = await memory_store.get_task_memories("test_task_1")
 
@@ -92,16 +72,11 @@ class TestEnhancedMemoryStore:
     async def test_update_memory(self, memory_store):
         """测试更新记忆"""
         memory_id = await memory_store.add_memory(
-            content="原始内容",
-            tags=["original"],
-            task_id="test_task"
+            content="原始内容", tags=["original"], task_id="test_task"
         )
 
         success = await memory_store.update_memory(
-            memory_id,
-            content="更新后的内容",
-            tags=["updated"],
-            importance=5
+            memory_id, content="更新后的内容", tags=["updated"], importance=5
         )
 
         assert success
@@ -115,9 +90,7 @@ class TestEnhancedMemoryStore:
     async def test_delete_memory(self, memory_store):
         """测试删除记忆"""
         memory_id = await memory_store.add_memory(
-            content="要删除的记忆",
-            tags=["delete"],
-            task_id="test_task"
+            content="要删除的记忆", tags=["delete"], task_id="test_task"
         )
 
         success = await memory_store.delete_memory(memory_id)
@@ -129,16 +102,8 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_search_with_empty_query(self, memory_store):
         """测试空查询搜索"""
-        await memory_store.add_memory(
-            content="记忆1",
-            tags=["tag1"],
-            task_id="test_task"
-        )
-        await memory_store.add_memory(
-            content="记忆2",
-            tags=["tag2"],
-            task_id="test_task"
-        )
+        await memory_store.add_memory(content="记忆1", tags=["tag1"], task_id="test_task")
+        await memory_store.add_memory(content="记忆2", tags=["tag2"], task_id="test_task")
 
         results = await memory_store.search_memory(query="")
 
@@ -147,16 +112,8 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_search_with_multiple_tags(self, memory_store):
         """测试多标签搜索"""
-        await memory_store.add_memory(
-            content="记忆1",
-            tags=["tag1", "tag2"],
-            task_id="test_task"
-        )
-        await memory_store.add_memory(
-            content="记忆2",
-            tags=["tag2"],
-            task_id="test_task"
-        )
+        await memory_store.add_memory(content="记忆1", tags=["tag1", "tag2"], task_id="test_task")
+        await memory_store.add_memory(content="记忆2", tags=["tag2"], task_id="test_task")
 
         results = await memory_store.search_memory(tags=["tag1"])
         assert len(results) == 1
@@ -168,16 +125,10 @@ class TestEnhancedMemoryStore:
     async def test_memory_importance(self, memory_store):
         """测试记忆重要性"""
         await memory_store.add_memory(
-            content="重要记忆",
-            tags=["important"],
-            task_id="test_task",
-            importance=8
+            content="重要记忆", tags=["important"], task_id="test_task", importance=8
         )
         await memory_store.add_memory(
-            content="普通记忆",
-            tags=["general"],
-            task_id="test_task",
-            importance=3
+            content="普通记忆", tags=["general"], task_id="test_task", importance=3
         )
 
         results = await memory_store.search_memory()
@@ -196,23 +147,17 @@ class TestEnhancedMemoryStore:
         old_timestamp = current_time - datetime.timedelta(days=31)
         new_timestamp = current_time - datetime.timedelta(days=15)
 
-        with patch('nanobot.agent.memory.enhanced_memory.datetime') as mock_datetime:
+        with patch("nanobot.agent.memory.enhanced_memory.datetime") as mock_datetime:
             # 添加旧记忆
             mock_datetime.now.return_value = old_timestamp
             await memory_store.add_memory(
-                content="旧记忆",
-                tags=["old"],
-                task_id="test_task",
-                importance=0
+                content="旧记忆", tags=["old"], task_id="test_task", importance=0
             )
 
             # 添加新记忆
             mock_datetime.now.return_value = new_timestamp
             await memory_store.add_memory(
-                content="新记忆",
-                tags=["new"],
-                task_id="test_task",
-                importance=5
+                content="新记忆", tags=["new"], task_id="test_task", importance=5
             )
 
             # 执行清理操作
@@ -228,16 +173,8 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_clear_task_memories(self, memory_store):
         """测试清除任务相关记忆"""
-        await memory_store.add_memory(
-            content="任务记忆1",
-            tags=["task"],
-            task_id="test_task"
-        )
-        await memory_store.add_memory(
-            content="任务记忆2",
-            tags=["task"],
-            task_id="test_task"
-        )
+        await memory_store.add_memory(content="任务记忆1", tags=["task"], task_id="test_task")
+        await memory_store.add_memory(content="任务记忆2", tags=["task"], task_id="test_task")
 
         deleted = await memory_store.clear_task_memories("test_task")
         assert deleted == 2
@@ -249,11 +186,7 @@ class TestEnhancedMemoryStore:
     async def test_search_with_limit(self, memory_store):
         """测试搜索结果限制"""
         for i in range(10):
-            await memory_store.add_memory(
-                content=f"记忆{i}",
-                tags=["test"],
-                task_id="test_task"
-            )
+            await memory_store.add_memory(content=f"记忆{i}", tags=["test"], task_id="test_task")
 
         results = await memory_store.search_memory(limit=5)
         assert len(results) == 5

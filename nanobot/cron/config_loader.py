@@ -17,7 +17,7 @@ from nanobot.cron.types import CronAction, CronJob, CronSchedule
 class CronConfigLoader:
     """
     定时任务配置加载器：从配置文件加载和管理定时任务
-    
+
     支持从 JSON 文件加载定时任务配置，并提供验证和任务创建功能。
     """
 
@@ -29,10 +29,10 @@ class CronConfigLoader:
     def load_config(self) -> Dict[str, Any]:
         """
         加载配置文件
-        
+
         Returns:
             配置字典
-            
+
         Raises:
             FileNotFoundError: 配置文件未找到
             json.JSONDecodeError: 配置文件格式错误
@@ -49,10 +49,10 @@ class CronConfigLoader:
     def validate_config(self, config: Optional[Dict[str, Any]] = None) -> bool:
         """
         验证配置的有效性
-        
+
         Args:
             config: 配置字典，如未提供则使用已加载的配置
-            
+
         Returns:
             配置是否有效
         """
@@ -84,11 +84,11 @@ class CronConfigLoader:
     def _validate_job(self, job: Dict[str, Any], index: int) -> bool:
         """
         验证单个任务配置
-        
+
         Args:
             job: 任务配置
             index: 任务索引
-            
+
         Returns:
             任务配置是否有效
         """
@@ -113,10 +113,10 @@ class CronConfigLoader:
     def _validate_schedule(self, schedule: str) -> bool:
         """
         验证调度表达式（简化版Cron表达式）
-        
+
         Args:
             schedule: 调度表达式
-            
+
         Returns:
             表达式是否有效
         """
@@ -140,10 +140,10 @@ class CronConfigLoader:
     def _validate_action(self, action: Dict[str, Any]) -> bool:
         """
         验证动作配置
-        
+
         Args:
             action: 动作配置
-            
+
         Returns:
             动作配置是否有效
         """
@@ -175,10 +175,10 @@ class CronConfigLoader:
     def create_jobs(self, config: Optional[Dict[str, Any]] = None) -> List[CronJob]:
         """
         从配置创建任务对象
-        
+
         Args:
             config: 配置字典，如未提供则使用已加载的配置
-            
+
         Returns:
             任务对象列表
         """
@@ -205,10 +205,10 @@ class CronConfigLoader:
     def _create_job_from_config(self, job_config: Dict[str, Any]) -> CronJob:
         """
         从任务配置创建任务对象
-        
+
         Args:
             job_config: 任务配置字典
-            
+
         Returns:
             任务对象
         """
@@ -225,7 +225,7 @@ class CronConfigLoader:
             schedule=self._parse_schedule(job_config["schedule"]),
             action=action,
             description=job_config.get("description"),
-            tags=job_config.get("tags", [])
+            tags=job_config.get("tags", []),
         )
 
         return job
@@ -233,22 +233,19 @@ class CronConfigLoader:
     def _parse_schedule(self, schedule: str) -> CronSchedule:
         """
         解析调度配置
-        
+
         Args:
             schedule: 调度字符串（Cron表达式）
-            
+
         Returns:
             调度对象
         """
-        return CronSchedule(
-            kind="cron",
-            expr=schedule
-        )
+        return CronSchedule(kind="cron", expr=schedule)
 
     def get_jobs(self) -> List[CronJob]:
         """
         获取所有任务对象
-        
+
         Returns:
             任务对象列表
         """
@@ -257,10 +254,10 @@ class CronConfigLoader:
     def get_job_by_name(self, name: str) -> Optional[CronJob]:
         """
         根据名称获取任务对象
-        
+
         Args:
             name: 任务名称
-            
+
         Returns:
             任务对象，未找到则返回None
         """
@@ -272,7 +269,7 @@ class CronConfigLoader:
     def reload_config(self) -> List[CronJob]:
         """
         重新加载配置
-        
+
         Returns:
             新的任务对象列表
         """
@@ -282,7 +279,7 @@ class CronConfigLoader:
     def save_config(self, config: Dict[str, Any], path: Optional[str] = None):
         """
         保存配置到文件
-        
+
         Args:
             config: 配置字典
             path: 保存路径，如未提供则使用默认路径
@@ -298,7 +295,7 @@ class CronConfigLoader:
     def get_global_settings(self) -> Dict[str, Any]:
         """
         获取全局设置
-        
+
         Returns:
             全局设置字典
         """

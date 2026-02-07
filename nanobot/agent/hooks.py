@@ -3,19 +3,20 @@ MainAgent 会话 Hooks - 用于扩展 MainAgent 功能
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
-from nanobot.agent.planner.models import TaskPlan
 from nanobot.agent.decision.models import DecisionResult
-from nanobot.agent.subagent.models import SubagentTask, SubagentResult
+from nanobot.agent.planner.models import TaskPlan
+from nanobot.agent.subagent.models import SubagentResult, SubagentTask
 
 logger = logging.getLogger(__name__)
 
 
 class HookResult(BaseModel):
     """Hook 结果模型"""
+
     allow: bool = True
     block: bool = False
     modified_message: Optional[str] = None
@@ -262,7 +263,7 @@ class MetricsHooksDecorator(MainAgentHooksDecorator):
 
     async def after_planning(self, result: TaskPlan) -> None:
         self.metrics["planning_count"] = self.metrics.get("planning_count", 0) + 1
-        if hasattr(result, 'task_type'):
+        if hasattr(result, "task_type"):
             self.metrics["last_planning_action"] = result.task_type
         await super().after_planning(result)
 
