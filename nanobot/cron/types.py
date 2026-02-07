@@ -35,7 +35,7 @@ class CronAction:
     method: Optional[str] = None  # 方法名称（trigger_agent 类型）
     params: Optional[Dict[str, Any]] = None  # 方法参数（trigger_agent 类型）
     targets: Optional[List[Dict[str, Any]]] = None  # 监听目标（monitor_status 类型）
-    alertConditions: Optional[Dict[str, Any]] = None  # 告警条件（monitor_status 类型）
+    alert_conditions: Optional[Dict[str, Any]] = None  # 告警条件（monitor_status 类型）
     message: str = ""  # 消息内容（agent_turn 类型）
     deliver: bool = False  # 是否发送到频道（agent_turn 类型）
     channel: Optional[str] = None  # 目标频道（agent_turn 类型）
@@ -75,4 +75,4 @@ class CronStore:
 
     version: int = 2
     jobs: list[CronJob] = field(default_factory=list)
-    globalSettings: Dict[str, Any] = field(default_factory=dict)
+    global_settings: Dict[str, Any] = field(default_factory=dict)

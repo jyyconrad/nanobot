@@ -81,7 +81,7 @@ class TestContextManager:
         session_id = "test_session_3"
 
         # 首先添加一些记忆
-        memory_id = await context_manager.memory_store.add_memory(
+        await context_manager.memory_store.add_memory(
             content="这是一个测试记忆", tags=["session", session_id], task_id="test_task_1"
         )
 
@@ -122,7 +122,6 @@ class TestContextManager:
     @pytest.mark.asyncio
     async def test_memory_search(self, context_manager):
         """测试记忆搜索功能"""
-        session_id = "test_session_5"
         task_id = "test_task_2"
 
         # 先清理记忆存储，防止前序测试影响

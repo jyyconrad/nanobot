@@ -41,7 +41,8 @@ class TestHookRegistration:
 
     def test_hook_registration_creation(self):
         """Test HookRegistration initialization."""
-        callback = lambda x: x
+        def callback(x):
+            return x
 
         registration = HookRegistration(
             hook_type="pre_run", callback=callback, priority=5, enabled=True
@@ -93,7 +94,8 @@ class TestSubagentHooks:
         """Test registering and unregistering a hook."""
         hooks = SubagentHooks(mock_manager)
 
-        callback = lambda x: x
+        def callback(x):
+            return x
         initial_count = hooks.get_hook_count("pre_run")
 
         await hooks.register_hook("pre_run", callback)
@@ -107,7 +109,8 @@ class TestSubagentHooks:
         """Test registering an invalid hook type."""
         hooks = SubagentHooks(mock_manager)
 
-        callback = lambda x: x
+        def callback(x):
+            return x
         with pytest.raises(ValueError):
             await hooks.register_hook("invalid_type", callback)
 
@@ -116,7 +119,8 @@ class TestSubagentHooks:
         """Test unregistering from an invalid hook type."""
         hooks = SubagentHooks(mock_manager)
 
-        callback = lambda x: x
+        def callback(x):
+            return x
         with pytest.raises(ValueError):
             await hooks.unregister_hook("invalid_type", callback)
 

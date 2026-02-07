@@ -249,16 +249,15 @@ class CronService:
         logger.info(f"Cron: executing job '{job.name}' ({job.id})")
 
         try:
-            response = None
 
             # 处理不同的动作类型
             if job.action.type == "trigger_agent":
-                response = await self._execute_trigger_agent(job)
+                await self._execute_trigger_agent(job)
             elif job.action.type == "monitor_status":
-                response = await self._execute_monitor_status(job)
+                await self._execute_monitor_status(job)
             elif job.action.type == "agent_turn":
                 if self.on_job:
-                    response = await self.on_job(job)
+                    await self.on_job(job)
             else:
                 logger.warning(f"Unknown job action type: {job.action.type}")
 
@@ -510,7 +509,7 @@ class CronService:
 
             for job in jobs:
                 # 转换为内部格式
-                internal_job = self.add_job(
+                self.add_job(
                     job.name,
                     job.schedule,
                     job.action,

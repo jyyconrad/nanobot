@@ -158,7 +158,7 @@ async def test_get_running_tasks(mock_agno_subagent, subagent_manager, mock_suba
     mock_agno_subagent.return_value = mock_instance
 
     # 生成 Subagent
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+    await subagent_manager.spawn_subagent(mock_subagent_task)
 
     # 获取正在运行的任务 - 我们需要直接检查状态而不是等待执行完成
     await asyncio.sleep(0.1)

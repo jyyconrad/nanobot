@@ -160,7 +160,7 @@ class TestInterruptHandler:
         assert has_interrupt is False
 
         # With interrupt
-        request = await handler.add_interrupt("test-1234", "cancel", "Cancel task")
+        await handler.add_interrupt("test-1234", "cancel", "Cancel task")
         assert "test-1234" in handler._pending_interrupts
 
         with patch.object(handler, "_handle_interrupt") as mock_handle:

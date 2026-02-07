@@ -93,7 +93,7 @@ class ContextCompressor:
         summaries = []
         for msg in messages:
             content = msg.get("content", "")
-            role = msg.get("role", "user")
+            msg.get("role", "user")
 
             for keyword in task_keywords:
                 if keyword in content:
