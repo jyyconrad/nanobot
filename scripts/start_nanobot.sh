@@ -46,32 +46,33 @@ check_venv() {
 }
 
 check_config() {
-    if [ ! -d "$CONFIG_DIR" ]; then
-        log_error "配置目录不存在: $CONFIG_DIR"
-        return 1
+    # 检查用户配置目录（~/.nanobot）
+    local user_config_dir="$HOME/.nanobot"
+    
+    if [ ! -d "$user_config_dir" ]; then
+        log_warn "用户配置目录不存在: $user_config_dir"
+        log "正在创建用户配置目录..."
+        mkdir -p "$user_config_dir"
     fi
     
-    # 检查必要的配置文件
-    local config_files=("nanobot_config.yaml")
+    # 检查用户配置文件
+    local user_config="$user_config_dir/config.json"
     
-    for config_file in "${config_files[@]}"; do
-        if [ ! -f "$CONFIG_DIR/$config_file" ]; then
-            log_warn "配置文件不存在: $CONFIG_DIR/$config_file"
-            
-            # 检查是否有示例文件
-            if [ -f "$CONFIG_DIR/examples/${config_file}.example" ]; then
-                log "正在从示例文件创建配置文件: examples/${config_file}.example"
-                cp "$CONFIG_DIR/examples/${config_file}.example" "$CONFIG_DIR/$config_file"
-            elif [ -f "$CONFIG_DIR/examples/${config_file}" ]; then
-                log "正在从示例文件创建配置文件: examples/${config_file}"
-                cp "$CONFIG_DIR/examples/${config_file}" "$CONFIG_DIR/$config_file"
-            else
-                log_error "未找到配置文件和示例文件: $config_file"
-                return 1
-            fi
+    if [ ! -f "$user_config" ]; then
+        log_warn "用户配置文件不存在: $user_config"
+        
+        # 检查是否有项目配置可以复制
+        if [ -f "$CONFIG_DIR/config.json" ]; then
+            log "正在从项目配置复制到用户目录..."
+            cp "$CONFIG_DIR/config.json" "$user_config"
+            log "已创建用户配置文件: $user_config"
+        else
+            log_error "未找到配置文件: $user_config 或 $CONFIG_DIR/config.json"
+            return 1
         fi
-    done
+    fi
     
+    log "配置文件存在: $user_config"
     return 0
 }
 
