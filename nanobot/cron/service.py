@@ -108,7 +108,7 @@ class CronService:
                 self._store = CronStore(
                     version=data.get("version", 2),
                     jobs=jobs,
-                    globalSettings=data.get("globalSettings", {}),
+                    global_settings=data.get("globalSettings", {}),
                 )
             except Exception as e:
                 logger.warning(f"Failed to load cron store: {e}")
@@ -127,7 +127,7 @@ class CronService:
 
         data = {
             "version": self._store.version,
-            "globalSettings": self._store.global_settings,
+            "global_settings": self._store.global_settings,
             "jobs": [
                 {
                     "id": j.id,

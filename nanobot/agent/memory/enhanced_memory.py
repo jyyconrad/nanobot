@@ -95,7 +95,8 @@ class EnhancedMemoryStore:
         Returns:
             记忆的唯一标识符
         """
-        logger.debug("添加新记忆，内容长度: %d, 标签: %s, 任务 ID: %s", len(content), tags, task_id)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.info("添加新记忆，内容长度: %d, 标签: %s, 任务 ID: %s", len(content), tags, task_id)
 
         memory = Memory(
             id=str(uuid.uuid4()),
@@ -127,9 +128,10 @@ class EnhancedMemoryStore:
         Returns:
             匹配的记忆列表
         """
-        logger.debug(
-            "搜索记忆，查询: '%s', 标签: %s, 任务 ID: %s, 限制: %d", query, tags, task_id, limit
-        )
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "搜索记忆，查询: '%s', 标签: %s, 任务ID: %s, 限制: %d", query, tags, task_id, limit
+            )
 
         start_time = datetime.now()
         results = []
@@ -160,9 +162,10 @@ class EnhancedMemoryStore:
 
         search_time_ms = (datetime.now() - start_time).total_seconds() * 1000
 
-        logger.debug(
-            "搜索完成，找到 %d 条匹配的记忆，耗时: %.2fms", len(limited_results), search_time_ms
-        )
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "搜索完成，找到 %d 条匹配的记忆，耗时: %.2fms", len(limited_results), search_time_ms
+            )
 
         return limited_results
 

@@ -198,8 +198,8 @@ class MainAgent:
         elif "查看" in message or "状态" in message:
             return "任务状态查询功能已就绪，请提供任务 ID。"
         else:
-            # 使用现有的 chat 处理逻辑
-            return await self._handle_chat_message(message)
+            # 避免无限递归，直接返回默认响应
+            return "我理解您的需求，但目前无法处理该任务。请提供更详细的信息。"
 
     async def _handle_help(self) -> str:
         """处理帮助请求"""
