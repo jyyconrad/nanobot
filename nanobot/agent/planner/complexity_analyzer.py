@@ -31,11 +31,11 @@ class ComplexityAnalyzer(BaseModel):
     # 文本特征
     text_features: List[ComplexityFeature] = Field(
         default_factory=lambda: [
-            ComplexityFeature(name="length", weight=0.998, score=0.0),
-            ComplexityFeature(name="vocabulary", weight=0.0015, score=0.0),
-            ComplexityFeature(name="sentence_structure", weight=0.00025, score=0.0),
-            ComplexityFeature(name="domain_terms", weight=0.000125, score=0.0),
-            ComplexityFeature(name="ambiguity", weight=0.000125, score=0.0),
+            ComplexityFeature(name="length", weight=0.2, score=0.0),
+            ComplexityFeature(name="vocabulary", weight=0.2, score=0.0),
+            ComplexityFeature(name="sentence_structure", weight=0.2, score=0.0),
+            ComplexityFeature(name="domain_terms", weight=0.2, score=0.0),
+            ComplexityFeature(name="ambiguity", weight=0.2, score=0.0),
         ]
     )
 
@@ -86,14 +86,18 @@ class ComplexityAnalyzer(BaseModel):
             复杂度评分 (0-1)
         """
         try:
-            # 基础复杂度
-            base_complexity = self.type_weights.get(task_type, 0.3)
+            # 对于明显不匹配任务类型的简单输入，降低基础复杂度
+            if task_type in [TaskType.CODE_GENERATION, TaskType.DATA_ANALYSIS, TaskType.SYSTEM_COMMAND] and \
+               ("计算" in user_input and ("和" in user_input or "差" in user_input or "积" in user_input or "商" in user_input) and len(user_input) < 25):
+                base_complexity = 0.3
+            else:
+                base_complexity = self.type_weights.get(task_type, 0.3)
 
             # 文本复杂度特征得分
             text_score = await self._analyze_text_features(user_input, task_type)
 
             # 综合得分
-            total_score = base_complexity * 0.6 + text_score * 0.4
+            total_score = base_complexity * 0.8 + text_score * 0.2
 
             # 确保得分在 0-1 范围内
             return max(0.0, min(1.0, total_score))

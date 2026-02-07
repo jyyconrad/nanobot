@@ -19,13 +19,13 @@ class CancellationDetector(BaseModel):
         default_factory=lambda: [
             CancellationPattern(
                 patterns=["取消.*任务", "停止.*任务", "终止.*任务", "取消.*操作", "停止.*操作"],
-                weight=1.0,
+                weight=0.85,
             ),
-            CancellationPattern(patterns=["取消.*", "停止.*", "终止.*", "放弃.*"], weight=0.9),
+            CancellationPattern(patterns=["取消.*", "停止.*", "终止.*", "放弃.*"], weight=0.8),
             CancellationPattern(
-                patterns=["我.*不想.*", "不要.*", "不必.*", "不需要.*", "不用.*"], weight=0.8
+                patterns=["我.*不想.*", "不要.*", "不必.*", "不需要.*", "不用.*"], weight=0.65
             ),
-            CancellationPattern(patterns=["出错.*", "失败.*", "有问题.*", "错误.*"], weight=0.7),
+            CancellationPattern(patterns=["出错.*", "失败.*", "有问题.*", "错误.*"], weight=0.6),
         ]
     )
 
@@ -108,8 +108,8 @@ class CancellationDetector(BaseModel):
             reason_patterns = [
                 r"因为(.+?)取消",
                 r"由于(.+?)取消",
-                r"取消.*因为(.+?)",
-                r"取消.*由于(.+?)$",
+                r"取消.*因为(.+?)(?:，|。|！|？|$)",
+                r"取消.*由于(.+?)(?:，|。|！|？|$)",
             ]
 
             for pattern in reason_patterns:
@@ -120,6 +120,14 @@ class CancellationDetector(BaseModel):
                     if reason and reason[-1] in ["，", "。", "！", "？"]:
                         reason = reason[:-1]
                     return reason
+
+            # 检查是否包含程序错误、网络问题等原因
+            specific_patterns = [r"程序.*出错", r"程序.*错误", r"网络.*问题", r"网络.*故障", r"超时.*"]
+            for pattern in specific_patterns:
+                if re.search(pattern, user_input, re.IGNORECASE):
+                    match = re.search(pattern, user_input)
+                    if match:
+                        return match.group(0).strip()
 
             # 检查是否包含错误相关的原因
             error_patterns = [r"出错.*", r"失败.*", r"有问题.*", r"错误.*"]
@@ -161,22 +169,19 @@ class CancellationDetector(BaseModel):
             置信度 (0-1)
         """
         try:
-            score = 0.0
-
             # 检查确认模式
             if await self._is_confirmation(user_input):
-                score += 0.8
+                return 0.95
 
-            # 检查取消模式
-            matched_patterns = set()
+            # 检查取消模式，只返回最高权重的模式
+            max_weight = 0.0
             for pattern in self.cancellation_patterns:
                 for regex in pattern.patterns:
                     if re.search(regex, user_input, re.IGNORECASE):
-                        matched_patterns.add(regex)
-                        score += pattern.weight
+                        if pattern.weight > max_weight:
+                            max_weight = pattern.weight
 
-            # 确保得分在 0-1 范围内
-            return max(0.0, min(1.0, score))
+            return max_weight
 
         except Exception as e:
             raise Exception(f"置信度计算失败: {str(e)}")

@@ -42,17 +42,25 @@ class TaskPlanner(BaseModel):
             任务执行计划或修正/取消指令
         """
         try:
-            # 检查是否是取消指令
-            if await self.cancellation_detector.is_cancellation(user_input):
-                return {
-                    "action": "cancel",
-                    "reason": await self.cancellation_detector.get_reason(user_input),
-                }
+            # 对于明确的取消指令，先检查
+            if "取消" in user_input or "停止" in user_input or "终止" in user_input:
+                if await self.cancellation_detector.is_cancellation(user_input):
+                    return {
+                        "action": "cancel",
+                        "reason": await self.cancellation_detector.get_reason(user_input),
+                    }
 
             # 检查是否是修正指令
             correction = await self.correction_detector.detect_correction(user_input, context)
             if correction:
                 return {"action": "correct", "correction": correction}
+
+            # 再次检查是否是取消指令（以防之前漏检）
+            if await self.cancellation_detector.is_cancellation(user_input):
+                return {
+                    "action": "cancel",
+                    "reason": await self.cancellation_detector.get_reason(user_input),
+                }
 
             # 检测任务类型
             task_type = await self.task_detector.detect_task_type(user_input)
@@ -164,11 +172,21 @@ class TaskPlanner(BaseModel):
         Returns:
             估计执行时间（秒）
         """
-        base_time = 30  # 基础时间（秒）
-        complexity_factor = 1 + complexity * 3  # 复杂度系数（1-4）
-        step_factor = 1 + step_count * 0.2  # 步骤系数（1-2）
-
-        return int(base_time * complexity_factor * step_factor)
+        if complexity < 0.3 and step_count <= 2:
+            # 简单任务，快速执行
+            return int(25 + complexity * 10 * step_count)
+        elif complexity < 0.6:
+            # 中等复杂度任务
+            base_time = 40
+            complexity_factor = 1 + complexity * 2
+            step_factor = 1 + step_count * 0.15
+            return int(base_time * complexity_factor * step_factor)
+        else:
+            # 复杂任务，需要更多时间
+            base_time = 60
+            complexity_factor = 1 + complexity * 3
+            step_factor = 1 + step_count * 0.2
+            return int(base_time * complexity_factor * step_factor)
 
     def _determine_priority(self, complexity: float, task_type: TaskType) -> TaskPriority:
         """

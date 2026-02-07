@@ -29,6 +29,13 @@ class TaskDetector(BaseModel):
                     "修复.*bug",
                     "重构.*代码",
                     "优化.*性能",
+                    "实现.*系统",
+                    "开发.*系统",
+                    "图像识别",
+                    "数据预处理",
+                    "特征提取",
+                    "模型训练",
+                    "机器学习",
                 ],
                 weight=1.0,
             ),
@@ -61,7 +68,7 @@ class TaskDetector(BaseModel):
             ),
             TaskPattern(
                 task_type=TaskType.SYSTEM_COMMAND,
-                patterns=["运行.*命令", "执行.*脚本", "安装.*软件", "配置.*环境", "部署.*服务"],
+                patterns=["运行.*命令", "执行.*脚本", "安装.*软件", "配置.*环境", "部署.*服务", "部署.*环境"],
                 weight=0.7,
             ),
         ]
