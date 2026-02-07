@@ -10,7 +10,7 @@ Nanobot
 v1.0.0
 
 ## 最后更新时间
-2026-02-07 21:26:37
+2026-02-07 21:40:28
 
 ## 项目信息
 
@@ -59,6 +59,24 @@ v1.0.0
 - **代码质量**：`CODE_QUALITY.md`
 - **性能优化**：`PERFORMANCE_OPTIMIZATION.md`
 
+## 项目架构
+
+### 核心组件
+- **MainAgent**：主要的 Agent 入口点
+- **Planner Agent**：任务规划和调度
+- **Decision Agent**：决策和任务执行
+- **Subagent Manager**：子代理生命周期管理
+- **Context Manager**：上下文和状态管理
+- **Memory Agent**：记忆和历史记录管理
+- **Skill Loader**：技能加载和管理
+
+### 内置技能
+- **GitHub 技能**：与 GitHub API 交互
+- **Skill Creator 技能**：用于创建新技能
+- **Summarize 技能**：文本摘要生成
+- **Tmux 技能**：与 Tmux 终端多路复用器交互
+- **Weather 技能**：天气信息获取
+
 ## 未来计划
 
 ### 1. 测试覆盖率提升
@@ -81,7 +99,9 @@ v1.0.0
 - 添加更多使用案例和示例
 - 完善 API 文档
 
-## 结论
-Nanobot 项目的实施过程已经完成，项目的功能已经实现，代码质量符合规范，测试覆盖率良好。虽然在实施过程中遇到了一些困难，但通过使用合适的工具和方法，我成功地完成了所有任务。
+## 许可证
+- **MIT License**：项目使用 MIT 许可证
 
-项目现在已经具备了基本的 AI 助手功能，包括任务识别、规划、执行和用户响应生成。未来的计划是进一步优化项目的功能和性能，提高测试覆盖率，并完善项目文档。
+## 联系方式
+- **GitHub 仓库**：https://github.com/jyyconrad/nanobot
+- **问题反馈**：https://github.com/jyyconrad/nanobot/issues
