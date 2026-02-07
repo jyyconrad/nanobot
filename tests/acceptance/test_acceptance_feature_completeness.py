@@ -80,10 +80,7 @@ def test_cli_interface():
 
     try:
         result = subprocess.run(
-            ["python3", "-m", "nanobot", "--help"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["python3", "-m", "nanobot", "--help"], capture_output=True, text=True, check=True
         )
         assert "Usage:" in result.stdout
         assert "nanobot" in result.stdout

@@ -52,15 +52,13 @@ class SubagentManager:
             subagent_id=task_id,
             task_id=task_id,
             task=task,
-            label=task[:30] + ("..." if len(task) > 30 else "")
+            label=task[:30] + ("..." if len(task) > 30 else ""),
         )
 
         # 保存到管理状态
         self.subagents[task_id] = subagent
         self.tasks[task_id] = subagent_task
-        self.states[task_id] = SubagentState(
-            task_id=task_id, status="ASSIGNED", progress=0.0
-        )
+        self.states[task_id] = SubagentState(task_id=task_id, status="ASSIGNED", progress=0.0)
 
         return task_id
 

@@ -228,8 +228,7 @@ class WorkflowManager:
             raise ValueError(f"Workflow {workflow_id} not found")
 
         return [
-            task_id for task_id, task in self.tasks.items()
-            if task["workflow_id"] == workflow_id
+            task_id for task_id, task in self.tasks.items() if task["workflow_id"] == workflow_id
         ]
 
     def list_workflows(self) -> List[Dict]:
@@ -312,4 +311,5 @@ class WorkflowManager:
     def _get_current_time(self) -> float:
         """Get current time as timestamp (for simplicity)."""
         import time
+
         return time.time()

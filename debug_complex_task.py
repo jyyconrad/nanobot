@@ -24,6 +24,8 @@ async def debug_complex_task():
     is_complex = await planner.is_complex_task(user_input)
     print("是否复杂:", is_complex)
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(debug_complex_task())

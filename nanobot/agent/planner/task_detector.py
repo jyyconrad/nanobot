@@ -68,7 +68,14 @@ class TaskDetector(BaseModel):
             ),
             TaskPattern(
                 task_type=TaskType.SYSTEM_COMMAND,
-                patterns=["运行.*命令", "执行.*脚本", "安装.*软件", "配置.*环境", "部署.*服务", "部署.*环境"],
+                patterns=[
+                    "运行.*命令",
+                    "执行.*脚本",
+                    "安装.*软件",
+                    "配置.*环境",
+                    "部署.*服务",
+                    "部署.*环境",
+                ],
                 weight=0.7,
             ),
         ]

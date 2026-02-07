@@ -11,15 +11,10 @@ async def main():
     detector = CorrectionDetector()
 
     # 测试删除类型修正检测
-    test_cases = [
-        "删除不必要的代码",
-        "移除多余的文件",
-        "去掉无效的配置",
-        "取消过时的功能"
-    ]
+    test_cases = ["删除不必要的代码", "移除多余的文件", "去掉无效的配置", "取消过时的功能"]
 
     for i, test_input in enumerate(test_cases):
-        print(f"测试用例 {i+1}: \"{test_input}\"")
+        print(f'测试用例 {i + 1}: "{test_input}"')
 
         # 检查是否是否定句
         is_negation = await detector._is_negation(test_input)
@@ -43,6 +38,8 @@ async def main():
             print("  未检测到修正")
         print()
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

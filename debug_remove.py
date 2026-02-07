@@ -33,6 +33,8 @@ async def debug_remove():
     correction_type = await detector._detect_correction_type(test_input)
     print("直接检测修正类型:", correction_type)
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(debug_remove())

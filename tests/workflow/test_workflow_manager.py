@@ -271,9 +271,23 @@ class TestWorkflowManager:
     def test_get_workflow_tasks(self):
         """Test getting tasks in a workflow."""
         steps = [
-            WorkflowStep(step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING),
-            WorkflowStep(step_id="step2", name="Step 2", description="Step 2", dependencies=["step1"], status=TaskState.PENDING),
-            WorkflowStep(step_id="step3", name="Step 3", description="Step 3", dependencies=["step2"], status=TaskState.PENDING),
+            WorkflowStep(
+                step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING
+            ),
+            WorkflowStep(
+                step_id="step2",
+                name="Step 2",
+                description="Step 2",
+                dependencies=["step1"],
+                status=TaskState.PENDING,
+            ),
+            WorkflowStep(
+                step_id="step3",
+                name="Step 3",
+                description="Step 3",
+                dependencies=["step2"],
+                status=TaskState.PENDING,
+            ),
         ]
 
         workflow_id = self.manager.create_workflow("Test Workflow", steps)
@@ -292,7 +306,9 @@ class TestWorkflowManager:
 
         # Create a workflow and test again
         steps = [
-            WorkflowStep(step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING),
+            WorkflowStep(
+                step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING
+            ),
         ]
 
         workflow_id = self.manager.create_workflow("Test Workflow", steps)
@@ -308,7 +324,9 @@ class TestWorkflowManager:
 
         # Create a workflow in manager1
         steps = [
-            WorkflowStep(step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING),
+            WorkflowStep(
+                step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING
+            ),
         ]
 
         workflow_id = manager1.create_workflow("Test Workflow", steps)

@@ -38,7 +38,9 @@ async def test_subagent_coordination():
     agent = MainAgent("test-session-2")
 
     # 模拟子代理管理器
-    with patch.object(agent.subagent_manager, "spawn_subagent", new_callable=AsyncMock) as mock_spawn:
+    with patch.object(
+        agent.subagent_manager, "spawn_subagent", new_callable=AsyncMock
+    ) as mock_spawn:
         mock_spawn.return_value = None
 
         with patch.object(agent, "_handle_new_message", new_callable=AsyncMock) as mock_handle:
@@ -64,12 +66,16 @@ async def test_context_management():
         mock_build.return_value = ({"user_input": "测试消息"}, None)
 
         # 模拟任务规划结果
-        with patch.object(type(agent.task_planner), "plan_task", new_callable=AsyncMock) as mock_plan_task:
+        with patch.object(
+            type(agent.task_planner), "plan_task", new_callable=AsyncMock
+        ) as mock_plan_task:
             mock_plan_task.return_value = "计划结果"
 
             # 模拟决策
             with patch.object(agent, "_make_decision", new_callable=AsyncMock) as mock_decide:
-                mock_decide.return_value = type('MockDecision', (), {'action': 'reply', 'message': '已处理测试消息'})()
+                mock_decide.return_value = type(
+                    "MockDecision", (), {"action": "reply", "message": "已处理测试消息"}
+                )()
 
                 # 测试处理消息
                 response = await agent.process_message("测试消息")
@@ -110,8 +116,11 @@ async def test_task_cancellation():
     with patch.object(agent, "_handle_task_cancellation", new_callable=AsyncMock) as mock_cancel:
         mock_cancel.return_value = "任务已取消"
 
-        with patch.object(type(agent.task_planner.cancellation_detector), "is_cancellation",
-                          new_callable=AsyncMock) as mock_is_cancel:
+        with patch.object(
+            type(agent.task_planner.cancellation_detector),
+            "is_cancellation",
+            new_callable=AsyncMock,
+        ) as mock_is_cancel:
             mock_is_cancel.return_value = True
 
             # 设置当前任务以触发处理现有任务逻辑
@@ -135,8 +144,11 @@ async def test_task_correction():
     with patch.object(agent, "_handle_task_correction", new_callable=AsyncMock) as mock_correct:
         mock_correct.return_value = "任务已修正"
 
-        with patch.object(type(agent.task_planner.correction_detector), "detect_correction",
-                          new_callable=AsyncMock) as mock_detect:
+        with patch.object(
+            type(agent.task_planner.correction_detector),
+            "detect_correction",
+            new_callable=AsyncMock,
+        ) as mock_detect:
             mock_detect.return_value = "修正内容"
 
             # 设置当前任务以触发处理现有任务逻辑

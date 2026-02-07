@@ -2,7 +2,6 @@
 CorrectionDetector 单元测试
 """
 
-
 import pytest
 
 from nanobot.agent.planner.correction_detector import CorrectionDetector

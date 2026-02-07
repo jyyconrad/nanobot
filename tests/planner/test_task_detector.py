@@ -2,7 +2,6 @@
 TaskDetector 单元测试
 """
 
-
 import pytest
 
 from nanobot.agent.planner.models import TaskType

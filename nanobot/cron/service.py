@@ -249,7 +249,6 @@ class CronService:
         logger.info(f"Cron: executing job '{job.name}' ({job.id})")
 
         try:
-
             # 处理不同的动作类型
             if job.action.type == "trigger_agent":
                 await self._execute_trigger_agent(job)

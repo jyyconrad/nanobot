@@ -21,6 +21,8 @@ async def debug_complexity():
     category = await analyzer.get_complexity_category(user_input, task_type)
     print("复杂度类别:", category)
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(debug_complexity())

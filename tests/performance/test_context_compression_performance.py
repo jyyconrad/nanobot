@@ -19,7 +19,7 @@ async def test_context_compression_time():
     # 测试小对话
     small_conversation = [
         {"role": "user", "content": "你好"},
-        {"role": "assistant", "content": "你好！我是 Nanobot，有什么可以帮助你的吗？"}
+        {"role": "assistant", "content": "你好！我是 Nanobot，有什么可以帮助你的吗？"},
     ]
 
     start_time = time.time()

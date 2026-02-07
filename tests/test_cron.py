@@ -14,7 +14,7 @@ def test_cron_job_creation():
         name="test_job",
         description="测试定时任务",
         schedule=CronSchedule(kind="cron", expr="*/5 * * * *"),
-        action=CronAction(type="agent_turn", message="Hello from cron")
+        action=CronAction(type="agent_turn", message="Hello from cron"),
     )
 
     assert job is not None
@@ -52,11 +52,20 @@ def test_cron_job_validation():
     # 注意：CronConfigLoader.validate_config 期望的是包含 version 和 jobs 的完整配置
     invalid_configs = [
         # 缺少 version
-        {"jobs": [{"id": "test", "name": "test", "schedule": {"kind": "cron", "expr": "*/5 * * * *"}, "action": {"type": "agent_turn"}}]},
+        {
+            "jobs": [
+                {
+                    "id": "test",
+                    "name": "test",
+                    "schedule": {"kind": "cron", "expr": "*/5 * * * *"},
+                    "action": {"type": "agent_turn"},
+                }
+            ]
+        },
         # 缺少 jobs
         {"version": 2},
         # jobs 不是列表
-        {"version": 2, "jobs": {"id": "test", "name": "test"}}
+        {"version": 2, "jobs": {"id": "test", "name": "test"}},
     ]
 
     loader = CronConfigLoader()

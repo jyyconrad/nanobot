@@ -26,6 +26,8 @@ async def debug_plan_correction():
     correction = await planner.correction_detector.detect_correction(user_input, context)
     print("是修正指令:", correction)
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(debug_plan_correction())

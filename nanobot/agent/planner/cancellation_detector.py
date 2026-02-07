@@ -122,7 +122,13 @@ class CancellationDetector(BaseModel):
                     return reason
 
             # 检查是否包含程序错误、网络问题等原因
-            specific_patterns = [r"程序.*出错", r"程序.*错误", r"网络.*问题", r"网络.*故障", r"超时.*"]
+            specific_patterns = [
+                r"程序.*出错",
+                r"程序.*错误",
+                r"网络.*问题",
+                r"网络.*故障",
+                r"超时.*",
+            ]
             for pattern in specific_patterns:
                 if re.search(pattern, user_input, re.IGNORECASE):
                     match = re.search(pattern, user_input)

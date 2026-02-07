@@ -2,7 +2,6 @@
 ComplexityAnalyzer 单元测试
 """
 
-
 import pytest
 
 from nanobot.agent.planner.complexity_analyzer import ComplexityAnalyzer

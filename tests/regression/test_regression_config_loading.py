@@ -16,19 +16,9 @@ def test_old_config_format_compatibility():
     """测试旧格式配置加载兼容性"""
     # 创建旧格式的配置文件
     old_config = {
-        "agent": {
-            "name": "Nanobot",
-            "version": "1.0.0",
-            "max_history": 100
-        },
-        "llm": {
-            "model": "gpt-3.5-turbo",
-            "temperature": 0.7
-        },
-        "database": {
-            "type": "sqlite",
-            "path": "data/nanobot.db"
-        }
+        "agent": {"name": "Nanobot", "version": "1.0.0", "max_history": 100},
+        "llm": {"model": "gpt-3.5-turbo", "temperature": 0.7},
+        "database": {"type": "sqlite", "path": "data/nanobot.db"},
     }
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -50,13 +40,7 @@ def test_old_config_format_compatibility():
 def test_config_default_values():
     """测试配置默认值"""
     # 创建一个不完整的配置文件
-    minimal_config = {
-        "agents": {
-            "defaults": {
-                "name": "TestBot"
-            }
-        }
-    }
+    minimal_config = {"agents": {"defaults": {"name": "TestBot"}}}
 
     with tempfile.TemporaryDirectory() as temp_dir:
         config_path = os.path.join(temp_dir, "config.yaml")
@@ -85,18 +69,9 @@ def test_config_migration():
     """测试配置自动迁移功能"""
     # 创建需要迁移的配置文件
     legacy_config = {
-        "bot": {
-            "name": "LegacyBot",
-            "max_memory": 50
-        },
-        "ai": {
-            "engine": "gpt-4",
-            "temp": 0.5
-        },
-        "db": {
-            "driver": "mysql",
-            "url": "mysql://user:pass@localhost/db"
-        }
+        "bot": {"name": "LegacyBot", "max_memory": 50},
+        "ai": {"engine": "gpt-4", "temp": 0.5},
+        "db": {"driver": "mysql", "url": "mysql://user:pass@localhost/db"},
     }
 
     with tempfile.TemporaryDirectory() as temp_dir:

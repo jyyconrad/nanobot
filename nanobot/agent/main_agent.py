@@ -302,11 +302,15 @@ class MainAgent:
                 sender_id="user",
                 timestamp=time.time(),
                 conversation_id=self.session_id,
-                message_type="text"
+                message_type="text",
             ).model_dump()
-            request = DecisionRequest(request_type=trigger, data=message_data, context=kwargs.get("context"))
+            request = DecisionRequest(
+                request_type=trigger, data=message_data, context=kwargs.get("context")
+            )
         else:
-            request = DecisionRequest(request_type=trigger, data=kwargs, context=kwargs.get("context"))
+            request = DecisionRequest(
+                request_type=trigger, data=kwargs, context=kwargs.get("context")
+            )
 
         decision = await self.decision_maker.make_decision(request)
         logger.debug(f"MainAgent[{self.session_id}] 决策结果: {decision}")

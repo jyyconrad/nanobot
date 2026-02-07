@@ -33,7 +33,9 @@ async def test_planning_response_time():
     assert medium_time < 3.0  # 中等复杂度任务规划应在 3 秒内
 
     # 测试复杂任务规划
-    complex_task = "帮我设计一个分布式系统架构，包含前端、后端、数据库、缓存、消息队列，考虑高可用性和负载均衡"
+    complex_task = (
+        "帮我设计一个分布式系统架构，包含前端、后端、数据库、缓存、消息队列，考虑高可用性和负载均衡"
+    )
 
     start_time = time.time()
     await planner.plan_task(complex_task)
@@ -56,7 +58,10 @@ async def test_complexity_analysis_accuracy():
     test_cases = [
         ("帮我写一个简单的 Python 函数", TaskType.CODE_GENERATION),
         ("帮我实现一个用户管理系统，包含用户注册、登录、查询功能", TaskType.CODE_GENERATION),
-        ("帮我设计一个分布式系统架构，包含前端、后端、数据库、缓存、消息队列", TaskType.CODE_GENERATION)
+        (
+            "帮我设计一个分布式系统架构，包含前端、后端、数据库、缓存、消息队列",
+            TaskType.CODE_GENERATION,
+        ),
     ]
 
     for task, task_type in test_cases:

@@ -2,7 +2,6 @@
 CancellationDetector 单元测试
 """
 
-
 import pytest
 
 from nanobot.agent.planner.cancellation_detector import CancellationDetector

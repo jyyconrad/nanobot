@@ -2,7 +2,6 @@
 Tests for workflow data models.
 """
 
-
 from nanobot.agent.workflow.models import (
     MessageCategory,
     TaskState,
@@ -17,9 +16,16 @@ class TestMessageCategory:
     def test_message_category_values(self):
         """Test that all expected message categories are defined."""
         expected_categories = [
-            "chat", "inquiry", "task_create", "task_status",
-            "task_cancel", "task_complete", "task_list", "control",
-            "help", "unknown"
+            "chat",
+            "inquiry",
+            "task_create",
+            "task_status",
+            "task_cancel",
+            "task_complete",
+            "task_list",
+            "control",
+            "help",
+            "unknown",
         ]
 
         actual_categories = [category.value for category in MessageCategory]
@@ -29,9 +35,16 @@ class TestMessageCategory:
     def test_message_category_names(self):
         """Test that all expected message category names are defined."""
         expected_names = [
-            "CHAT", "INQUIRY", "TASK_CREATE", "TASK_STATUS",
-            "TASK_CANCEL", "TASK_COMPLETE", "TASK_LIST", "CONTROL",
-            "HELP", "UNKNOWN"
+            "CHAT",
+            "INQUIRY",
+            "TASK_CREATE",
+            "TASK_STATUS",
+            "TASK_CANCEL",
+            "TASK_COMPLETE",
+            "TASK_LIST",
+            "CONTROL",
+            "HELP",
+            "UNKNOWN",
         ]
 
         actual_names = [category.name for category in MessageCategory]
@@ -44,9 +57,7 @@ class TestTaskState:
 
     def test_task_state_values(self):
         """Test that all expected task states are defined."""
-        expected_states = [
-            "pending", "running", "paused", "completed", "cancelled", "failed"
-        ]
+        expected_states = ["pending", "running", "paused", "completed", "cancelled", "failed"]
 
         actual_states = [state.value for state in TaskState]
 
@@ -54,9 +65,7 @@ class TestTaskState:
 
     def test_task_state_names(self):
         """Test that all expected task state names are defined."""
-        expected_names = [
-            "PENDING", "RUNNING", "PAUSED", "COMPLETED", "CANCELLED", "FAILED"
-        ]
+        expected_names = ["PENDING", "RUNNING", "PAUSED", "COMPLETED", "CANCELLED", "FAILED"]
 
         actual_names = [state.name for state in TaskState]
 
@@ -68,9 +77,7 @@ class TestWorkflowState:
 
     def test_workflow_state_values(self):
         """Test that all expected workflow states are defined."""
-        expected_states = [
-            "planning", "active", "paused", "completed", "failed"
-        ]
+        expected_states = ["planning", "active", "paused", "completed", "failed"]
 
         actual_states = [state.value for state in WorkflowState]
 
@@ -78,9 +85,7 @@ class TestWorkflowState:
 
     def test_workflow_state_names(self):
         """Test that all expected workflow state names are defined."""
-        expected_names = [
-            "PLANNING", "ACTIVE", "PAUSED", "COMPLETED", "FAILED"
-        ]
+        expected_names = ["PLANNING", "ACTIVE", "PAUSED", "COMPLETED", "FAILED"]
 
         actual_names = [state.name for state in WorkflowState]
 
@@ -97,7 +102,7 @@ class TestWorkflowStep:
             name="Test Step",
             description="This is a test step",
             dependencies=["step1", "step2"],
-            status=TaskState.PENDING
+            status=TaskState.PENDING,
         )
 
         assert step.step_id == "test_step"
@@ -117,7 +122,7 @@ class TestWorkflowStep:
             name="Test Step",
             description="This is a test step",
             status=TaskState.COMPLETED,
-            output="Test output"
+            output="Test output",
         )
 
         assert step.status == TaskState.COMPLETED
@@ -130,7 +135,7 @@ class TestWorkflowStep:
             name="Test Step",
             description="This is a test step",
             status=TaskState.FAILED,
-            error="Test error message"
+            error="Test error message",
         )
 
         assert step.status == TaskState.FAILED

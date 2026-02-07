@@ -10,6 +10,7 @@ from nanobot.channels.manager import ChannelManager
 
 def test_channel_base_class():
     """测试通道基类"""
+
     # 创建一个简单的通道子类，实现所有抽象方法
     class TestChannel(BaseChannel):
         async def send(self, msg):

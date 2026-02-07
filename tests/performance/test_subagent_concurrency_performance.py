@@ -20,18 +20,14 @@ async def test_subagent_concurrency():
         "帮我计算 1+2+3+...+100 的结果",
         "帮我写一个简单的 TODO 列表应用",
         "帮我查找 Python 中列表排序的方法",
-        "帮我解释什么是面向对象编程"
+        "帮我解释什么是面向对象编程",
     ]
 
     # 测试串行创建时间
     start_time = time.time()
     subagents = []
     for i, task in enumerate(tasks):
-        subagent = AgnoSubagent(
-            task_id=f"task_{i}",
-            task=task,
-            label=f"任务 {i}"
-        )
+        subagent = AgnoSubagent(task_id=f"task_{i}", task=task, label=f"任务 {i}")
         subagents.append(subagent)
     serial_time = time.time() - start_time
 
@@ -39,11 +35,7 @@ async def test_subagent_concurrency():
     start_time = time.time()
     subagents = []
     for i, task in enumerate(tasks):
-        subagent = AgnoSubagent(
-            task_id=f"task_{i}",
-            task=task,
-            label=f"任务 {i}"
-        )
+        subagent = AgnoSubagent(task_id=f"task_{i}", task=task, label=f"任务 {i}")
         subagents.append(subagent)
     parallel_time = time.time() - start_time
 
@@ -67,11 +59,7 @@ async def test_subagent_response_time_scalability():
         start_time = time.time()
         subagents = []
         for i, task in enumerate(tasks):
-            subagent = AgnoSubagent(
-                task_id=f"task_{i}",
-                task=task,
-                label=f"任务 {i}"
-            )
+            subagent = AgnoSubagent(task_id=f"task_{i}", task=task, label=f"任务 {i}")
             subagents.append(subagent)
             # 添加一些延迟来模拟实际工作
             await asyncio.sleep(0.001)

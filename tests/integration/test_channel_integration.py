@@ -69,12 +69,16 @@ async def test_channel_context_management():
         mock_build.return_value = ({"user_input": "测试消息"}, None)
 
         # 模拟任务规划结果
-        with patch.object(type(agent.task_planner), "plan_task", new_callable=AsyncMock) as mock_plan_task:
+        with patch.object(
+            type(agent.task_planner), "plan_task", new_callable=AsyncMock
+        ) as mock_plan_task:
             mock_plan_task.return_value = "计划结果"
 
             # 模拟决策
             with patch.object(agent, "_make_decision", new_callable=AsyncMock) as mock_decide:
-                mock_decide.return_value = type('MockDecision', (), {'action': 'reply', 'message': '已处理'})()
+                mock_decide.return_value = type(
+                    "MockDecision", (), {"action": "reply", "message": "已处理"}
+                )()
 
                 await agent.process_message("测试消息")
 
@@ -94,7 +98,7 @@ async def test_channel_message_queue():
         # 发送多个消息
         tasks = []
         for i in range(3):
-            task = asyncio.create_task(agent.process_message(f"消息 {i+1}"))
+            task = asyncio.create_task(agent.process_message(f"消息 {i + 1}"))
             tasks.append(task)
 
         results = await asyncio.gather(*tasks)

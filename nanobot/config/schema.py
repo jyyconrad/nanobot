@@ -158,6 +158,7 @@ class Config(BaseSettings):
         """Load configuration from file or environment variables."""
         if config_path:
             import yaml
+
             with open(config_path, "r") as f:
                 config_data = yaml.safe_load(f)
 

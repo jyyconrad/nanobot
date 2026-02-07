@@ -60,12 +60,7 @@ def test_message_history_handling():
     context_manager = ContextManager()
 
     # 发送多条消息
-    messages = [
-        "你好",
-        "帮我写一个简单的 Python 函数",
-        "如何使用这个函数？",
-        "能再优化一下吗？"
-    ]
+    messages = ["你好", "帮我写一个简单的 Python 函数", "如何使用这个函数？", "能再优化一下吗？"]
 
     for msg in messages:
         response = handler.handle(msg, context_manager)

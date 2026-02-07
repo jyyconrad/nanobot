@@ -152,12 +152,14 @@ class CorrectionDetector(BaseModel):
 
         # 处理包含指示代词的修正，如"修改这个函数"，无上下文时应返回 None
         # 但对于"删除不必要的代码"这样的文本，不应返回 None
-        if ("这个" in user_input or "那个" in user_input or "刚才" in user_input):
+        if "这个" in user_input or "那个" in user_input or "刚才" in user_input:
             # 对于包含"删除"等词的句子，不返回 None
             if any(pattern in user_input for pattern in ["删除", "移除", "去掉"]):
                 pass  # 继续处理
             elif "调整" in user_input:
-                return Correction(type="change", content=user_input, target="这个参数", confidence=0.75)
+                return Correction(
+                    type="change", content=user_input, target="这个参数", confidence=0.75
+                )
             else:
                 return None
 
@@ -233,7 +235,14 @@ class CorrectionDetector(BaseModel):
                 if await self._contains_correction_pattern(user_input):
                     correction = await self._detect_correction_type(user_input)
                     # 如果修正类型是明确的，保持原样，否则返回 adjust
-                    if correction and correction.type in ["change", "add", "remove", "fix", "improve", "clarify"]:
+                    if correction and correction.type in [
+                        "change",
+                        "add",
+                        "remove",
+                        "fix",
+                        "improve",
+                        "clarify",
+                    ]:
                         return correction
                     else:
                         return Correction(
@@ -292,8 +301,12 @@ class CorrectionDetector(BaseModel):
                     return True
 
             # 对于编程相关的任务，更宽松地判断相关性
-            if ("代码" in input_text or "函数" in input_text or "程序" in input_text) and \
-               ("代码" in description or "函数" in description or "程序" in description or "Python" in description):
+            if ("代码" in input_text or "函数" in input_text or "程序" in input_text) and (
+                "代码" in description
+                or "函数" in description
+                or "程序" in description
+                or "Python" in description
+            ):
                 return True
 
             # 检查是否包含指示代词

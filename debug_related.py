@@ -29,6 +29,8 @@ async def debug_related():
 
     print("匹配的关键词:", matching_words)
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(debug_related())

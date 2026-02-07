@@ -11,10 +11,7 @@ def test_cli_help_command():
     """测试 CLI 帮助命令"""
     try:
         result = subprocess.run(
-            ["python3", "-m", "nanobot", "--help"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["python3", "-m", "nanobot", "--help"], capture_output=True, text=True, check=True
         )
 
         assert "Usage:" in result.stdout
@@ -30,10 +27,7 @@ def test_cli_version_command():
     """测试 CLI 版本命令"""
     try:
         result = subprocess.run(
-            ["python3", "-m", "nanobot", "--version"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["python3", "-m", "nanobot", "--version"], capture_output=True, text=True, check=True
         )
 
         assert "version" in result.stdout.lower() or "v" in result.stdout
@@ -51,7 +45,7 @@ def test_cli_invalid_command():
             ["python3", "-m", "nanobot", "invalid_command"],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
         )
 
         assert result.returncode != 0
@@ -70,7 +64,7 @@ def test_cli_onboard_command():
             ["python3", "-m", "nanobot", "onboard", "--help"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         assert "onboard" in result.stdout

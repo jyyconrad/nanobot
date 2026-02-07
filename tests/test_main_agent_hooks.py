@@ -2,7 +2,6 @@
 MainAgentHooks 单元测试
 """
 
-
 import pytest
 
 from nanobot.agent.decision.models import DecisionResult

@@ -87,8 +87,20 @@ class ComplexityAnalyzer(BaseModel):
         """
         try:
             # 对于明显不匹配任务类型的简单输入，降低基础复杂度
-            if task_type in [TaskType.CODE_GENERATION, TaskType.DATA_ANALYSIS, TaskType.SYSTEM_COMMAND] and \
-               ("计算" in user_input and ("和" in user_input or "差" in user_input or "积" in user_input or "商" in user_input) and len(user_input) < 25):
+            if task_type in [
+                TaskType.CODE_GENERATION,
+                TaskType.DATA_ANALYSIS,
+                TaskType.SYSTEM_COMMAND,
+            ] and (
+                "计算" in user_input
+                and (
+                    "和" in user_input
+                    or "差" in user_input
+                    or "积" in user_input
+                    or "商" in user_input
+                )
+                and len(user_input) < 25
+            ):
                 base_complexity = 0.3
             else:
                 base_complexity = self.type_weights.get(task_type, 0.3)

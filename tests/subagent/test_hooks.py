@@ -41,6 +41,7 @@ class TestHookRegistration:
 
     def test_hook_registration_creation(self):
         """Test HookRegistration initialization."""
+
         def callback(x):
             return x
 
@@ -96,6 +97,7 @@ class TestSubagentHooks:
 
         def callback(x):
             return x
+
         initial_count = hooks.get_hook_count("pre_run")
 
         await hooks.register_hook("pre_run", callback)
@@ -111,6 +113,7 @@ class TestSubagentHooks:
 
         def callback(x):
             return x
+
         with pytest.raises(ValueError):
             await hooks.register_hook("invalid_type", callback)
 
@@ -121,6 +124,7 @@ class TestSubagentHooks:
 
         def callback(x):
             return x
+
         with pytest.raises(ValueError):
             await hooks.unregister_hook("invalid_type", callback)
 

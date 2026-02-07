@@ -51,7 +51,7 @@ async def test_subagent_concurrent_lifecycle():
     tasks = [
         "帮我写一个简单的 Python 函数",
         "帮我计算 1+2+3+...+100 的结果",
-        "帮我写一个简单的 TODO 列表应用"
+        "帮我写一个简单的 TODO 列表应用",
     ]
 
     task_ids = []
