@@ -42,6 +42,26 @@ class ContextManager:
         self.expander = ContextExpander()
         self.skill_loader = SkillLoader()
         self.memory_store = EnhancedMemoryStore()
+        self.history = []  # 用于测试的消息历史
+        
+    def add_message(self, role: str, content: str):
+        """
+        添加消息到历史记录（用于测试）
+
+        Args:
+            role: 角色（user 或 assistant）
+            content: 消息内容
+        """
+        self.history.append({"role": role, "content": content})
+        
+    def get_history(self):
+        """
+        获取消息历史（用于测试）
+
+        Returns:
+            消息历史列表
+        """
+        return self.history
 
     async def build_context(
         self, session_id: str, task_type: Optional[str] = None, max_tokens: int = 4000

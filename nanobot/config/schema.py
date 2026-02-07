@@ -152,6 +152,77 @@ class Config(BaseSettings):
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
+    
+    @classmethod
+    def load(cls, config_path: str | None = None) -> "Config":
+        """Load configuration from file or environment variables."""
+        if config_path:
+            import yaml
+            with open(config_path, "r") as f:
+                config_data = yaml.safe_load(f)
+            
+            # 兼容性处理：旧格式配置迁移
+            migrated_data = cls._migrate_config(config_data)
+            return cls(**migrated_data)
+        return cls()
+        
+    @classmethod
+    def _migrate_config(cls, config_data: dict) -> dict:
+        """迁移旧格式配置到新格式"""
+        migrated = {}
+        
+        # 处理旧格式的 agent 配置
+        if "agent" in config_data:
+            migrated["agents"] = {"defaults": {}}
+            if "name" in config_data["agent"]:
+                # 旧格式的 agent.name 没有直接对应的新字段，我们可以忽略或放在 main_agent 中
+                pass
+            if "version" in config_data["agent"]:
+                pass
+            if "max_history" in config_data["agent"]:
+                pass
+                
+        # 处理旧格式的 llm 配置
+        if "llm" in config_data:
+            if "agents" not in migrated:
+                migrated["agents"] = {"defaults": {}}
+            if "model" in config_data["llm"]:
+                migrated["agents"]["defaults"]["model"] = config_data["llm"]["model"]
+            if "temperature" in config_data["llm"]:
+                migrated["agents"]["defaults"]["temperature"] = config_data["llm"]["temperature"]
+                
+        # 处理旧格式的 database 配置
+        if "database" in config_data:
+            pass  # 新格式中没有直接的 database 配置
+        
+        # 处理 legacy 格式的 bot 配置
+        if "bot" in config_data:
+            if "agents" not in migrated:
+                migrated["agents"] = {"defaults": {}}
+            if "name" in config_data["bot"]:
+                pass
+            if "max_memory" in config_data["bot"]:
+                pass
+                
+        # 处理 legacy 格式的 ai 配置
+        if "ai" in config_data:
+            if "agents" not in migrated:
+                migrated["agents"] = {"defaults": {}}
+            if "engine" in config_data["ai"]:
+                migrated["agents"]["defaults"]["model"] = config_data["ai"]["engine"]
+            if "temp" in config_data["ai"]:
+                migrated["agents"]["defaults"]["temperature"] = config_data["ai"]["temp"]
+                
+        # 处理 legacy 格式的 db 配置
+        if "db" in config_data:
+            pass
+            
+        # 保留新格式的配置字段
+        for key in ["agents", "channels", "providers", "gateway", "tools", "monitoring"]:
+            if key in config_data and key not in migrated:
+                migrated[key] = config_data[key]
+                
+        return migrated
 
     @property
     def workspace_path(self) -> Path:

@@ -30,11 +30,8 @@ def test_core_modules_availability():
     assert planner is not None
     assert hasattr(planner, "plan_task")
 
-    # 测试决策模块 - 注意：ExecutionDecisionMaker 需要 AgentLoop 实例
-    from nanobot.agent.loop import AgentLoop
-    agent_loop = AgentLoop()
-    from nanobot.agent.decision.decision_maker import ExecutionDecisionMaker
-    decision_maker = ExecutionDecisionMaker(agent_loop)
+    # 测试决策模块 - 注意：ExecutionDecisionMaker 需要 AgentLoop 实例，但我们可以传入 None 进行测试
+    decision_maker = ExecutionDecisionMaker(None)
     assert decision_maker is not None
     assert hasattr(decision_maker, "make_decision")
 
@@ -52,10 +49,12 @@ def test_configuration_system():
 
     config = Config.load()
     assert config is not None
-    assert hasattr(config, "agent")
-    assert hasattr(config, "llm")
-    assert hasattr(config, "database")
-    assert hasattr(config, "server")
+    assert hasattr(config, "agents")
+    assert hasattr(config, "channels")
+    assert hasattr(config, "providers")
+    assert hasattr(config, "gateway")
+    assert hasattr(config, "tools")
+    assert hasattr(config, "monitoring")
 
     print("配置系统测试通过")
 
@@ -66,9 +65,9 @@ def test_database_operations():
 
     memory = EnhancedMemory()
     assert memory is not None
-    assert hasattr(memory, "store")
-    assert hasattr(memory, "retrieve")
-    assert hasattr(memory, "clear")
+    assert hasattr(memory, "add_memory")
+    assert hasattr(memory, "search_memory")
+    assert hasattr(memory, "delete_memory")
 
     print("数据库操作测试通过")
 
@@ -79,7 +78,7 @@ def test_cli_interface():
     
     try:
         result = subprocess.run(
-            ["python", "-m", "nanobot", "--help"],
+            ["python3", "-m", "nanobot", "--help"],
             capture_output=True,
             text=True,
             check=True

@@ -46,7 +46,9 @@ class MainAgent:
     - 用户响应聚合和总结
     """
 
-    def __init__(self, session_id: str):
+    def __init__(self, session_id: str = None):
+        if session_id is None:
+            session_id = str(uuid4())  # 生成随机会话 ID
         self.session_id = session_id
         self.state = MainAgentState(session_id=session_id)
         self.context_manager = ContextManager()

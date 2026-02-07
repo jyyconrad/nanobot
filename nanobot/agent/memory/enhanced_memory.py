@@ -316,3 +316,7 @@ class EnhancedMemoryStore:
 
         logger.debug("任务 '%s' 记忆清除完成，删除了 %d 条记忆", task_id, delete_count)
         return delete_count
+
+
+# 为了兼容性，提供别名
+EnhancedMemory = EnhancedMemoryStore

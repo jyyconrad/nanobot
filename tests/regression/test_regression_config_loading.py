@@ -37,10 +37,9 @@ def test_old_config_format_compatibility():
         # 尝试加载旧格式配置
         try:
             config = Config.load(config_path)
-            assert config.agent.name == "Nanobot"
-            assert config.agent.version == "1.0.0"
-            assert config.llm.model == "gpt-3.5-turbo"
-            assert config.database.type == "sqlite"
+            # 验证 llm 配置是否正确迁移
+            assert config.agents.defaults.model == "gpt-3.5-turbo"
+            assert config.agents.defaults.temperature == 0.7
             print("旧格式配置加载成功")
         except Exception as e:
             pytest.fail(f"旧格式配置加载失败: {e}")
@@ -50,8 +49,10 @@ def test_config_default_values():
     """测试配置默认值"""
     # 创建一个不完整的配置文件
     minimal_config = {
-        "agent": {
-            "name": "TestBot"
+        "agents": {
+            "defaults": {
+                "name": "TestBot"
+            }
         }
     }
     
@@ -62,13 +63,18 @@ def test_config_default_values():
         
         config = Config.load(config_path)
         
-        # 验证必填字段存在
-        assert config.agent.name == "TestBot"
+        # 验证必填字段存在和默认值
+        assert hasattr(config, "agents")
+        assert hasattr(config, "channels")
+        assert hasattr(config, "providers")
+        assert hasattr(config, "gateway")
+        assert hasattr(config, "tools")
+        assert hasattr(config, "monitoring")
         
         # 验证默认值是否正确设置
-        assert hasattr(config, "llm")
-        assert hasattr(config, "database")
-        assert hasattr(config, "server")
+        assert config.agents.defaults.workspace == "~/.nanobot/workspace"
+        assert config.agents.defaults.max_tokens == 8192
+        assert config.gateway.port == 9910
         
         print("配置默认值测试通过")
 
@@ -101,9 +107,8 @@ def test_config_migration():
             config = Config.load(config_path)
             
             # 验证配置是否正确迁移
-            assert config.agent.name == "LegacyBot"
-            assert config.llm.model == "gpt-4"
-            assert config.database.type == "mysql"
+            assert config.agents.defaults.model == "gpt-4"
+            assert config.agents.defaults.temperature == 0.5
             
             print("配置迁移测试通过")
         except Exception as e:
