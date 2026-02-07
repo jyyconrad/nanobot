@@ -14,3 +14,5 @@ build/
 *.pyzz
 .venv/
 __pycache__/
+.coverage
+data/memory/memories.json
