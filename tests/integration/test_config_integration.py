@@ -2,11 +2,12 @@
 配置系统集成测试
 """
 
-import pytest
-from unittest.mock import Mock, patch, mock_open
-import asyncio
-from nanobot.config.schema import Config
 import os
+from unittest.mock import patch
+
+import pytest
+
+from nanobot.config.schema import Config
 
 
 @pytest.mark.asyncio
@@ -45,7 +46,7 @@ async def test_config_validation_error():
     """
     with pytest.raises(Exception):
         # 尝试创建无效配置
-        config = Config(agents="invalid")
+        Config(agents="invalid")
 
 
 @pytest.mark.asyncio
@@ -76,7 +77,7 @@ async def test_config_defaults():
     测试配置默认值
     """
     config = Config()
-    
+
     # 验证默认值
     assert config.agents.defaults.max_tokens == 8192
     assert config.agents.defaults.temperature == 0.7

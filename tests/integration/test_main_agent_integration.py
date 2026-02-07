@@ -2,9 +2,10 @@
 MainAgent 集成测试
 """
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
-import asyncio
+
 from nanobot.agent.main_agent import MainAgent
 
 
@@ -57,22 +58,22 @@ async def test_context_management():
     """
     # 创建 MainAgent 实例
     agent = MainAgent("test-session-3")
-    
+
     # 直接模拟 _plan_task 方法内部的 build_context 调用
     with patch.object(agent.context_manager, "build_context", new_callable=AsyncMock) as mock_build:
         mock_build.return_value = ({"user_input": "测试消息"}, None)
-        
+
         # 模拟任务规划结果
         with patch.object(type(agent.task_planner), "plan_task", new_callable=AsyncMock) as mock_plan_task:
             mock_plan_task.return_value = "计划结果"
-            
+
             # 模拟决策
             with patch.object(agent, "_make_decision", new_callable=AsyncMock) as mock_decide:
                 mock_decide.return_value = type('MockDecision', (), {'action': 'reply', 'message': '已处理测试消息'})()
-                
+
                 # 测试处理消息
                 response = await agent.process_message("测试消息")
-                
+
                 # 验证结果
                 assert "已处理" in response
                 mock_build.assert_called_once()

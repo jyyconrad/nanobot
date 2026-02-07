@@ -71,7 +71,7 @@ class CorrectionDetector(BaseModel):
                 # 对于与任务不相关的修正，如在搜索天气的上下文后修改代码，返回 None
                 if not await self._is_related_to_last_task(user_input, last_task):
                     return None
-                
+
                 correction = await self._detect_correction_from_context(user_input, context)
                 if correction:
                     return correction
@@ -99,7 +99,7 @@ class CorrectionDetector(BaseModel):
         # 对于包含"不必要"的句子，不视为否定句
         if "不必要" in user_input:
             return False
-            
+
         # 对于其他包含否定模式的句子，视为否定句
         for pattern in self.negation_patterns:
             if re.search(pattern, user_input, re.IGNORECASE):
@@ -133,7 +133,6 @@ class CorrectionDetector(BaseModel):
 
         # 找到最高得分的修正类型
         best_type = max(scores.items(), key=lambda x: x[1])[0]
-        best_score = scores[best_type]
 
         # 根据修正类型设置置信度，使测试期望的中等置信度在 0.5-0.8 之间
         if best_type == "change":

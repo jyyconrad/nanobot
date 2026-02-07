@@ -40,13 +40,13 @@ class SubagentManager:
             Subagent 实例 ID
         """
         from nanobot.agent.subagent.models import SubagentTask
-        
+
         # 生成简单的任务 ID
         task_id = f"test-task-{len(self.subagents) + 1}"
         subagent_task = SubagentTask(task_id=task_id, description=task)
-        
+
         logger.info(f"SubagentManager 创建 Subagent: {task_id}")
-        
+
         # 创建 Subagent 实例（AgnoSubagent 是数据模型，直接创建）
         subagent = AgnoSubagent(
             subagent_id=task_id,
@@ -54,16 +54,16 @@ class SubagentManager:
             task=task,
             label=task[:30] + ("..." if len(task) > 30 else "")
         )
-        
+
         # 保存到管理状态
         self.subagents[task_id] = subagent
         self.tasks[task_id] = subagent_task
         self.states[task_id] = SubagentState(
             task_id=task_id, status="ASSIGNED", progress=0.0
         )
-        
+
         return task_id
-        
+
     async def spawn_subagent(self, task: SubagentTask) -> str:
         """
         生成一个新的 Subagent

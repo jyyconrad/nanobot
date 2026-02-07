@@ -2,10 +2,9 @@
 定时任务模块测试
 """
 
-import pytest
-from nanobot.cron.types import CronJob, CronSchedule, CronAction
-from nanobot.cron.config_loader import CronConfigLoader
 from nanobot.cron.agent_trigger import AgentTrigger
+from nanobot.cron.config_loader import CronConfigLoader
+from nanobot.cron.types import CronAction, CronJob, CronSchedule
 
 
 def test_cron_job_creation():
@@ -17,7 +16,7 @@ def test_cron_job_creation():
         schedule=CronSchedule(kind="cron", expr="*/5 * * * *"),
         action=CronAction(type="agent_turn", message="Hello from cron")
     )
-    
+
     assert job is not None
     assert job.id == "test_job_1"
     assert job.name == "test_job"
@@ -25,7 +24,7 @@ def test_cron_job_creation():
     assert job.schedule.kind == "cron"
     assert job.schedule.expr == "*/5 * * * *"
     assert job.action.type == "agent_turn"
-    
+
     print("定时任务创建测试通过")
 
 
@@ -35,7 +34,7 @@ def test_cron_config_loader():
     assert loader is not None
     assert hasattr(loader, "load_config")
     assert hasattr(loader, "validate_config")
-    
+
     print("定时任务配置加载器测试通过")
 
 
@@ -44,7 +43,7 @@ def test_agent_trigger():
     trigger = AgentTrigger()
     assert trigger is not None
     assert hasattr(trigger, "trigger_agent")
-    
+
     print("代理触发器测试通过")
 
 
@@ -59,12 +58,12 @@ def test_cron_job_validation():
         # jobs 不是列表
         {"version": 2, "jobs": {"id": "test", "name": "test"}}
     ]
-    
+
     loader = CronConfigLoader()
-    
+
     for config_data in invalid_configs:
         assert not loader.validate_config(config_data)
-    
+
     print("定时任务验证测试通过")
 
 

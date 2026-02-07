@@ -43,7 +43,7 @@ class ContextManager:
         self.skill_loader = SkillLoader()
         self.memory_store = EnhancedMemoryStore()
         self.history = []  # 用于测试的消息历史
-        
+
     def add_message(self, role: str, content: str):
         """
         添加消息到历史记录（用于测试）
@@ -53,7 +53,7 @@ class ContextManager:
             content: 消息内容
         """
         self.history.append({"role": role, "content": content})
-        
+
     def get_history(self):
         """
         获取消息历史（用于测试）

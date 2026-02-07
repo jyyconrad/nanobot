@@ -3,10 +3,12 @@
 测试旧格式配置仍能正常加载
 """
 
-import pytest
 import os
 import tempfile
+
+import pytest
 import yaml
+
 from nanobot.config.schema import Config
 
 
@@ -28,12 +30,12 @@ def test_old_config_format_compatibility():
             "path": "data/nanobot.db"
         }
     }
-    
+
     with tempfile.TemporaryDirectory() as temp_dir:
         config_path = os.path.join(temp_dir, "config.yaml")
         with open(config_path, "w") as f:
             yaml.dump(old_config, f)
-        
+
         # 尝试加载旧格式配置
         try:
             config = Config.load(config_path)
@@ -55,14 +57,14 @@ def test_config_default_values():
             }
         }
     }
-    
+
     with tempfile.TemporaryDirectory() as temp_dir:
         config_path = os.path.join(temp_dir, "config.yaml")
         with open(config_path, "w") as f:
             yaml.dump(minimal_config, f)
-        
+
         config = Config.load(config_path)
-        
+
         # 验证必填字段存在和默认值
         assert hasattr(config, "agents")
         assert hasattr(config, "channels")
@@ -70,12 +72,12 @@ def test_config_default_values():
         assert hasattr(config, "gateway")
         assert hasattr(config, "tools")
         assert hasattr(config, "monitoring")
-        
+
         # 验证默认值是否正确设置
         assert config.agents.defaults.workspace == "~/.nanobot/workspace"
         assert config.agents.defaults.max_tokens == 8192
         assert config.gateway.port == 9910
-        
+
         print("配置默认值测试通过")
 
 
@@ -96,20 +98,20 @@ def test_config_migration():
             "url": "mysql://user:pass@localhost/db"
         }
     }
-    
+
     with tempfile.TemporaryDirectory() as temp_dir:
         config_path = os.path.join(temp_dir, "config.yaml")
         with open(config_path, "w") as f:
             yaml.dump(legacy_config, f)
-        
+
         # 加载需要迁移的配置
         try:
             config = Config.load(config_path)
-            
+
             # 验证配置是否正确迁移
             assert config.agents.defaults.model == "gpt-4"
             assert config.agents.defaults.temperature == 0.5
-            
+
             print("配置迁移测试通过")
         except Exception as e:
             pytest.fail(f"配置迁移失败: {e}")

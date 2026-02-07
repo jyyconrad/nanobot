@@ -3,12 +3,14 @@
 检查关键接口可用性
 """
 
-import pytest
 import os
-from nanobot.agent.context_manager import ContextManager
+
+import pytest
+
 from nanobot.agent.context_compressor import ContextCompressor
-from nanobot.agent.planner.task_planner import TaskPlanner
+from nanobot.agent.context_manager import ContextManager
 from nanobot.agent.decision.decision_maker import ExecutionDecisionMaker
+from nanobot.agent.planner.task_planner import TaskPlanner
 from nanobot.agent.subagent.manager import SubagentManager
 
 
@@ -75,7 +77,7 @@ def test_database_operations():
 def test_cli_interface():
     """测试命令行接口"""
     import subprocess
-    
+
     try:
         result = subprocess.run(
             ["python3", "-m", "nanobot", "--help"],
@@ -85,7 +87,7 @@ def test_cli_interface():
         )
         assert "Usage:" in result.stdout
         assert "nanobot" in result.stdout
-    
+
         print("命令行接口测试通过")
     except Exception as e:
         pytest.fail(f"命令行接口测试失败: {e}")

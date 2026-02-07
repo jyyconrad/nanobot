@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
+    from ..context_manager import ContextManager
     from ..loop import AgentLoop
 
 from .models import DecisionRequest, DecisionResult, NewMessageRequest
@@ -32,7 +33,7 @@ class NewMessageHandler:
             agent_loop: 代理循环实例（可选）
         """
         self.agent_loop = agent_loop
-    
+
     def handle(self, message: str, context_manager: "ContextManager"):
         """
         处理消息（同步接口，用于测试）
@@ -47,10 +48,10 @@ class NewMessageHandler:
         # 简化的同步处理逻辑（用于测试）
         if message.strip() == "":
             raise ValueError("空消息不被允许")
-            
+
         # 向上下文管理器添加用户消息
         context_manager.add_message("user", message)
-            
+
         # 简单的响应生成
         if "你好" in message:
             response = "你好！我是 Nanobot，有什么可以帮你的？"
@@ -60,10 +61,10 @@ class NewMessageHandler:
             response = "使用方法很简单，你可以直接调用函数。"
         else:
             response = f"收到消息: {message}"
-            
+
         # 向上下文管理器添加助手回复
         context_manager.add_message("assistant", response)
-        
+
         return response
 
     async def handle_request(self, request: DecisionRequest) -> DecisionResult:
