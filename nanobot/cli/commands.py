@@ -607,6 +607,200 @@ def cron_run(
 
 
 # ============================================================================
+# Workflow Commands
+# ============================================================================
+
+workflow_app = typer.Typer(help="Manage workflows")
+app.add_typer(workflow_app, name="workflow")
+
+
+@workflow_app.command("create")
+def workflow_create(
+    name: str = typer.Option(..., "--name", "-n", help="Workflow name"),
+):
+    """Create a new workflow."""
+    from nanobot.agent.workflow.models import TaskState, WorkflowStep
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    # 示例：创建一个简单的工作流
+    steps = [
+        WorkflowStep(
+            step_id="step1",
+            name="Initial Step",
+            description="Initial step of the workflow",
+            status=TaskState.PENDING,
+        ),
+        WorkflowStep(
+            step_id="step2",
+            name="Main Step",
+            description="Main processing step",
+            dependencies=["step1"],
+            status=TaskState.PENDING,
+        ),
+        WorkflowStep(
+            step_id="step3",
+            name="Final Step",
+            description="Final step of the workflow",
+            dependencies=["step2"],
+            status=TaskState.PENDING,
+        ),
+    ]
+
+    manager = WorkflowManager()
+    workflow_id = manager.create_workflow(name, steps)
+    console.print(f"[green]✓[/green] Created workflow '{name}' with ID: {workflow_id}")
+
+
+@workflow_app.command("list")
+def workflow_list():
+    """List all workflows."""
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    manager = WorkflowManager()
+    workflows = manager.list_workflows()
+
+    if not workflows:
+        console.print("No active workflows.")
+        return
+
+    table = Table(title="Workflows")
+    table.add_column("ID", style="cyan")
+    table.add_column("Name")
+    table.add_column("State", style="yellow")
+    table.add_column("Created At", style="dim")
+    table.add_column("Task Count", style="green")
+
+    import time
+
+    for workflow in workflows:
+        created_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(workflow["created_at"]))
+        table.add_row(
+            workflow["workflow_id"],
+            workflow["name"],
+            workflow["state"],
+            created_at,
+            str(workflow["task_count"]),
+        )
+
+    console.print(table)
+
+
+@workflow_app.command("status")
+def workflow_status(
+    workflow_id: str = typer.Argument(..., help="Workflow ID"),
+):
+    """Get workflow status and details."""
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    manager = WorkflowManager()
+    workflow = next((w for w in manager.list_workflows() if w["workflow_id"] == workflow_id), None)
+
+    if not workflow:
+        console.print(f"[red]Workflow {workflow_id} not found[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[bold]Workflow: {workflow['name']}[/bold]")
+    console.print(f"ID: {workflow_id}")
+    console.print(f"State: {workflow['state']}")
+    console.print(f"Task Count: {workflow['task_count']}")
+    console.print()
+
+    # Display tasks
+    tasks = manager.get_workflow_tasks(workflow_id)
+    if tasks:
+        console.print("[bold]Tasks:[/bold]")
+        for task_id in tasks:
+            task = manager.tasks.get(task_id)
+            if task:
+                console.print(f"- {task_id}: {task['description']} ({task['status']})")
+
+
+@workflow_app.command("tasks")
+def workflow_tasks(
+    workflow_id: str = typer.Argument(..., help="Workflow ID"),
+):
+    """List all tasks in a workflow."""
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    manager = WorkflowManager()
+    tasks = manager.get_workflow_tasks(workflow_id)
+
+    if not tasks:
+        console.print(f"[red]Workflow {workflow_id} not found[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[bold]Tasks in workflow {workflow_id}:[/bold]")
+    for task_id in tasks:
+        task = manager.tasks.get(task_id)
+        if task:
+            console.print(f"- {task_id}: {task['description']} ({task['status']})")
+
+
+@workflow_app.command("pause")
+def workflow_pause(
+    workflow_id: str = typer.Argument(..., help="Workflow ID"),
+):
+    """Pause a workflow."""
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    manager = WorkflowManager()
+    try:
+        manager.pause_workflow(workflow_id)
+        console.print(f"[green]✓[/green] Paused workflow {workflow_id}")
+    except ValueError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+@workflow_app.command("resume")
+def workflow_resume(
+    workflow_id: str = typer.Argument(..., help="Workflow ID"),
+):
+    """Resume a paused workflow."""
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    manager = WorkflowManager()
+    try:
+        manager.resume_workflow(workflow_id)
+        console.print(f"[green]✓[/green] Resumed workflow {workflow_id}")
+    except ValueError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+@workflow_app.command("complete")
+def workflow_complete(
+    workflow_id: str = typer.Argument(..., help="Workflow ID"),
+):
+    """Complete a workflow."""
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    manager = WorkflowManager()
+    try:
+        manager.complete_workflow(workflow_id)
+        console.print(f"[green]✓[/green] Completed workflow {workflow_id}")
+    except ValueError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+@workflow_app.command("cancel")
+def workflow_cancel(
+    workflow_id: str = typer.Argument(..., help="Workflow ID"),
+):
+    """Cancel a workflow."""
+    from nanobot.agent.workflow.workflow_manager import WorkflowManager
+
+    manager = WorkflowManager()
+    try:
+        manager.cancel_workflow(workflow_id)
+        console.print(f"[green]✓[/green] Cancelled workflow {workflow_id}")
+    except ValueError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+# ============================================================================
 # Status Commands
 # ============================================================================
 

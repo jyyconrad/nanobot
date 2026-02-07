@@ -127,7 +127,7 @@ class CronService:
 
         data = {
             "version": self._store.version,
-            "globalSettings": self._store.globalSettings,
+            "globalSettings": self._store.global_settings,
             "jobs": [
                 {
                     "id": j.id,
@@ -466,12 +466,12 @@ class CronService:
     def get_global_settings(self) -> dict:
         """Get global settings from store."""
         store = self._load_store()
-        return store.globalSettings
+        return store.global_settings
 
     def update_global_settings(self, settings: dict) -> None:
         """Update global settings."""
         store = self._load_store()
-        store.globalSettings.update(settings)
+        store.global_settings.update(settings)
         self._save_store()
 
     def set_agent_trigger(self, trigger: Any) -> None:

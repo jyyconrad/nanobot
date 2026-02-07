@@ -16,6 +16,9 @@ from nanobot.agent.planner.models import TaskPlan
 from nanobot.agent.planner.task_planner import TaskPlanner
 from nanobot.agent.subagent.manager import SubagentManager
 from nanobot.agent.subagent.models import SubagentResult, SubagentState, SubagentTask
+from nanobot.agent.workflow.message_router import MessageRouter
+from nanobot.agent.workflow.models import MessageCategory
+from nanobot.agent.workflow.workflow_manager import WorkflowManager
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +60,9 @@ class MainAgent:
         self.decision_maker = ExecutionDecisionMaker(None)
         self.subagent_manager = SubagentManager()
         self.hooks = MainAgentHooks()
+        # 新增：初始化消息路由器和工作流管理器
+        self.message_router = MessageRouter()
+        self.workflow_manager = WorkflowManager()
 
     async def process_message(self, message: str) -> str:
         """
@@ -100,6 +106,35 @@ class MainAgent:
         """处理新消息（无当前任务）"""
         logger.debug(f"MainAgent[{self.session_id}] 处理新消息")
 
+        # 使用消息路由器识别消息类别
+        category = self.message_router.get_category(message)
+        logger.debug(f"MainAgent[{self.session_id}] 消息分类: {category}")
+
+        # 根据类别分发处理
+        if category in [
+            MessageCategory.TASK_CREATE,
+            MessageCategory.TASK_STATUS,
+            MessageCategory.TASK_CANCEL,
+            MessageCategory.TASK_COMPLETE,
+            MessageCategory.TASK_LIST,
+        ]:
+            return await self._handle_task_message(category, message)
+        elif category == MessageCategory.HELP:
+            return await self._handle_help()
+        elif category == MessageCategory.CONTROL:
+            return await self._handle_control(message)
+        else:  # CHAT 或 INQUIRY
+            return await self._handle_chat_message(message)
+
+    async def _handle_task_message(self, category: MessageCategory, message: str) -> str:
+        """处理任务相关消息"""
+        logger.debug(f"MainAgent[{self.session_id}] 处理任务消息: {category}")
+        return self.workflow_manager.handle_task_message(category, message)
+
+    async def _handle_chat_message(self, message: str) -> str:
+        """处理对话消息"""
+        logger.debug(f"MainAgent[{self.session_id}] 处理对话消息")
+
         # 触发规划前钩子
         hook_result = await self.hooks.before_planning(message)
         if hook_result.block:
@@ -123,6 +158,42 @@ class MainAgent:
 
         return response
 
+    async def _handle_help(self) -> str:
+        """处理帮助请求"""
+        logger.debug(f"MainAgent[{self.session_id}] 处理帮助请求")
+        help_text = (
+            "Nanobot 使用帮助：\n\n"
+            "任务管理命令：\n"
+            "- 创建任务 [任务描述]: 创建新任务\n"
+            "- 查看任务 [任务ID]: 查询任务状态\n"
+            "- 取消任务 [任务ID]: 取消指定任务\n"
+            "- 完成任务 [任务ID]: 完成指定任务\n"
+            "- 列出任务: 显示所有任务\n\n"
+            "控制命令：\n"
+            "- 继续: 恢复暂停的任务\n"
+            "- 暂停: 暂停当前任务\n"
+            "- 重试: 重试失败的任务\n\n"
+            "其他命令：\n"
+            "- 帮助: 显示此帮助信息\n"
+        )
+        return help_text
+
+    async def _handle_control(self, message: str) -> str:
+        """处理控制命令"""
+        logger.debug(f"MainAgent[{self.session_id}] 处理控制命令: {message}")
+
+        if "继续" in message or "恢复" in message:
+            # 这里可以添加恢复任务的逻辑
+            return "恢复任务功能将在未来版本中实现"
+        elif "暂停" in message:
+            # 这里可以添加暂停任务的逻辑
+            return "暂停任务功能将在未来版本中实现"
+        elif "重试" in message:
+            # 这里可以添加重试任务的逻辑
+            return "重试任务功能将在未来版本中实现"
+
+        return "未知的控制命令"
+
     async def _handle_existing_task(self, message: str) -> str:
         """处理现有任务的消息"""
         logger.debug(f"MainAgent[{self.session_id}] 处理现有任务消息")
@@ -144,8 +215,10 @@ class MainAgent:
             if correction:
                 return await self._handle_task_correction(message)
 
-        # 处理 Subagent 执行中的消息（可能是中断）
-        return await self._handle_subagent_interrupt(message)
+        # 如果不是取消或修正，直接当作新消息处理
+        # 不需要清理当前任务，因为新消息应该能自然承接旧任务
+        logger.info(f"MainAgent[{self.session_id}] 将消息作为新消息处理")
+        return await self._handle_new_message(message)
 
     async def _plan_task(self, message: str):
         """规划任务"""
@@ -172,7 +245,26 @@ class MainAgent:
                 success=True, action="reply", message=hook_result.modified_message or "决策被阻止"
             )
 
-        request = DecisionRequest(request_type=trigger, data=kwargs, context=kwargs.get("context"))
+        # 当处理新消息请求时，需要构建完整的 NewMessageRequest 结构
+        if trigger == "new_message" and "message" in kwargs:
+            import time
+            from uuid import uuid4
+
+            from nanobot.agent.decision.models import NewMessageRequest
+
+            # 构建完整的 NewMessageRequest
+            message_data = NewMessageRequest(
+                message_id=str(uuid4()),
+                content=kwargs["message"],
+                sender_id="user",
+                timestamp=time.time(),
+                conversation_id=self.session_id,
+                message_type="text"
+            ).model_dump()
+            request = DecisionRequest(request_type=trigger, data=message_data, context=kwargs.get("context"))
+        else:
+            request = DecisionRequest(request_type=trigger, data=kwargs, context=kwargs.get("context"))
+
         decision = await self.decision_maker.make_decision(request)
         logger.debug(f"MainAgent[{self.session_id}] 决策结果: {decision}")
 
@@ -193,6 +285,21 @@ class MainAgent:
 
         if decision.action == "complete_task":
             return await self._handle_complete_task_decision(decision)
+
+        if decision.action == "create_task":
+            # 对于创建任务的决策，我们可以默认回复任务已创建
+            return await self._handle_reply_decision(decision)
+
+        if decision.action == "cancel_task":
+            return await self._handle_task_cancellation()
+
+        if decision.action == "handle_correction":
+            correction_content = decision.data.get("content", "")
+            return await self._handle_task_correction(correction_content)
+
+        if decision.action == "simple_query":
+            # 对于简单查询，我们可以默认回复查询已处理
+            return await self._handle_reply_decision(decision)
 
         logger.warning(f"MainAgent[{self.session_id}] 未知决策类型: {decision.action}")
         return "无法理解的决策类型"

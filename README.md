@@ -501,6 +501,14 @@ gateway:
 | `nanobot config upgrade` | Upgrade config to latest version |
 | `nanobot channels login` | Link WhatsApp (scan QR) |
 | `nanobot channels status` | Show channel status |
+| `nanobot workflow create` | Create a new workflow |
+| `nanobot workflow list` | List all workflows |
+| `nanobot workflow status` | Get workflow status and details |
+| `nanobot workflow tasks` | List all tasks in a workflow |
+| `nanobot workflow pause` | Pause a workflow |
+| `nanobot workflow resume` | Resume a paused workflow |
+| `nanobot workflow complete` | Complete a workflow |
+| `nanobot workflow cancel` | Cancel a workflow |
 
 <details>
 <summary><b>Scheduled Tasks (Cron)</b></summary>

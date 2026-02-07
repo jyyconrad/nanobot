@@ -507,7 +507,362 @@ class DecisionResult(BaseModel):
     requires_approval: bool = False
 ```
 
-## 7. 使用示例
+## 7. Workflow Manager（工作流管理）
+
+### 类定义
+
+```python
+class WorkflowManager:
+    """
+    工作流管理器，负责管理工作流的创建、状态跟踪和任务管理。
+    """
+```
+
+### 方法
+
+#### `__init__`
+
+```python
+def __init__(self, workspace: Path = Path("workspace")):
+    """
+    初始化 WorkflowManager 实例。
+
+    Args:
+        workspace: 工作区路径（可选，默认 "workspace"）
+
+    Returns:
+        WorkflowManager 实例
+    """
+```
+
+#### `create_workflow`
+
+```python
+def create_workflow(self, name: str, steps: List[WorkflowStep]) -> str:
+    """
+    创建一个新的工作流。
+
+    Args:
+        name: 工作流名称
+        steps: 工作流步骤列表
+
+    Returns:
+        工作流 ID
+    """
+```
+
+#### `get_workflow_state`
+
+```python
+def get_workflow_state(self, workflow_id: str) -> Optional[WorkflowState]:
+    """
+    获取工作流的当前状态。
+
+    Args:
+        workflow_id: 工作流 ID
+
+    Returns:
+        工作流状态（WorkflowState）或 None（如果工作流不存在）
+    """
+```
+
+#### `create_task`
+
+```python
+def create_task(self, workflow_id: str, task_id: str, description: str) -> str:
+    """
+    在指定工作流中创建一个新任务。
+
+    Args:
+        workflow_id: 工作流 ID
+        task_id: 任务 ID
+        description: 任务描述
+
+    Returns:
+        任务 ID
+    """
+```
+
+#### `get_task_status`
+
+```python
+def get_task_status(self, task_id: str) -> Optional[TaskState]:
+    """
+    获取任务的当前状态。
+
+    Args:
+        task_id: 任务 ID
+
+    Returns:
+        任务状态（TaskState）或 None（如果任务不存在）
+    """
+```
+
+#### `pause_workflow`
+
+```python
+def pause_workflow(self, workflow_id: str) -> None:
+    """
+    暂停工作流。
+
+    Args:
+        workflow_id: 工作流 ID
+
+    Raises:
+        ValueError: 工作流不存在
+    """
+```
+
+#### `resume_workflow`
+
+```python
+def resume_workflow(self, workflow_id: str) -> None:
+    """
+    恢复暂停的工作流。
+
+    Args:
+        workflow_id: 工作流 ID
+
+    Raises:
+        ValueError: 工作流不存在
+    """
+```
+
+#### `complete_workflow`
+
+```python
+def complete_workflow(self, workflow_id: str) -> None:
+    """
+    完成工作流。
+
+    Args:
+        workflow_id: 工作流 ID
+
+    Raises:
+        ValueError: 工作流不存在
+    """
+```
+
+#### `cancel_workflow`
+
+```python
+def cancel_workflow(self, workflow_id: str) -> None:
+    """
+    取消工作流。
+
+    Args:
+        workflow_id: 工作流 ID
+
+    Raises:
+        ValueError: 工作流不存在
+    """
+```
+
+#### `update_task_status`
+
+```python
+def update_task_status(self, task_id: str, status: TaskState) -> None:
+    """
+    更新任务状态。
+
+    Args:
+        task_id: 任务 ID
+        status: 新状态
+
+    Raises:
+        ValueError: 任务不存在
+    """
+```
+
+#### `get_workflow_tasks`
+
+```python
+def get_workflow_tasks(self, workflow_id: str) -> List[str]:
+    """
+    获取工作流中的所有任务。
+
+    Args:
+        workflow_id: 工作流 ID
+
+    Returns:
+        任务 ID 列表
+
+    Raises:
+        ValueError: 工作流不存在
+    """
+```
+
+#### `list_workflows`
+
+```python
+def list_workflows(self) -> List[Dict]:
+    """
+    列出所有工作流。
+
+    Returns:
+        工作流信息列表
+    """
+```
+
+#### `handle_task_message`
+
+```python
+def handle_task_message(self, category: MessageCategory, message: str) -> str:
+    """
+    处理任务相关消息。
+
+    Args:
+        category: 消息类别
+        message: 消息内容
+
+    Returns:
+        响应内容
+    """
+```
+
+## 8. Message Router（消息路由器）
+
+### 类定义
+
+```python
+class MessageRouter:
+    """
+    消息路由器，负责将消息分类并路由到相应的处理器。
+    """
+```
+
+### 方法
+
+#### `__init__`
+
+```python
+def __init__(self, llm_provider=None):
+    """
+    初始化 MessageRouter 实例。
+
+    Args:
+        llm_provider: LLM 提供者（可选）
+
+    Returns:
+        MessageRouter 实例
+    """
+```
+
+#### `get_category`
+
+```python
+def get_category(self, message: str) -> MessageCategory:
+    """
+    对消息进行分类。
+
+    Args:
+        message: 要分类的消息
+
+    Returns:
+        消息类别（MessageCategory）
+    """
+```
+
+#### `route`
+
+```python
+async def route(self, message: str, context: Dict) -> MessageCategory:
+    """
+    路由消息到相应类别（异步版本）。
+
+    Args:
+        message: 要路由的消息
+        context: 分类的额外上下文
+
+    Returns:
+        消息类别（MessageCategory）
+    """
+```
+
+#### `get_category_hint`
+
+```python
+async def get_category_hint(self, message: str) -> str:
+    """
+    获取消息分类的提示。
+
+    Args:
+        message: 要分析的消息
+
+    Returns:
+        分类提示字符串
+    """
+```
+
+## 9. 数据模型（新增）
+
+### MessageCategory（消息类别）
+
+```python
+class MessageCategory(Enum):
+    """
+    消息分类枚举。
+    """
+    CHAT = "chat"          # 普通对话
+    INQUIRY = "inquiry"    # 询问类消息
+    TASK_CREATE = "task_create"      # 创建任务
+    TASK_STATUS = "task_status"     # 查询任务状态
+    TASK_CANCEL = "task_cancel"      # 取消任务
+    TASK_COMPLETE = "task_complete"  # 完成任务
+    TASK_LIST = "task_list"         # 列出任务
+    CONTROL = "control"              # 控制命令
+    HELP = "help"                    # 帮助命令
+    UNKNOWN = "unknown"
+```
+
+### TaskState（任务状态）
+
+```python
+class TaskState(Enum):
+    """
+    任务状态枚举。
+    """
+    PENDING = "pending"      # 待执行
+    RUNNING = "running"      # 执行中
+    PAUSED = "paused"       # 已暂停
+    COMPLETED = "completed"  # 已完成
+    CANCELLED = "cancelled"  # 已取消
+    FAILED = "failed"        # 失败
+```
+
+### WorkflowStep（工作流步骤）
+
+```python
+class WorkflowStep:
+    """
+    工作流步骤数据模型。
+    """
+    step_id: str
+    name: str
+    description: str
+    dependencies: List[str]
+    status: TaskState
+    start_time: Optional[float]
+    end_time: Optional[float]
+    output: Any
+    error: Optional[str]
+```
+
+### WorkflowState（工作流状态）
+
+```python
+class WorkflowState(Enum):
+    """
+    工作流状态枚举。
+    """
+    PLANNING = "planning"       # 规划中
+    ACTIVE = "active"         # 进行中
+    PAUSED = "paused"         # 已暂停
+    COMPLETED = "completed"    # 已完成
+    FAILED = "failed"          # 失败
+```
+
+## 10. 使用示例
 
 ### 基本使用
 
