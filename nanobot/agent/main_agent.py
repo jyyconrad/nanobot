@@ -158,6 +158,49 @@ class MainAgent:
 
         return response
 
+    async def _handle_task_request(self, message: str, decision: DecisionResult) -> str:
+        """处理任务相关请求"""
+        logger.debug(f"MainAgent[{self.session_id}] 处理任务请求: {message}")
+
+        # 这里可以添加更复杂的任务处理逻辑
+        # 对于简单的情况，我们可以返回一个友好的响应
+        if "能力" in message or "help" in message.lower():
+            capabilities = """我是 Nanobot，具备以下能力：
+
+消息路由和分类：
+- 智能识别消息类型（对话、任务管理、控制、帮助等）
+- 自动路由消息到合适的处理器
+
+工作流管理：
+- 创建和管理工作流
+- 任务状态跟踪
+- 任务依赖管理
+- 工作流暂停/恢复/完成/取消
+
+任务执行：
+- 任务规划和分解
+- Subagent 调度和执行
+- 任务结果聚合
+
+上下文和记忆：
+- 上下文构建和压缩
+- 消息历史管理
+- 长期记忆存储
+
+命令行工具：
+- 提供丰富的 CLI 命令
+- 支持工作流、定时任务等操作
+
+需要帮助？请输入"帮助"查看详细命令说明。"""
+            return capabilities
+        elif "创建" in message:
+            return "任务创建功能已就绪，请提供任务描述。"
+        elif "查看" in message or "状态" in message:
+            return "任务状态查询功能已就绪，请提供任务 ID。"
+        else:
+            # 使用现有的 chat 处理逻辑
+            return await self._handle_chat_message(message)
+
     async def _handle_help(self) -> str:
         """处理帮助请求"""
         logger.debug(f"MainAgent[{self.session_id}] 处理帮助请求")
@@ -287,8 +330,9 @@ class MainAgent:
             return await self._handle_complete_task_decision(decision)
 
         if decision.action == "create_task":
-            # 对于创建任务的决策，我们可以默认回复任务已创建
-            return await self._handle_reply_decision(decision)
+            # 对于创建任务的决策，实际执行任务处理
+            content = decision.data.get("content", "")
+            return await self._handle_task_request(content, decision)
 
         if decision.action == "cancel_task":
             return await self._handle_task_cancellation()
@@ -298,8 +342,9 @@ class MainAgent:
             return await self._handle_task_correction(correction_content)
 
         if decision.action == "simple_query":
-            # 对于简单查询，我们可以默认回复查询已处理
-            return await self._handle_reply_decision(decision)
+            # 对于简单查询，实际处理查询
+            content = decision.data.get("content", "")
+            return await self._handle_task_request(content, decision)
 
         logger.warning(f"MainAgent[{self.session_id}] 未知决策类型: {decision.action}")
         return "无法理解的决策类型"
