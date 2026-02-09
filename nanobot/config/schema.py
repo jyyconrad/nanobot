@@ -136,6 +136,55 @@ class CronJobConfig(BaseModel):
     log_level: str = "INFO"
 
 
+class OpencodeSkillsConfig(BaseModel):
+    """Opencode skills configuration."""
+
+    enabled: bool = False  # 是否启用 opencode skills
+    source_dir: str = "~/.config/opencode/skills"  # opencode skills 源目录
+    skills: list[str] = Field(
+        default_factory=lambda: ["code-review", "code-refactoring", "backend-dev"]
+    )  # 要加载的 skills 列表
+
+
+class OpencodeCommandsConfig(BaseModel):
+    """Opencode commands configuration."""
+
+    enabled: bool = False  # 是否启用 opencode commands
+    source_dir: str = "~/.config/opencode/commands"  # opencode commands 源目录
+    commands: list[str] = Field(
+        default_factory=lambda: ["review", "optimize", "test", "fix", "commit", "debug"]
+    )  # 要加载的 commands 列表
+
+
+class OpencodeAgentsConfig(BaseModel):
+    """Opencode agents configuration."""
+
+    enabled: bool = False  # 是否启用 opencode agents
+    source_dir: str = "~/.config/opencode/agents"  # opencode agents 源目录
+    agents: list[str] = Field(
+        default_factory=lambda: ["code-reviewer", "frontend-developer", "backend-developer"]
+    )  # 要加载的 agents 列表
+
+
+class MCPServerConfig(BaseModel):
+    """MCP server configuration."""
+
+    name: str = Field(..., description="MCP server name")
+    url: str = Field(..., description="MCP server URL")
+    auth_token: Optional[str] = Field(None, description="Authentication token")
+    auth_type: str = Field("bearer", description="Authentication type (bearer, basic, etc.)")
+
+
+class OpencodeConfig(BaseModel):
+    """Opencode integration configuration."""
+
+    enabled: bool = False  # 是否启用 opencode 集成
+    skills: OpencodeSkillsConfig = Field(default_factory=OpencodeSkillsConfig)
+    commands: OpencodeCommandsConfig = Field(default_factory=OpencodeCommandsConfig)
+    agents: OpencodeAgentsConfig = Field(default_factory=OpencodeAgentsConfig)
+    mcp_servers: list[MCPServerConfig] = Field(default_factory=list, description="MCP server configurations")
+
+
 class MonitoringConfig(BaseModel):
     """Monitoring configuration."""
 
@@ -152,6 +201,7 @@ class Config(BaseSettings):
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
+    opencode: OpencodeConfig = Field(default_factory=OpencodeConfig)
 
     @classmethod
     def load(cls, config_path: str | None = None) -> "Config":
@@ -229,6 +279,61 @@ class Config(BaseSettings):
     def workspace_path(self) -> Path:
         """Get expanded workspace path."""
         return Path(self.agents.defaults.workspace).expanduser()
+
+    def get_opencode_skills_config(self) -> dict | None:
+        """Get opencode skills configuration if enabled."""
+        if not self.opencode.enabled:
+            return None
+        if not self.opencode.skills.enabled:
+            return None
+        return {
+            "enabled": True,
+            "source_dir": self.opencode.skills.source_dir,
+            "skills": self.opencode.skills.skills,
+        }
+
+    def get_opencode_commands_config(self) -> dict | None:
+        """Get opencode commands configuration if enabled."""
+        if not self.opencode.enabled:
+            return None
+        if not self.opencode.commands.enabled:
+            return None
+        return {
+            "enabled": True,
+            "source_dir": self.opencode.commands.source_dir,
+            "commands": self.opencode.commands.commands,
+        }
+
+    def get_opencode_agents_config(self) -> dict | None:
+        """Get opencode agents configuration if enabled."""
+        if not self.opencode.enabled:
+            return None
+        if not self.opencode.agents.enabled:
+            return None
+        return {
+            "enabled": True,
+            "source_dir": self.opencode.agents.source_dir,
+            "agents": self.opencode.agents.agents,
+        }
+
+    def get_opencode_mcp_config(self) -> dict | None:
+        """Get opencode MCP servers configuration if enabled."""
+        if not self.opencode.enabled:
+            return None
+        if not self.opencode.mcp_servers:
+            return None
+        return {
+            "enabled": True,
+            "mcp_servers": [
+                {
+                    "name": server.name,
+                    "url": server.url,
+                    "auth_token": server.auth_token,
+                    "auth_type": server.auth_type,
+                }
+                for server in self.opencode.mcp_servers
+            ],
+        }
 
     def get_api_key(self) -> str | None:
         """Get API key in priority order: OpenRouter > DeepSeek > Anthropic > OpenAI > Gemini > Zhipu > Groq > vLLM > Volcengine."""

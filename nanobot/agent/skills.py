@@ -16,12 +16,33 @@ class SkillsLoader:
 
     Skills are markdown files (SKILL.md) that teach the agent how to use
     specific tools or perform certain tasks.
+
+    Can load skills from multiple sources:
+    - Workspace skills (highest priority)
+    - Built-in skills
+    - Opencode skills (if configured)
     """
 
-    def __init__(self, workspace: Path, builtin_skills_dir: Path | None = None):
+    def __init__(
+        self,
+        workspace: Path,
+        builtin_skills_dir: Path | None = None,
+        opencode_config: dict | None = None,
+    ):
         self.workspace = workspace
         self.workspace_skills = workspace / "skills"
         self.builtin_skills = builtin_skills_dir or BUILTIN_SKILLS_DIR
+
+        # Opencode skills configuration
+        self.opencode_enabled = False
+        self.opencode_dir: Path | None = None
+        self.opencode_skills: list[str] = []
+
+        if opencode_config and opencode_config.get("enabled", False):
+            self.opencode_enabled = True
+            source_dir = opencode_config.get("source_dir", "~/.config/opencode/skills")
+            self.opencode_dir = Path(source_dir).expanduser()
+            self.opencode_skills = opencode_config.get("skills", [])
 
     def list_skills(self, filter_unavailable: bool = True) -> list[dict[str, str]]:
         """
@@ -55,6 +76,27 @@ class SkillsLoader:
                             {"name": skill_dir.name, "path": str(skill_file), "source": "builtin"}
                         )
 
+        # Opencode skills (if enabled)
+        if self.opencode_enabled and self.opencode_dir and self.opencode_dir.exists():
+            # 如果有配置的 skills 列表，只加载指定的 skills
+            if self.opencode_skills:
+                for skill_name in self.opencode_skills:
+                    skill_dir = self.opencode_dir / skill_name
+                    skill_file = skill_dir / "SKILL.md"
+                    if skill_file.exists() and not any(s["name"] == skill_name for s in skills):
+                        skills.append(
+                            {"name": skill_name, "path": str(skill_file), "source": "opencode"}
+                        )
+            else:
+                # 否则加载所有 skills
+                for skill_dir in self.opencode_dir.iterdir():
+                    if skill_dir.is_dir():
+                        skill_file = skill_dir / "SKILL.md"
+                        if skill_file.exists() and not any(s["name"] == skill_dir.name for s in skills):
+                            skills.append(
+                                {"name": skill_dir.name, "path": str(skill_file), "source": "opencode"}
+                            )
+
         # Filter by requirements
         if filter_unavailable:
             return [s for s in skills if self._check_requirements(self._get_skill_meta(s["name"]))]
@@ -81,6 +123,12 @@ class SkillsLoader:
             if builtin_skill.exists():
                 return builtin_skill.read_text(encoding="utf-8")
 
+        # Check opencode
+        if self.opencode_enabled and self.opencode_dir:
+            opencode_skill = self.opencode_dir / name / "SKILL.md"
+            if opencode_skill.exists():
+                return opencode_skill.read_text(encoding="utf-8")
+
         return None
 
     def load_skills_for_context(self, skill_names: list[str]) -> str:
@@ -106,7 +154,7 @@ class SkillsLoader:
         """
         Build a summary of all skills (name, description, path, availability).
 
-        This is used for progressive loading - the agent can read the full
+        This is used for progressive loading - agent can read full
         skill content using read_file when needed.
 
         Returns:
@@ -156,7 +204,7 @@ class SkillsLoader:
         return ", ".join(missing)
 
     def _get_skill_description(self, name: str) -> str:
-        """Get the description of a skill from its frontmatter."""
+        """Get description of a skill from its frontmatter."""
         meta = self.get_skill_metadata(name)
         if meta and meta.get("description"):
             return meta["description"]
@@ -165,7 +213,7 @@ class SkillsLoader:
     def _strip_frontmatter(self, content: str) -> str:
         """Remove YAML frontmatter from markdown content."""
         if content.startswith("---"):
-            match = re.match(r"^---\n.*?\n---\n", content, re.DOTALL)
+            match = re.match(r"^---\n.*?\n---\n", content, re.DOT)
             if match:
                 return content[match.end() :].strip()
         return content

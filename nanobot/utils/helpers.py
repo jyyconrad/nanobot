@@ -89,3 +89,40 @@ def parse_session_key(key: str) -> tuple[str, str]:
     if len(parts) != 2:
         raise ValueError(f"Invalid session key: {key}")
     return parts[0], parts[1]
+
+
+def get_project_context() -> str:
+    """
+    获取项目上下文文件内容（参考 OpenClaw 的 project context 概念）
+
+    查找并读取以下可能的上下文文件：
+    - SOUL.md - 项目灵魂文件（描述项目的核心价值和目标）
+    - USER.md - 用户信息文件（描述项目面向的用户）
+    - AGENTS.md - 智能体文档（描述项目的智能体系统）
+    - TOOLS.md - 工具文档（描述项目使用的工具）
+
+    Returns:
+        格式化后的项目上下文字符串，或者空字符串（如果没有找到任何上下文文件）
+    """
+    context_files = [
+        ("SOUL.md", "项目灵魂"),
+        ("USER.md", "用户信息"),
+        ("AGENTS.md", "智能体系统"),
+        ("TOOLS.md", "工具说明"),
+    ]
+
+    context_parts = []
+
+    for filename, title in context_files:
+        file_path = Path.cwd() / filename
+        if file_path.exists() and file_path.is_file():
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                # 简单的 Markdown 处理，移除标题（避免重复）
+                content = "\n".join(line for line in content.splitlines() if not line.startswith("#"))
+                context_parts.append(f"### {title}")
+                context_parts.append(content.strip())
+            except Exception as e:
+                print(f"Warning: Failed to read context file {filename}: {str(e)}")
+
+    return "\n".join(context_parts)

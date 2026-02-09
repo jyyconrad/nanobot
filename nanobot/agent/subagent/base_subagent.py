@@ -262,35 +262,14 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
         )
 
     def _build_subagent_prompt(self, task: str) -> str:
-        """Build a focused system prompt for the subagent."""
-        return f"""# Subagent
+        """Build a focused system prompt for the subagent using PromptBuilder."""
+        from nanobot.agent.prompt_builder import get_prompt_builder
 
-You are a subagent spawned by the main agent to complete a specific task.
-
-## Your Task
-{task}
-
-## Rules
-1. Stay focused - complete only the assigned task, nothing else
-2. Your final response will be reported back to the main agent
-3. Do not initiate conversations or take on side tasks
-4. Be concise but informative in your findings
-
-## What You Can Do
-- Read and write files in the workspace
-- Execute shell commands
-- Search the web and fetch web pages
-- Complete the task thoroughly
-
-## What You Cannot Do
-- Send messages directly to users (no message tool available)
-- Spawn other subagents
-- Access the main agent's conversation history
-
-## Workspace
-Your workspace is at: {self.workspace}
-
-When you have completed the task, provide a clear summary of your findings or actions."""
+        return get_prompt_builder().build_subagent_prompt(
+            task_description=task,
+            workspace=self.workspace,
+            available_tools=ToolRegistry(),
+        )
 
     def get_running_count(self) -> int:
         """Return the number of currently running subagents."""

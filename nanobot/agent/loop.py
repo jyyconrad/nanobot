@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from loguru import logger
 
@@ -12,7 +12,6 @@ from nanobot.agent.context import ContextBuilder
 from nanobot.agent.main_agent import MainAgent
 from nanobot.agent.subagent import SubagentManager
 from nanobot.agent.task import TaskStatus
-from nanobot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
 from nanobot.agent.tools.message import MessageTool
 from nanobot.agent.tools.registry import ToolRegistry
 from nanobot.agent.tools.shell import ExecTool
@@ -20,6 +19,8 @@ from nanobot.agent.tools.spawn import SpawnTool
 from nanobot.agent.tools.web import WebFetchTool, WebSearchTool
 from nanobot.bus.events import InboundMessage, OutboundMessage
 from nanobot.bus.queue import MessageBus
+from agno.tools.file import FileTools
+from nanobot.commands.registry import CommandRegistry
 from nanobot.config.schema import ExecToolConfig
 from nanobot.providers.base import LLMProvider
 from nanobot.session.manager import SessionManager
@@ -46,6 +47,7 @@ class AgentLoop:
         max_iterations: int = 20,
         brave_api_key: str | None = None,
         exec_config: "ExecToolConfig | None" = None,
+        opencode_config: dict | None = None,
     ):
         self.bus = bus
         self.provider = provider
@@ -55,7 +57,7 @@ class AgentLoop:
         self.brave_api_key = brave_api_key
         self.exec_config = exec_config or ExecToolConfig()
 
-        self.context = ContextBuilder(workspace)
+        self.context = ContextBuilder(workspace, opencode_config=opencode_config)
         self.sessions = SessionManager(workspace)
         self.tools = ToolRegistry()
         self.subagents = SubagentManager(
@@ -67,6 +69,9 @@ class AgentLoop:
             exec_config=self.exec_config,
         )
 
+        # 添加命令系统
+        self.commands = CommandRegistry()
+
         # 初始化 MainAgent 实例池
         self.main_agents: dict[str, MainAgent] = {}
 
@@ -76,10 +81,7 @@ class AgentLoop:
     def _register_default_tools(self) -> None:
         """Register the default set of tools."""
         # File tools
-        self.tools.register(ReadFileTool())
-        self.tools.register(WriteFileTool())
-        self.tools.register(EditFileTool())
-        self.tools.register(ListDirTool())
+        self.tools.register(FileTools(base_dir=self.workspace))
 
         # Shell tool
         self.tools.register(
@@ -101,6 +103,26 @@ class AgentLoop:
         # Spawn tool (for subagents)
         spawn_tool = SpawnTool(manager=self.subagents)
         self.tools.register(spawn_tool)
+
+        # MCP tool
+        from nanobot.agent.tools.mcp import MCPTool
+
+        # Load MCP server configurations from config
+        mcp_config = []
+        if hasattr(self, "opencode_config") and self.opencode_config:
+            mcp_servers = self.opencode_config.get("mcp_servers", [])
+            for server in mcp_servers:
+                mcp_config.append(
+                    {
+                        "server_url": server.get("url"),
+                        "server_name": server.get("name"),
+                        "auth_token": server.get("auth_token"),
+                        "auth_type": server.get("auth_type", "bearer"),
+                    }
+                )
+
+        # Register MCP tool
+        self.tools.register(MCPTool(config=mcp_config))
 
     async def run(self) -> None:
         """Run the agent loop, processing messages from the bus."""
@@ -152,6 +174,11 @@ class AgentLoop:
 
         logger.info(f"Processing message from {msg.channel}:{msg.sender_id}")
 
+        # 检查命令
+        command_name, args = self.commands.parse_command(msg.content)
+        if command_name:
+            return await self._handle_command(msg, command_name, args)
+
         # 获取或创建 MainAgent 实例
         if msg.session_key not in self.main_agents:
             logger.debug(f"Creating new MainAgent for session: {msg.session_key}")
@@ -177,6 +204,41 @@ class AgentLoop:
             logger.error(f"MainAgent processing failed: {e}", exc_info=True)
             return OutboundMessage(
                 channel=msg.channel, chat_id=msg.chat_id, content=f"处理消息时发生错误: {str(e)}"
+            )
+
+    async def _handle_command(self, msg: InboundMessage, command_name: str, args: dict[str, Any]) -> OutboundMessage:
+        """处理命令执行"""
+        command = self.commands.get(command_name)
+        if not command:
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=f"Unknown command: /{command_name}",
+            )
+
+        try:
+            context = {
+                "args": args,
+                "workspace": self.workspace,
+                "provider": self.provider,
+                "model": self.model,
+                "skills": self.context.skills,
+                "session": self.sessions.get_or_create(msg.session_key),
+            }
+
+            result = await command.execute(context)
+
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=result,
+            )
+        except Exception as e:
+            logger.error(f"Command execution error: {e}")
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=f"Error: {str(e)}",
             )
 
     async def _process_system_message(self, msg: InboundMessage) -> OutboundMessage | None:

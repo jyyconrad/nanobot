@@ -408,38 +408,15 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
         )
 
     def _build_agno_prompt(self, task: str) -> str:
-        """Build a focused system prompt for Agno Subagent."""
-        return f"""# Agno Subagent
+        """Build a focused system prompt for Agno Subagent using PromptBuilder."""
+        from nanobot.agent.prompt_builder import get_prompt_builder
 
-You are an Agno-based subagent spawned by the main agent to complete a specific task.
-Agno provides advanced task orchestration and human-in-loop capabilities.
-
-## Your Task
-{task}
-
-## Rules
-1. Stay focused - complete only the assigned task, nothing else
-2. Your final response will be reported back to the main agent
-3. Do not initiate conversations or take on side tasks
-4. Be concise but informative in your findings
-5. High-risk operations will require human approval before execution
-
-## What You Can Do
-- Read and write files in the workspace
-- Execute shell commands (with risk assessment)
-- Search the web and fetch web pages
-- Complete the task thoroughly
-
-## What You Cannot Do
-- Send messages directly to users (no message tool available)
-- Spawn other subagents
-- Access the main agent's conversation history
-- Execute high-risk operations without approval
-
-## Workspace
-Your workspace is at: {self.workspace}
-
-When you have completed the task, provide a clear summary of your findings or actions."""
+        return get_prompt_builder().build_subagent_prompt(
+            task_description=task,
+            workspace=self.workspace,
+            agent_type="agno",
+            available_tools=ToolRegistry(),
+        )
 
     async def cancel_subagent(self, subagent_id: str) -> bool:
         """Cancel a running subagent."""

@@ -2,6 +2,7 @@
 Workflow manager for Nanobot - manages workflow creation, state tracking, and task management.
 """
 
+import json
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -24,11 +25,44 @@ class WorkflowManager:
         self.workflows: Dict[str, Dict] = {}
         self.tasks: Dict[str, Dict] = {}
         self._initialize_workspace()
+        self._load_workflows_from_file()
 
     def _initialize_workspace(self):
         """Initialize workspace directory if it doesn't exist."""
         if not self.workspace.exists():
             self.workspace.mkdir(parents=True, exist_ok=True)
+
+        # Create workflows directory if it doesn't exist
+        self.workflows_dir = self.workspace / "workflows"
+        if not self.workflows_dir.exists():
+            self.workflows_dir.mkdir(parents=True, exist_ok=True)
+
+    def _load_workflows_from_file(self):
+        """Load workflows from configuration file."""
+        config_file = self.workflows_dir / "workflows.json"
+        if config_file.exists():
+            try:
+                with open(config_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self.workflows = data.get("workflows", {})
+                    self.tasks = data.get("tasks", {})
+                    print(f"Loaded {len(self.workflows)} workflows and {len(self.tasks)} tasks from {config_file}")
+            except Exception as e:
+                print(f"Failed to load workflows from {config_file}: {e}")
+
+    def _save_workflows_to_file(self):
+        """Save workflows to configuration file."""
+        config_file = self.workflows_dir / "workflows.json"
+        try:
+            data = {
+                "workflows": self.workflows,
+                "tasks": self.tasks,
+            }
+            with open(config_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+            print(f"Saved {len(self.workflows)} workflows and {len(self.tasks)} tasks to {config_file}")
+        except Exception as e:
+            print(f"Failed to save workflows to {config_file}: {e}")
 
     def create_workflow(self, name: str, steps: List[WorkflowStep]) -> str:
         """
@@ -54,6 +88,7 @@ class WorkflowManager:
         for step in steps:
             self.create_task(workflow_id, step.step_id, step.description)
 
+        self._save_workflows_to_file()
         return workflow_id
 
     def get_workflow_state(self, workflow_id: str) -> Optional[WorkflowState]:
@@ -94,6 +129,7 @@ class WorkflowManager:
             "updated_at": self._get_current_time(),
         }
 
+        self._save_workflows_to_file()
         return task_id
 
     def get_task_status(self, task_id: str) -> Optional[TaskState]:
@@ -130,6 +166,8 @@ class WorkflowManager:
                 self.tasks[task_id]["status"] = TaskState.PAUSED.value
                 self.tasks[task_id]["updated_at"] = self._get_current_time()
 
+        self._save_workflows_to_file()
+
     def resume_workflow(self, workflow_id: str) -> None:
         """
         Resume a paused workflow.
@@ -149,6 +187,8 @@ class WorkflowManager:
                 self.tasks[task_id]["status"] = TaskState.PENDING.value
                 self.tasks[task_id]["updated_at"] = self._get_current_time()
 
+        self._save_workflows_to_file()
+
     def start_workflow(self, workflow_id: str) -> None:
         """
         Start a workflow.
@@ -161,6 +201,8 @@ class WorkflowManager:
 
         self.workflows[workflow_id]["state"] = WorkflowState.ACTIVE.value
         self.workflows[workflow_id]["updated_at"] = self._get_current_time()
+
+        self._save_workflows_to_file()
 
     def complete_workflow(self, workflow_id: str) -> None:
         """
@@ -181,6 +223,8 @@ class WorkflowManager:
                 self.tasks[task_id]["status"] = TaskState.COMPLETED.value
                 self.tasks[task_id]["updated_at"] = self._get_current_time()
 
+        self._save_workflows_to_file()
+
     def cancel_workflow(self, workflow_id: str) -> None:
         """
         Cancel a workflow.
@@ -200,6 +244,8 @@ class WorkflowManager:
                 self.tasks[task_id]["status"] = TaskState.CANCELLED.value
                 self.tasks[task_id]["updated_at"] = self._get_current_time()
 
+        self._save_workflows_to_file()
+
     def update_task_status(self, task_id: str, status: TaskState) -> None:
         """
         Update the status of a task.
@@ -213,6 +259,8 @@ class WorkflowManager:
 
         self.tasks[task_id]["status"] = status.value
         self.tasks[task_id]["updated_at"] = self._get_current_time()
+
+        self._save_workflows_to_file()
 
     def get_workflow_tasks(self, workflow_id: str) -> List[str]:
         """

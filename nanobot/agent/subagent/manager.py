@@ -75,7 +75,12 @@ class SubagentManager:
         logger.info(f"SubagentManager 生成 Subagent: {task.task_id}")
 
         # 创建 Subagent 实例
-        subagent = AgnoSubagent(task)
+        subagent = AgnoSubagent(
+            subagent_id=task.task_id,
+            task_id=task.task_id,
+            task=task.description,
+            label=task.description[:30] + ("..." if len(task.description) > 30 else ""),
+        )
 
         # 保存到管理状态
         self.subagents[task.task_id] = subagent

@@ -7,7 +7,7 @@ SkillLoader 根据任务类型自动匹配和加载相关技能，
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 import yaml
 from pydantic import BaseModel
@@ -160,6 +160,45 @@ class SkillLoader:
 
         return valid_skills
 
+    @staticmethod
+    def load_skill(skill_name: str) -> Dict[str, Any]:
+        """
+        加载技能内容（从 skills 目录读取 SKILL.md 文件）
+
+        Args:
+            skill_name: 技能名称
+
+        Returns:
+            包含技能内容的字典
+        """
+        logger.debug("正在加载技能 '%s' 的内容", skill_name)
+
+        skill_dir = Path(__file__).parent.parent.parent / "skills" / skill_name.lower()
+        skill_file = skill_dir / "SKILL.md"
+
+        if not skill_file.exists():
+            logger.warning("技能 '%s' 文件未找到: %s", skill_name, skill_file)
+            return {
+                "name": skill_name,
+                "content": f"技能 '{skill_name}' 未找到或无法加载",
+            }
+
+        try:
+            with open(skill_file, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            logger.debug("技能 '%s' 内容加载成功", skill_name)
+            return {
+                "name": skill_name,
+                "content": content.strip(),
+            }
+        except Exception as e:
+            logger.warning("加载技能 '%s' 时出错: %s", skill_name, e)
+            return {
+                "name": skill_name,
+                "content": f"技能 '{skill_name}' 加载失败: {str(e)}",
+            }
+
     async def load_skill_content(self, skill_name: str) -> Optional[str]:
         """
         加载技能内容
@@ -170,24 +209,12 @@ class SkillLoader:
         Returns:
             技能内容，或 None 如果无法加载
         """
-        logger.debug("正在加载技能 '%s' 的内容", skill_name)
-
-        # 简单的模拟实现（实际项目中应从技能系统加载）
-        skill_contents = {
-            "coding": "编码技能 - 支持多种编程语言和代码审查",
-            "debugging": "调试技能 - 支持错误定位和修复",
-            "security": "安全技能 - 提供代码安全审查",
-            "testing": "测试技能 - 支持测试生成和执行",
-            "planning": "规划技能 - 任务分解和项目管理",
-            "writing": "写作技能 - 内容创作和文档生成",
-            "research": "研究技能 - 信息收集和数据分析",
-            "translation": "翻译技能 - 多语言翻译支持",
-        }
-
-        content = skill_contents.get(skill_name.lower())
-        if content:
-            logger.debug("技能 '%s' 内容加载成功", skill_name)
-        else:
-            logger.warning("技能 '%s' 内容未找到", skill_name)
-
-        return content
+        try:
+            skill_data = self.load_skill(skill_name)
+            # 检查是否是有效的技能内容
+            if "技能" in skill_data.get("content", "") and ("未找到" in skill_data.get("content") or "加载失败" in skill_data.get("content")):
+                return None
+            return skill_data.get("content")
+        except Exception as e:
+            logger.warning("加载技能 '%s' 内容时出错: %s", skill_name, e)
+            return None

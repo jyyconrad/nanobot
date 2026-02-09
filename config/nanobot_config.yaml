@@ -86,6 +86,31 @@ tools:
     timeout: 60
     restrict_to_workspace: false
 
+# Opencode Integration Configuration
+opencode:
+  enabled: false
+  skills:
+    enabled: false
+    source_dir: "~/.config/opencode/skills"
+    skills: ["code-review", "code-refactoring", "backend-dev"]
+  commands:
+    enabled: false
+    source_dir: "~/.config/opencode/commands"
+    commands: ["review", "optimize", "test", "fix", "commit", "debug"]
+  agents:
+    enabled: false
+    source_dir: "~/.config/opencode/agents"
+    agents: ["code-reviewer", "frontend-developer", "backend-developer"]
+  mcp_servers:
+    - name: "github_mcp"
+      url: "https://github.com/mcp"
+      auth_token: "YOUR_GITHUB_TOKEN"
+      auth_type: "bearer"
+    - name: "zapier_mcp"
+      url: "https://zapier.com/mcp"
+      auth_token: "YOUR_ZAPIER_TOKEN"
+      auth_type: "bearer"
+
 # Monitoring and Cron Configuration
 monitoring:
   task:
