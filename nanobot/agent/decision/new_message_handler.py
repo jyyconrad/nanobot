@@ -4,6 +4,8 @@
 
 import logging
 from typing import TYPE_CHECKING, Any, Dict
+from datetime import datetime
+import uuid
 
 if TYPE_CHECKING:
     from ..context_manager import ContextManager
@@ -80,8 +82,22 @@ class NewMessageHandler:
         logger.debug(f"处理新消息决策请求: {request.data}")
 
         try:
-            # 解析新消息请求数据
-            message_request = NewMessageRequest(**request.data)
+            # 处理数据格式兼容性
+            # CLI 直接发送的是 {"message": "...", "context": ...}
+            # 需要转换为 NewMessageRequest 格式
+            if "message" in request.data and "message_id" not in request.data:
+                # CLI 格式：转换为 NewMessageRequest
+                import uuid
+                message_request = NewMessageRequest(
+                    message_id=str(uuid.uuid4()),
+                    content=request.data.get("message", ""),
+                    sender_id=request.context.get("sender_id", "user"),
+                    timestamp=request.context.get("timestamp", 0.0) or datetime.now().timestamp(),
+                    conversation_id=request.context.get("conversation_id", "cli:default"),
+                )
+            else:
+                # 标准格式：直接解析
+                message_request = NewMessageRequest(**request.data)
 
             # 分析消息内容和上下文
             action, action_data = await self._analyze_message(message_request, request.context)

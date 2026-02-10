@@ -248,35 +248,59 @@ class MainAgent:
         """处理普通对话消息"""
         logger.debug(f"MainAgent[{self.session_id}] Handling chat message: {message[:50]}...")
 
-        # 检查决策器是否可用
-        if not self.decision_maker or not hasattr(self.decision_maker, 'make_decision'):
-            # 返回简单响应
-            return f"收到消息：{message}"
-
-        # 使用决策器生成下一步动作
+        # 直接使用 LLM 处理消息（跳过决策器）
         try:
-            decision = await self.decision_maker.make_decision(
-                request=DecisionRequest(
-                    request_type="new_message",
-                    data={
-                        "message": message,
-                        "context": self._get_context(),
-                        "available_tools": self._get_available_tools(),
-                        "available_skills": self._get_skill_names()
-                    }
+            # 使用 PromptSystemV2 构建系统提示词
+            if self.prompt_system_v2:
+                system_prompt = self.prompt_system_v2.build_main_agent_prompt(
+                    skills=self._get_skill_names(),
+                    tools=self._get_tool_descriptions(),
+                    context=self._get_context()
                 )
+            else:
+                system_prompt = self._build_legacy_system_prompt()
+
+            # 构建消息列表
+            messages = [{"role": "system", "content": system_prompt}]
+            
+            # 添加历史消息
+            history = self.context_manager.get_history()
+            for msg in history[-10:]:  # 只取最近10条
+                messages.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", "")
+                })
+            
+            # 添加当前消息
+            messages.append({"role": "user", "content": message})
+
+            # 调用 LLM
+            if self.agent_loop:
+                provider = self.agent_loop.provider
+                model = self.agent_loop.model
+            else:
+                # Fallback for testing
+                from nanobot.providers.litellm_provider import LiteLLMProvider
+                provider = LiteLLMProvider()
+                model = "volcengine/glm-4.7"
+            
+            response = await provider.chat(
+                messages=messages,
+                model=model,
+                temperature=0.7
             )
 
-            # 返回决策结果
-            if decision.success and decision.message:
-                return decision.message
-            elif decision.success:
-                return f"决策执行：{decision.action}"
+            # 返回响应内容
+            if response.has_tool_calls:
+                # TODO: 处理工具调用
+                tool_names = [t.function.name for t in response.tool_calls]
+                return f"需要调用工具：{', '.join(tool_names)}"
             else:
-                return f"决策失败：{decision.message or '未知错误'}"
+                return response.content
+
         except Exception as e:
-            logger.error(f"Error in decision making: {e}")
-            return f"决策过程出错：{str(e)}"
+            logger.error(f"Error in LLM call: {e}", exc_info=True)
+            return f"LLM 调用出错：{str(e)}"
 
     # ==================== 辅助方法 ====================
 
