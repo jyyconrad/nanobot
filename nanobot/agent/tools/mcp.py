@@ -27,6 +27,20 @@ class MCPTool(Tool):
         """
         self.config = config or MCPToolConfig()
 
+    @property
+    def parameters(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "description": "MCP action to perform",
+                    "enum": ["list_servers", "connect", "disconnect", "call_tool"]
+                }
+            },
+            "required": []
+        }
+
     async def execute(self, **kwargs) -> str:
         """Execute MCP tool.
 

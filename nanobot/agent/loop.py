@@ -193,7 +193,7 @@ class AgentLoop:
         # 获取或创建 MainAgent 实例
         if msg.session_key not in self.main_agents:
             logger.debug(f"Creating new MainAgent for session: {msg.session_key}")
-            self.main_agents[msg.session_key] = MainAgent(msg.session_key)
+            self.main_agents[msg.session_key] = MainAgent(msg.session_key, agent_loop=self)
 
         main_agent = self.main_agents[msg.session_key]
 

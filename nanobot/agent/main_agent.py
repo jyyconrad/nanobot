@@ -66,7 +66,8 @@ class MainAgent:
         session_id: Optional[str] = None,
         config: Optional[Dict] = None,
         prompt_system_v2: Optional["PromptSystemV2"] = None,
-        context_manager: Optional["ContextManager"] = None
+        context_manager: Optional["ContextManager"] = None,
+        agent_loop: Optional["AgentLoop"] = None
     ):
         """
         初始化 MainAgent
@@ -76,6 +77,7 @@ class MainAgent:
             config: 配置字典
             prompt_system_v2: 提示词系统 V2 实例（可选）
             context_manager: 上下文管理器实例（可选）
+            agent_loop: AgentLoop 实例（可选）
         """
         if session_id is None:
             session_id = str(uuid4())
@@ -84,6 +86,7 @@ class MainAgent:
             self.session_id = session_id
 
         self.config = config or {}
+        self.agent_loop = agent_loop  # 保存 agent_loop 引用
         
         # 初始化提示词系统 V2
         if prompt_system_v2:
@@ -102,7 +105,7 @@ class MainAgent:
         # 初始化核心组件
         self.state = MainAgentState(session_id=self.session_id)
         self.task_planner = TaskPlanner()
-        self.decision_maker = ExecutionDecisionMaker()
+        self.decision_maker = ExecutionDecisionMaker(agent_loop=self.agent_loop) if self.agent_loop else None
         self.subagent_manager = SubagentManager()
         self.message_router = MessageRouter()
         self.workflow_manager = WorkflowManager()
@@ -222,15 +225,20 @@ class MainAgent:
         logger.debug(f"MainAgent[{self.session_id}] Handling chat message: {message[:50]}...")
 
         # 使用决策器生成下一步动作
-        decision = self.decision_maker.generate_decision(
-            context=self._get_context(),
-            message=message,
-            available_tools=self._get_available_tools(),
-            available_skills=self._get_skill_names()
+        decision = await self.decision_maker.make_decision(
+            request=DecisionRequest(
+                request_type="new_message",
+                data={
+                    "message": message,
+                    "context": self._get_context(),
+                    "available_tools": self._get_available_tools(),
+                    "available_skills": self._get_skill_names()
+                }
+            )
         )
 
         # TODO: 实现决策执行逻辑
-        return f"决策生成：{decision.summary}"
+        return f"决策生成：{decision.action}"
 
     # ==================== 辅助方法 ====================
 

@@ -12,13 +12,26 @@ class ReadFileTool(Tool):
     """Tool to read file contents."""
 
     name = "read_file"
-    description = "Read the contents of a file"
+    description = "Reads contents of a file"
+
+    @property
+    def parameters(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "Path to file to read"
+                }
+            },
+            "required": ["file_path"]
+        }
 
     async def execute(self, file_path: str, **kwargs) -> str:
         """Read file contents.
 
         Args:
-            file_path: Path to the file to read
+            file_path: Path to file to read
 
         Returns:
             File contents as string
@@ -37,12 +50,29 @@ class WriteFileTool(Tool):
     name = "write_file"
     description = "Write content to a file"
 
+    @property
+    def parameters(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "Path to file to write"
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Content to write to file"
+                }
+            },
+            "required": ["file_path", "content"]
+        }
+
     async def execute(self, file_path: str, content: str, **kwargs) -> str:
         """Write content to a file.
 
         Args:
-            file_path: Path to the file to write
-            content: Content to write to the file
+            file_path: Path to file to write
+            content: Content to write to file
 
         Returns:
             Success message
@@ -63,11 +93,24 @@ class ListDirTool(Tool):
     name = "list_dir"
     description = "List directory contents"
 
+    @property
+    def parameters(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "dir_path": {
+                    "type": "string",
+                    "description": "Path to directory to list"
+                }
+            },
+            "required": ["dir_path"]
+        }
+
     async def execute(self, dir_path: str, **kwargs) -> str:
         """List directory contents.
 
         Args:
-            dir_path: Path to the directory to list
+            dir_path: Path to directory to list
 
         Returns:
             List of files and directories

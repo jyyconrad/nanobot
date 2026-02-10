@@ -326,13 +326,17 @@ class PromptSystemV2:
     def _load_builtin_prompt(self, path: str) -> Optional[str]:
         """
         加载内置提示词文件
-        
+
         Args:
             path: 相对于配置的文件路径
-            
+
         Returns:
             提示词内容，如果不存在返回 None
         """
+        # 检查 path 是否为 None
+        if path is None:
+            return None
+
         # 构建完整路径
         config_dir = self.config_path.parent
         full_path = config_dir / path
@@ -401,34 +405,34 @@ class PromptSystemV2:
         """
         # 加载提示词
         self.load_prompts()
-        
+
         # 获取所有提示词（从内部缓存）
-        all_sections = self._get_all_sections()
+        all_sections = self.get_all_sections()
         
         # 提供默认值，确保所有模板变量都有值
         default_sections = {
             "identity": "",
             "soul": "",
-            "tools": "",
             "agents": "",
             "practices": "",
             "user_profile": "",
             "user_preferences": "",
             "long_term_memory": "",
         }
-        
+
         # 合并默认值和实际内容
         merged_sections = {**default_sections, **all_sections}
-        
+
         # 合并用户提供的 sections
         if sections:
             merged_sections.update(sections)
-        
+
         # 获取模板
         template = self.config.get("templates", {}).get("main_agent", "")
-        
-        # 替换变量
-        prompt = template.format(**merged_sections, **kwargs)
+
+        # 替换变量 - 先用 merged_sections，然后用 kwargs 覆盖
+        final_vars = {**merged_sections, **kwargs}
+        prompt = template.format(**final_vars)
         
         # 触发钩子
         self.trigger("on_main_agent_prompt_built", prompt=prompt, sections=all_sections)
