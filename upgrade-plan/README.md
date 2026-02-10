@@ -12,34 +12,22 @@
 ```
 upgrade-plan/
 ├── README.md                       # 本文档
-├── MASTER-UPGRADE-OVERVIEW.md    # 综合升级方案总览（主文档）
+├── MASTER-UPGRADE-OVERVIEW.md    # 综合升级方案总览（主文档）⭐
 ├── CURRENT-STATUS.md              # 当前开发状态
 ├── AGNO-INTEGRATION-PLAN.md       # Agno 框架集成方案
-└── archived/                      # 已归档文档
-    ├── ARCHITECTURE-ANALYSIS.md
-    ├── COMPLETION-REPORT.md
-    ├── COMPREHENSIVE-UPGRADE-PLAN.md
-    ├── CONTEXT-MONITOR-HOOKS.md
-    ├── DEVELOPMENT-STATUS.md
-    ├── ENHANCED-CRON.md
-    ├── INTEGRATION-EXAMPLE.md
-    ├── INTENT-RECOGNITION-UPGRADE.md
-    ├── PROMPT-SYSTEM-HOOKS.md
-    ├── PROMPT-S-SYSTEM-UPGRADE.md
-    ├── PROGRESSIVE-DISCLOSURE-ANALYSIS.md
-    ├── SUMMARY.md
-    ├── UPGRADE-PLAN.md
-    ├── cron-job-config.json
-    ├── deployment-guide.md
-    ├── intent-recognition-plan-refined.md
-    └── test-scenarios.md
+├── nanobot-agno-upgrade-plan-v2.md  # Agno 升级计划 v2
+├── nanobot-real-progress-report.md  # 真实进度报告
+├── nanobot-upgrade-auto-resume.md  # 自动恢复记录
+├── nanobot-upgrade-progress-2026-02-10.md  # 进度报告
+├── nanobot-optimization-directions.md  # 优化方向
+└── archived/                      # 已归档文档（19个）
 ```
 
 ---
 
 ## 📋 核心文档说明
 
-### 1. MASTER-UPGRADE-OVERVIEW.md（主文档）
+### ⭐ 主文档：MASTER-UPGRADE-OVERVIEW.md
 
 **作用**: 综合升级方案总览，包含所有升级方向和阶段计划
 
@@ -54,7 +42,7 @@ upgrade-plan/
 
 ---
 
-### 2. CURRENT-STATUS.md（当前状态）
+### CURRENT-STATUS.md
 
 **作用**: 当前开发状态的实时记录
 
@@ -68,55 +56,55 @@ upgrade-plan/
 
 ---
 
-### 3. AGNO-INTEGRATION-PLAN.md（Agno 集成）
+### AGNO-INTEGRATION-PLAN.md
 
 **作用**: Agno 框架集成的详细方案
-
-**内容**:
-- Agno 框架核心概念
-- 两种提示词初始化策略
-- 架构设计
-- 实现步骤
 
 **适用场景**: Phase 0 - Agno 框架研究和集成
 
 ---
 
+## 📊 当前进度
+
+| 阶段 | 状态 | 完成度 |
+|------|------|--------|
+| Phase 0: Agno 框架集成 | ✅ 已完成 | 100% |
+| Phase 1: 方案确认和准备 | ✅ 已完成 | 100% |
+| Phase 2: 提示词系统 | ⚠️ 部分完成 | 60% |
+| Phase 3-6: 任务管理系统 | ⏸ 未开始 | 0% |
+
+**总体进度**: 约 **45%**
+
+---
+
 ## 🗄️ 已归档文档
 
-以下文档已归档到 `archived/` 目录：
+以下文档已归档到 `archived/` 目录（共19个文件）：
 
 ### 原升级方案文档
-
-- **UPGRADE-PLAN.md** - 原始升级计划（v0.2.0 之前）
-- **SUMMARY.md** - 升级计划概要
-- **ARCHITECTURE-ANALYSIS.md** - 架构分析
-- **COMPLETION-REPORT.md** - 完成报告
-- **deployment-guide.md** - 部署指南
-- **test-scenarios.md** - 测试场景
+- ARCHITECTURE-ANALYSIS.md
+- COMPLETION-REPORT.md
+- DEVELOPMENT-STATUS.md
+- SUMMARY.md
+- UPGRADE-PLAN.md
 
 ### v0.2.0 增强方案文档
-
-- **COMPREHENSIVE-UPGRADE-PLAN.md** - 综合升级计划
-- **ENHANCED-CRON.md** - 增强版 Cron 任务配置
-- **cron-job-config.json** - Cron 任务配置（v1.0）
+- COMPREHENSIVE-UPGRADE-PLAN.md
+- ENHANCED-CRON.md
+- cron-job-config.json
 
 ### 各模块升级方案（已整合到主文档）
+- PROMPT-SYSTEM-UPGRADE.md
+- PROGRESSIVE-DISCLOSURE-ANALYSIS.md
+- PROMPT-SYSTEM-HOOKS.md
+- CONTEXT-MONITOR-HOOKS.md
+- INTENT-RECOGNITION-UPGRADE.md
+- INTEGRATION-EXAMPLE.md
+- intent-recognition-plan-refined.md
 
-- **PROMPT-SYSTEM-UPGRADE.md** - 提示词系统升级
-- **PROGRESSIVE-DISCLOSURE-ANALYSIS.md** - 渐进式上下文披露分析
-- **PROMPT-SYSTEM-HOOKS.md** - 提示词系统钩子
-- **CONTEXT-MONITOR-HOOKS.md** - 上下文监控钩子
-- **INTENT-RECOGNITION-UPGRADE.md** - 意图识别系统升级
-- **INTEGRATION-EXAMPLE.md** - 集成示例
-
-### 细化方案（已整合到主文档）
-
-- **intent-recognition-plan-refined.md** - 意图识别细化方案
-
-### 状态文档（已被 CURRENT-STATUS.md 取代）
-
-- **DEVELOPMENT-STATUS.md** - 开发状态（旧版本）
+### 其他文档
+- deployment-guide.md
+- test-scenarios.md
 
 ---
 
@@ -124,16 +112,11 @@ upgrade-plan/
 
 ### 我想了解...
 
-- **整体升级计划** → 阅读 `MASTER-UPGRADE-OVERVIEW.md`
+- **整体升级计划** → 阅读 `MASTER-UPGRADE-OVERVIEW.md` ⭐
 - **当前开发进度** → 阅读 `CURRENT-STATUS.md`
+- **真实进度报告** → 阅读 `nanobot-real-progress-report.md`
 - **Agno 集成方案** → 阅读 `AGNO-INTEGRATION-PLAN.md`
 - **历史文档** → 查看 `archived/` 目录
-
-### 当前阶段状态
-
-- **Phase 0**: Agno 框架研究和集成（进行中）
-- **Phase 1**: 方案确认和准备（已完成）
-- **Phase 2-6**: 待开始
 
 ---
 
@@ -153,30 +136,6 @@ upgrade-plan/
 
 ---
 
-## 📊 进度追踪
-
-### 查看 Open 状态
-
-```bash
-cd ~/develop/code/work_code/nanobot
-cat upgrade-plan/CURRENT-STATUS.md
-```
-
-### 查看总览
-
-```bash
-cat upgrade-plan/MASTER-UPGRADE-OVERVIEW.md
-```
-
-### 查看所有文档
-
-```bash
-ls -lh upgrade/plan/
-ls -lh upgrade-plan/archived/
-```
-
----
-
 ## ⚠️ 重要提示
 
 1. **主文档是权威** - `MASTER-UPGRADE-OVERVIEW.md` 是最完整的升级方案
@@ -190,7 +149,7 @@ ls -lh upgrade-plan/archived/
 
 - 查看主文档了解整体计划
 - 查看当前状态了解开发进度
-- 查看 Agno 集成方案了解 Phase 0 详情
+- 查看进度报告了解具体进展
 
 ---
 
