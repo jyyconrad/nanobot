@@ -9,6 +9,7 @@ from typing import Any, Optional
 from loguru import logger
 
 from nanobot.agent.context import ContextBuilder
+from nanobot.agent.context_monitor import ContextMonitor, ContextMonitorConfig
 from nanobot.agent.main_agent import MainAgent
 from nanobot.agent.subagent import SubagentManager
 from nanobot.agent.task import TaskStatus
@@ -68,6 +69,14 @@ class AgentLoop:
             brave_api_key=brave_api_key,
             exec_config=self.exec_config,
         )
+
+        # 初始化 ContextMonitor 用于上下文管理
+        self.context_monitor = ContextMonitor(ContextMonitorConfig(
+            model=self.model,
+            threshold=0.8,  # 默认 80% 阈值
+            enable_auto_compression=True,
+            compression_strategy="intelligent",
+        ))
 
         # 添加命令系统
         self.commands = CommandRegistry()
@@ -190,10 +199,20 @@ class AgentLoop:
 
         # 使用 MainAgent 处理消息
         try:
+            # 获取会话历史并监控上下文大小
+            session = self.sessions.get_or_create(msg.session_key)
+            history = session.get_history()
+
+            # 监控上下文大小并自动压缩
+            if self.context_monitor.check_threshold(history):
+                logger.info("上下文大小接近阈值，将自动压缩")
+                compressed_history = await self.context_monitor.compress_context(history)
+                logger.debug(f"上下文压缩完成，原始消息数: {len(history)}, 压缩后: {len(compressed_history)}")
+
+            # 处理消息
             response_content = await main_agent.process_message(msg.content)
 
             # 保存到会话历史
-            session = self.sessions.get_or_create(msg.session_key)
             session.add_message("user", msg.content)
             session.add_message("assistant", response_content)
             self.sessions.save(session)
@@ -275,9 +294,16 @@ class AgentLoop:
         if isinstance(spawn_tool, SpawnTool):
             spawn_tool.set_context(origin_channel, origin_chat_id)
 
-        # Build messages with the announce content
+        # Build messages with the announce content, using context monitor for size management
+        history = session.get_history()
+        if self.context_monitor.check_threshold(history):
+            logger.info("系统消息处理时上下文大小接近阈值，将自动压缩")
+            compressed_history = await self.context_monitor.compress_context(history)
+            logger.debug(f"上下文压缩完成，原始消息数: {len(history)}, 压缩后: {len(compressed_history)}")
+            history = compressed_history
+
         messages = self.context.build_messages(
-            history=session.get_history(), current_message=msg.content
+            history=history, current_message=msg.content
         )
 
         # Agent loop (limited for announce handling)
