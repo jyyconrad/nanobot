@@ -332,34 +332,34 @@ class MainAgent:
                 logger.debug(f"MainAgent[{self.session_id}]   调用工具：{tool_call.function.name}")
 
                 try:
-                    # 查找工具
+                    # 查找工具 - 使用正确的属性访问方式
                     if self.agent_loop and hasattr(self.agent_loop, 'tools'):
-                        tool = self.agent_loop.tools.get(tool_call.function.name)
+                        tool = self.agent_loop.tools.get(tool_call.name)  # 修复：使用 tool_call.name 而不是 tool_call.function.name
                         if tool:
                             # 执行工具
-                            logger.info(f"MainAgent[{self.session_id}]   执行工具：{tool_call.function.name}")
-                            tool_result = await tool.execute(tool_call.function.arguments)
+                            logger.info(f"MainAgent[{self.session_id}]   执行工具：{tool_call.name}")
+                            tool_result = await tool.execute(tool_call.arguments)  # 修复：使用 tool_call.arguments 而不是 tool_call.function.arguments
                             tool_results.append({
-                                "tool": tool_call.function.name,
+                                "tool": tool_call.name,
                                 "result": tool_result
                             })
                             logger.debug(f"MainAgent[{self.session_id}]   工具结果：{str(tool_result)[:100]}")
                         else:
-                            logger.warning(f"MainAgent[{self.session_id}]   工具未找到：{tool_call.function.name}")
+                            logger.warning(f"MainAgent[{self.session_id}]   工具未找到：{tool_call.name}")
                             tool_results.append({
-                                "tool": tool_call.function.name,
-                                "result": f"工具未找到：{tool_call.function.name}"
+                                "tool": tool_call.name,
+                                "result": f"工具未找到：{tool_call.name}"
                             })
                     else:
                         logger.warning(f"MainAgent[{self.session_id}]   没有工具注册表")
                         tool_results.append({
-                            "tool": tool_call.function.name,
+                            "tool": tool_call.name,
                             "result": "工具系统不可用"
                         })
                 except Exception as e:
                     logger.error(f"MainAgent[{self.session_id}]   工具执行失败：{e}", exc_info=True)
                     tool_results.append({
-                        "tool": tool_call.function.name,
+                        "tool": tool_call.name,  # 修复：使用 tool_call.name
                         "result": f"执行失败：{str(e)}"
                     })
 

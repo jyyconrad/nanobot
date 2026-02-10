@@ -5,9 +5,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-10T22:58:04.729184",
-    "updated_at": "2026-02-10T22:58:04.735201",
-    "completed_at": "2026-02-10T22:58:04.735199",
+    "created_at": "2026-02-10T23:25:43.246582",
+    "updated_at": "2026-02-10T23:25:43.254587",
+    "completed_at": "2026-02-10T23:25:43.254585",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -17,9 +17,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-10T22:58:04.743260",
-    "updated_at": "2026-02-10T22:58:04.749496",
-    "completed_at": "2026-02-10T22:58:04.749494",
+    "created_at": "2026-02-10T23:25:43.263073",
+    "updated_at": "2026-02-10T23:25:43.275660",
+    "completed_at": "2026-02-10T23:25:43.275658",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -255,13 +255,70 @@
     "error": null
   },
   {
+    "task_id": "b2cbf7e1-a829-45b4-94f7-a1b39448cfe5",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 23:25:41.154823"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T23:25:41.019075",
+    "updated_at": "2026-02-10T23:25:41.154828",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "192fae9b-b37d-4cd5-9038-cea5b919bcf9",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 23:25:41.275767"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T23:25:41.167962",
+    "updated_at": "2026-02-10T23:25:41.275774",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "06676e75-2840-4801-8e78-e61d835bbb4d",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T23:25:41.291423",
+    "updated_at": "2026-02-10T23:25:41.291424",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "4fd1c67e-eace-430f-8a53-96ca2699b0aa",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 23:25:41.405599"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T23:25:41.296303",
+    "updated_at": "2026-02-10T23:25:41.405611",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
     "task_id": "test-task-1",
     "title": "错误处理测试任务",
     "description": "错误处理测试任务",
     "status": "pending",
     "priority": 1,
-    "created_at": "2026-02-10T22:58:04.789857",
-    "updated_at": "2026-02-10T22:58:04.789858",
+    "created_at": "2026-02-10T23:25:43.322744",
+    "updated_at": "2026-02-10T23:25:43.322744",
     "completed_at": null,
     "result": null,
     "error": null
@@ -272,8 +329,8 @@
     "description": "任务2",
     "status": "pending",
     "priority": 1,
-    "created_at": "2026-02-10T22:58:04.785599",
-    "updated_at": "2026-02-10T22:58:04.785599",
+    "created_at": "2026-02-10T23:25:43.320205",
+    "updated_at": "2026-02-10T23:25:43.320206",
     "completed_at": null,
     "result": null,
     "error": null
