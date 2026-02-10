@@ -5,9 +5,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-10T22:36:22.626843",
-    "updated_at": "2026-02-10T22:36:22.631537",
-    "completed_at": "2026-02-10T22:36:22.631535",
+    "created_at": "2026-02-10T22:45:27.740990",
+    "updated_at": "2026-02-10T22:45:27.750623",
+    "completed_at": "2026-02-10T22:45:27.750620",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -17,9 +17,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-10T22:36:22.635864",
-    "updated_at": "2026-02-10T22:36:22.640194",
-    "completed_at": "2026-02-10T22:36:22.640191",
+    "created_at": "2026-02-10T22:45:27.755884",
+    "updated_at": "2026-02-10T22:45:27.762694",
+    "completed_at": "2026-02-10T22:45:27.762692",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -31,30 +31,6 @@
     "priority": 5,
     "created_at": "2026-02-10T13:38:00",
     "updated_at": "2026-02-10T13:38:00",
-    "completed_at": null,
-    "result": null,
-    "error": null
-  },
-  {
-    "task_id": "test-task-1",
-    "title": "错误处理测试任务",
-    "description": "错误处理测试任务",
-    "status": "pending",
-    "priority": 1,
-    "created_at": "2026-02-10T22:36:22.680284",
-    "updated_at": "2026-02-10T22:36:22.680285",
-    "completed_at": null,
-    "result": null,
-    "error": null
-  },
-  {
-    "task_id": "test-task-2",
-    "title": "任务2",
-    "description": "任务2",
-    "status": "pending",
-    "priority": 1,
-    "created_at": "2026-02-10T22:36:22.678378",
-    "updated_at": "2026-02-10T22:36:22.678378",
     "completed_at": null,
     "result": null,
     "error": null
@@ -160,6 +136,87 @@
     "priority": 3,
     "created_at": "2026-02-10T22:41:21.658432",
     "updated_at": "2026-02-10T22:41:21.773638",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "25476d81-d9d6-45eb-acb4-fceba5dc77ce",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 22:45:20.471816"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:45:20.335933",
+    "updated_at": "2026-02-10T22:45:20.471821",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "9bac197e-ea57-4347-a04a-3f94d8722ba0",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 22:45:20.626318"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:45:20.484882",
+    "updated_at": "2026-02-10T22:45:20.626329",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "2640097b-41ca-4eca-b3a1-f6442ce5b9e5",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:45:20.646305",
+    "updated_at": "2026-02-10T22:45:20.646306",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "593df75c-6df5-4f39-b215-7950ab2e149f",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 22:45:20.764088"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:45:20.649961",
+    "updated_at": "2026-02-10T22:45:20.764097",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "test-task-1",
+    "title": "错误处理测试任务",
+    "description": "错误处理测试任务",
+    "status": "pending",
+    "priority": 1,
+    "created_at": "2026-02-10T22:45:27.812327",
+    "updated_at": "2026-02-10T22:45:27.812328",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "test-task-2",
+    "title": "任务2",
+    "description": "任务2",
+    "status": "pending",
+    "priority": 1,
+    "created_at": "2026-02-10T22:45:27.810105",
+    "updated_at": "2026-02-10T22:45:27.810105",
     "completed_at": null,
     "result": null,
     "error": null
