@@ -126,19 +126,14 @@ class AgnoSubagentManager:
         subagent_id = str(uuid.uuid4())[:8]
         display_label = label or task[:30] + ("..." if len(task) > 30 else "")
 
-        # Create task record
-        task_obj = Task(
-            type="agno_subagent",
-            status=TaskStatus.RUNNING,
-            original_message=task,
-            current_task=task,
-            progress=0.0,
-            subagent_id=subagent_id,
-            session_key=session_key,
-            channel=origin_channel,
-            chat_id=origin_chat_id,
+        # Create task record using TaskManager's create_task method
+        task_obj = self._task_manager.create_task(
+            title=display_label,
+            description=task,
+            priority=3,
+            status="running"
         )
-        task_id = self._task_manager.create_task(task_obj)
+        task_id = task_obj.task_id
 
         # Create AgnoSubagent instance
         agno_subagent = AgnoSubagent(

@@ -5,9 +5,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-10T21:25:44.224235",
-    "updated_at": "2026-02-10T21:25:44.243582",
-    "completed_at": "2026-02-10T21:25:44.243580",
+    "created_at": "2026-02-10T22:36:22.626843",
+    "updated_at": "2026-02-10T22:36:22.631537",
+    "completed_at": "2026-02-10T22:36:22.631535",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -17,9 +17,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-10T21:25:44.252059",
-    "updated_at": "2026-02-10T21:25:44.256761",
-    "completed_at": "2026-02-10T21:25:44.256759",
+    "created_at": "2026-02-10T22:36:22.635864",
+    "updated_at": "2026-02-10T22:36:22.640194",
+    "completed_at": "2026-02-10T22:36:22.640191",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -41,8 +41,8 @@
     "description": "错误处理测试任务",
     "status": "pending",
     "priority": 1,
-    "created_at": "2026-02-10T21:25:44.279323",
-    "updated_at": "2026-02-10T21:25:44.279324",
+    "created_at": "2026-02-10T22:36:22.680284",
+    "updated_at": "2026-02-10T22:36:22.680285",
     "completed_at": null,
     "result": null,
     "error": null
@@ -53,8 +53,113 @@
     "description": "任务2",
     "status": "pending",
     "priority": 1,
-    "created_at": "2026-02-10T21:25:44.277342",
-    "updated_at": "2026-02-10T21:25:44.277343",
+    "created_at": "2026-02-10T22:36:22.678378",
+    "updated_at": "2026-02-10T22:36:22.678378",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "cd422dd4-aeed-4411-bd1d-6930cf46bf98",
+    "title": "Test label",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:40:47.653706",
+    "updated_at": "2026-02-10T22:40:47.653706",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "dc8451d9-a4d0-4d77-aa74-baf500c70a4c",
+    "title": "This is a very long task descr...",
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:40:47.700395",
+    "updated_at": "2026-02-10T22:40:47.700396",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "4c6727fc-6517-433f-9cff-103f30c8b775",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:40:47.706664",
+    "updated_at": "2026-02-10T22:40:47.706665",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "58e47ff4-f9d9-4d4e-bbd4-0963b8c7c1dc",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:40:47.714097",
+    "updated_at": "2026-02-10T22:40:47.714097",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "d0a4e31c-c296-4ced-aaf6-677e002a79ce",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 22:41:21.520049"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:41:21.370279",
+    "updated_at": "2026-02-10T22:41:21.520056",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "f8d249c3-9ebb-4b4a-a180-717d01a70140",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 22:41:21.637627"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:41:21.533511",
+    "updated_at": "2026-02-10T22:41:21.637637",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "90fae213-0090-4b46-8005-b5f45100021b",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:41:21.650629",
+    "updated_at": "2026-02-10T22:41:21.650631",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "375e2e7c-a445-4489-9a26-7376b938c790",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-10 22:41:21.773625"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-10T22:41:21.658432",
+    "updated_at": "2026-02-10T22:41:21.773638",
     "completed_at": null,
     "result": null,
     "error": null
