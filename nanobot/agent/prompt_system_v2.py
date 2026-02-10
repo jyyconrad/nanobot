@@ -408,11 +408,12 @@ class PromptSystemV2:
 
         # 获取所有提示词（从内部缓存）
         all_sections = self.get_all_sections()
-        
+
         # 提供默认值，确保所有模板变量都有值
         default_sections = {
             "identity": "",
             "soul": "",
+            "tools": "",
             "agents": "",
             "practices": "",
             "user_profile": "",

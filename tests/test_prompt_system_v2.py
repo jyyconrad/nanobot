@@ -98,7 +98,7 @@ def test_main_agent_prompt_hook():
     system = PromptSystemV2()
     prompt_built = False
 
-    def on_main_agent_prompt_built(prompt):
+    def on_main_agent_prompt_built(prompt, **kwargs):
         nonlocal prompt_built
         prompt_built = True
 
