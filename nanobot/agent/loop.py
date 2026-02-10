@@ -19,7 +19,7 @@ from nanobot.agent.tools.spawn import SpawnTool
 from nanobot.agent.tools.web import WebFetchTool, WebSearchTool
 from nanobot.bus.events import InboundMessage, OutboundMessage
 from nanobot.bus.queue import MessageBus
-from agno.tools.file import FileTools
+from nanobot.agent.tools.filesystem import ReadFileTool, WriteFileTool, ListDirTool
 from nanobot.commands.registry import CommandRegistry
 from nanobot.config.schema import ExecToolConfig
 from nanobot.providers.base import LLMProvider
@@ -81,7 +81,9 @@ class AgentLoop:
     def _register_default_tools(self) -> None:
         """Register the default set of tools."""
         # File tools
-        self.tools.register(FileTools(base_dir=self.workspace))
+        self.tools.register(ReadFileTool())
+        self.tools.register(WriteFileTool())
+        self.tools.register(ListDirTool())
 
         # Shell tool
         self.tools.register(

@@ -1,0 +1,67 @@
+"""
+提示词系统配置文件 - PromptSystemV2 配置
+
+定义了提示词系统的行为、分层加载策略和渲染规则
+"""
+
+# 提示词层级配置
+layers:
+  # 核心层 - 内置提示词（不可修改）
+  core:
+    enabled: true
+    path: "prompts/core"
+    description: "核心提示词层 - 包含系统身份、基本规则和工具说明"
+  
+  # 工作区层 - 工作区特定的提示词（可以覆盖核心层）
+  workspace:
+    enabled: true
+    path: "prompts/workspace"
+    description: "工作区提示词层 - 包含项目特定的上下文和规则"
+  
+  # 用户层 - 用户定义的提示词
+  user:
+    enabled: true
+    path: "prompts/user"
+    description: "用户提示词层 - 包含用户个人的配置和偏好"
+  
+  # 记忆层 - 基于记忆的提示词
+  memory:
+    enabled: true
+    path: "prompts/memory"
+    description: "记忆提示词层 - 包含从对话历史和记忆中生成的信息"
+  
+  # 决策层 - 决策时的引导词
+  decisions:
+    enabled: true
+    path: "prompts/decisions"
+    description: "决策提示词层 - 包含任务分析和技能选择的引导词"
+
+# 缓存配置
+cache:
+  enabled: true
+  ttl: 3600  # 缓存有效期（秒）- 1小时
+
+# 渲染配置
+rendering:
+  # 是否启用变量替换
+  variable_substitution: true
+  # 是否启用条件渲染
+  conditional_rendering: true
+  # 默认的换行符
+  line_break: "\n"
+
+# 提示词合并策略
+merge_strategy:
+  # 同键名提示词的合并方式（覆盖/追加）
+  duplicate_handling: "override"
+  # 是否保留源提示词的注释
+  preserve_comments: false
+
+# 调试配置
+debug:
+  # 是否打印调试信息
+  verbose: false
+  # 是否记录加载过程
+  log_loading: false
+  # 是否验证提示词内容
+  validate_content: true
