@@ -105,7 +105,7 @@ class MainAgent:
         # 初始化核心组件
         self.state = MainAgentState(session_id=self.session_id)
         self.task_planner = TaskPlanner()
-        self.decision_maker = ExecutionDecisionMaker(agent_loop=self.agent_loop) if self.agent_loop else None
+        self.decision_maker = ExecutionDecisionMaker(agent_loop=self.agent_loop)
         self.subagent_manager = SubagentManager()
         self.message_router = MessageRouter()
         self.workflow_manager = WorkflowManager()
@@ -224,21 +224,35 @@ class MainAgent:
         """处理普通对话消息"""
         logger.debug(f"MainAgent[{self.session_id}] Handling chat message: {message[:50]}...")
 
-        # 使用决策器生成下一步动作
-        decision = await self.decision_maker.make_decision(
-            request=DecisionRequest(
-                request_type="new_message",
-                data={
-                    "message": message,
-                    "context": self._get_context(),
-                    "available_tools": self._get_available_tools(),
-                    "available_skills": self._get_skill_names()
-                }
-            )
-        )
+        # 检查决策器是否可用
+        if not self.decision_maker or not hasattr(self.decision_maker, 'make_decision'):
+            # 返回简单响应
+            return f"收到消息：{message}"
 
-        # TODO: 实现决策执行逻辑
-        return f"决策生成：{decision.action}"
+        # 使用决策器生成下一步动作
+        try:
+            decision = await self.decision_maker.make_decision(
+                request=DecisionRequest(
+                    request_type="new_message",
+                    data={
+                        "message": message,
+                        "context": self._get_context(),
+                        "available_tools": self._get_available_tools(),
+                        "available_skills": self._get_skill_names()
+                    }
+                )
+            )
+
+            # 返回决策结果
+            if decision.success and decision.message:
+                return decision.message
+            elif decision.success:
+                return f"决策执行：{decision.action}"
+            else:
+                return f"决策失败：{decision.message or '未知错误'}"
+        except Exception as e:
+            logger.error(f"Error in decision making: {e}")
+            return f"决策过程出错：{str(e)}"
 
     # ==================== 辅助方法 ====================
 
@@ -300,6 +314,23 @@ class MainAgent:
         """
         # TODO: 从工具注册表获取
         return ["read_file", "write_file", "exec", "web_search", "web_fetch"]
+
+    async def get_status(self) -> Dict[str, Any]:
+        """
+        获取 agent 状态
+
+        Returns:
+            状态字典
+        """
+        return {
+            "session_id": self.session_id,
+            "current_task": self.state.current_task,
+            "subagent_tasks": list(self.state.subagent_tasks.keys()),
+            "subagent_count": len(self.state.subagent_tasks),
+            "subagent_results": list(self.state.subagent_results.keys()),
+            "is_processing": self.state.is_processing,
+            "context_stats": self.state.context_stats,
+        }
 
     async def _cleanup_task(self) -> None:
         """清理当前任务资源"""

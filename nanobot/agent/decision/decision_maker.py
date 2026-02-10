@@ -24,20 +24,22 @@ class ExecutionDecisionMaker:
     负责处理各种类型的决策请求，并根据请求类型调用相应的处理程序
     """
 
-    def __init__(self, agent_loop: "AgentLoop"):
+    def __init__(self, agent_loop: Optional["AgentLoop"] = None):
         """
         初始化决策管理器
 
         Args:
-            agent_loop: 代理循环实例
+            agent_loop: 代理循环实例（可选）
         """
         self.agent_loop = agent_loop
-        self.handlers: Dict[str, Any] = {
-            "new_message": NewMessageHandler(agent_loop),
-            "subagent_result": SubagentResultHandler(agent_loop),
-            "correction": CorrectionHandler(agent_loop),
-            "cancellation": CancellationHandler(agent_loop),
-        }
+        self.handlers: Dict[str, Any] = {}
+        if agent_loop:
+            self.handlers = {
+                "new_message": NewMessageHandler(agent_loop),
+                "subagent_result": SubagentResultHandler(agent_loop),
+                "correction": CorrectionHandler(agent_loop),
+                "cancellation": CancellationHandler(agent_loop),
+            }
 
     async def make_decision(self, request: DecisionRequest) -> DecisionResult:
         """
