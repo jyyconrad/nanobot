@@ -287,7 +287,8 @@ class MainAgent:
             response = await provider.chat(
                 messages=messages,
                 model=model,
-                temperature=0.7
+                temperature=0.7,
+                tools=self.agent_loop.tools.get_definitions() if self.agent_loop else None
             )
 
             # 处理工具调用循环
