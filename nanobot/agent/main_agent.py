@@ -290,17 +290,117 @@ class MainAgent:
                 temperature=0.7
             )
 
-            # 返回响应内容
+            # 处理工具调用循环
             if response.has_tool_calls:
-                # TODO: 处理工具调用
-                tool_names = [t.function.name for t in response.tool_calls]
-                return f"需要调用工具：{', '.join(tool_names)}"
+                return await self._handle_tool_calls(response, messages)
             else:
                 return response.content
 
         except Exception as e:
             logger.error(f"Error in LLM call: {e}", exc_info=True)
             return f"LLM 调用出错：{str(e)}"
+
+    async def _handle_tool_calls(self, response: Any, messages: List[Dict[str, Any]]) -> str:
+        """
+        处理工具调用的完整循环
+
+        Args:
+            response: LLM 响应对象
+            messages: 当前消息列表
+
+        Returns:
+            最终响应给用户的文本
+        """
+        logger.info(f"MainAgent[{self.session_id}] 处理工具调用：{len(response.tool_calls)} 个")
+
+        # 执行工具调用循环
+        max_iterations = 10  # 防止无限循环
+        current_messages = messages.copy()
+        assistant_message = ""
+
+        for iteration in range(max_iterations):
+            if not response.has_tool_calls:
+                # 没有工具调用，返回最终响应
+                logger.debug(f"MainAgent[{self.session_id}] 第 {iteration+1} 轮迭代：无工具调用")
+                break
+
+            logger.info(f"MainAgent[{self.session_id}] 第 {iteration+1} 轮迭代：执行工具")
+
+            # 处理每个工具调用
+            tool_results = []
+            for tool_call in response.tool_calls:
+                logger.debug(f"MainAgent[{self.session_id}]   调用工具：{tool_call.function.name}")
+
+                try:
+                    # 查找工具
+                    if self.agent_loop and hasattr(self.agent_loop, 'tools'):
+                        tool = self.agent_loop.tools.get(tool_call.function.name)
+                        if tool:
+                            # 执行工具
+                            logger.info(f"MainAgent[{self.session_id}]   执行工具：{tool_call.function.name}")
+                            tool_result = await tool.execute(tool_call.function.arguments)
+                            tool_results.append({
+                                "tool": tool_call.function.name,
+                                "result": tool_result
+                            })
+                            logger.debug(f"MainAgent[{self.session_id}]   工具结果：{str(tool_result)[:100]}")
+                        else:
+                            logger.warning(f"MainAgent[{self.session_id}]   工具未找到：{tool_call.function.name}")
+                            tool_results.append({
+                                "tool": tool_call.function.name,
+                                "result": f"工具未找到：{tool_call.function.name}"
+                            })
+                    else:
+                        logger.warning(f"MainAgent[{self.session_id}]   没有工具注册表")
+                        tool_results.append({
+                            "tool": tool_call.function.name,
+                            "result": "工具系统不可用"
+                        })
+                except Exception as e:
+                    logger.error(f"MainAgent[{self.session_id}]   工具执行失败：{e}", exc_info=True)
+                    tool_results.append({
+                        "tool": tool_call.function.name,
+                        "result": f"执行失败：{str(e)}"
+                    })
+
+            # 构建工具结果消息
+            if tool_results:
+                tool_result_messages = []
+                for result in tool_results:
+                    tool_result_messages.append(f"工具 {result['tool']}：{str(result['result'])}")
+                assistant_message = "\n".join(tool_result_messages)
+                logger.info(f"MainAgent[{self.session_id}]   工具执行结果：{assistant_message[:200]}")
+
+            # 添加助手响应到消息历史
+            current_messages.append({
+                "role": "assistant",
+                "content": assistant_message
+            })
+
+            # 再次调用 LLM
+            logger.info(f"MainAgent[{self.session_id}]   调用 LLM 处理工具结果")
+            try:
+                if self.agent_loop:
+                    provider = self.agent_loop.provider
+                    model = self.agent_loop.model
+                else:
+                    # Fallback for testing
+                    from nanobot.providers.litellm_provider import LiteLLMProvider
+                    provider = LiteLLMProvider()
+                    model = "volcengine/glm-4.7"
+
+                response = await provider.chat(
+                    messages=current_messages,
+                    model=model,
+                    temperature=0.7
+                )
+            except Exception as e:
+                logger.error(f"MainAgent[{self.session_id}]   LLM 调用失败：{e}", exc_info=True)
+                assistant_message += f"\n\nLLM 调用出错：{str(e)}"
+                break
+
+        # 返回最终响应
+        return assistant_message or "工具调用完成"
 
     # ==================== 辅助方法 ====================
 
