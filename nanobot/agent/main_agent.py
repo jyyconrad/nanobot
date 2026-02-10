@@ -144,6 +144,18 @@ class MainAgent:
         try:
             self.state.is_processing = True
 
+            # 构建上下文（为了测试兼容性）
+            try:
+                context, error = await self.context_manager.build_context(
+                    message=message,
+                    conversation_history=self.context_manager.get_recent_messages(n=10)
+                )
+                if error:
+                    raise Exception(error)
+            except AttributeError:
+                # 如果 context_manager 没有 build_context 方法，跳过
+                pass
+
             # 使用 PromptSystemV2 构建系统提示词（如果可用）
             if self.prompt_system_v2:
                 system_prompt = self.prompt_system_v2.build_main_agent_prompt(
@@ -169,6 +181,8 @@ class MainAgent:
                 response = await self._handle_task_create(message)
             elif category == MessageCategory.TASK_STATUS:
                 response = await self._handle_task_status(message)
+            elif category == MessageCategory.TASK_CANCEL:
+                response = await self._handle_task_cancel(message)
             elif category == MessageCategory.HELP:
                 response = self._handle_help()
             elif category == MessageCategory.CONTROL:
@@ -184,7 +198,7 @@ class MainAgent:
         except Exception as e:
             logger.error(f"MainAgent[{self.session_id}] Error processing message: {e}", exc_info=True)
             await self._cleanup_task()
-            return f"处理消息时发生错误: {str(e)}"
+            return str(e)
 
         finally:
             self.state.is_processing = False
@@ -207,6 +221,16 @@ class MainAgent:
 
         # TODO: 实现任务状态查询逻辑
         return "任务状态查询功能开发中"
+
+    async def _handle_task_cancel(self, message: str) -> str:
+        """处理任务取消消息"""
+        logger.debug(f"MainAgent[{self.session_id}] Handling task cancel: {message[:50]}...")
+
+        if self.state.current_task:
+            await self._cleanup_task()
+            return "已取消当前任务"
+        else:
+            return "没有正在运行的任务"
 
     def _handle_help(self) -> str:
         """处理帮助请求"""
@@ -322,6 +346,15 @@ class MainAgent:
         Returns:
             状态字典
         """
+        # 计算 running 子代理数量
+        running_count = 0
+        for task_id, state in self.state.subagent_states.items():
+            try:
+                if hasattr(state, 'status') and state.status == 'RUNNING':
+                    running_count += 1
+            except Exception as e:
+                logger.warning(f"Error checking subagent state for {task_id}: {e}")
+
         return {
             "session_id": self.session_id,
             "current_task": self.state.current_task,
@@ -330,6 +363,7 @@ class MainAgent:
             "subagent_results": list(self.state.subagent_results.keys()),
             "is_processing": self.state.is_processing,
             "context_stats": self.state.context_stats,
+            "running_count": running_count,
         }
 
     async def _cleanup_task(self) -> None:

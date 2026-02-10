@@ -660,17 +660,6 @@
     "importance": 0
   },
   {
-    "id": "20fa9c82-7284-45ef-b55c-33964d730763",
-    "content": "测试文档写作",
-    "tags": [
-      "writing",
-      "test"
-    ],
-    "task_id": "test_task_2",
-    "timestamp": "2026-02-10T19:04:42.972451",
-    "importance": 0
-  },
-  {
     "id": "d1c571c6-4ca7-40ff-8cde-dd18d476addc",
     "content": "这是一个测试记忆",
     "tags": [
@@ -682,17 +671,6 @@
     "importance": 0
   },
   {
-    "id": "cb8ac2f5-4858-4bff-a499-366a19cd7a66",
-    "content": "测试代码优化",
-    "tags": [
-      "coding",
-      "test"
-    ],
-    "task_id": "test_task_2",
-    "timestamp": "2026-02-10T19:38:43.774416",
-    "importance": 0
-  },
-  {
     "id": "199dd2d7-c3e0-41c8-90d1-5dde93b4e65c",
     "content": "测试文档写作",
     "tags": [
@@ -701,6 +679,39 @@
     ],
     "task_id": "test_task_2",
     "timestamp": "2026-02-10T19:38:43.774926",
+    "importance": 0
+  },
+  {
+    "id": "10de279f-84f5-47c0-a294-d97a771f5363",
+    "content": "这是一个测试记忆",
+    "tags": [
+      "session",
+      "test_session_3"
+    ],
+    "task_id": "test_task_1",
+    "timestamp": "2026-02-10T20:11:15.327507",
+    "importance": 0
+  },
+  {
+    "id": "bf31f303-a5dd-45fe-86c7-e9495af2e667",
+    "content": "测试代码优化",
+    "tags": [
+      "coding",
+      "test"
+    ],
+    "task_id": "test_task_2",
+    "timestamp": "2026-02-10T20:11:15.336259",
+    "importance": 0
+  },
+  {
+    "id": "a28b4652-b5d7-4fc6-a30f-18c8e21f1c9f",
+    "content": "测试文档写作",
+    "tags": [
+      "writing",
+      "test"
+    ],
+    "task_id": "test_task_2",
+    "timestamp": "2026-02-10T20:11:15.337115",
     "importance": 0
   }
 ]
