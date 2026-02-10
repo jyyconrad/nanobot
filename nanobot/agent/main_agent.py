@@ -329,16 +329,28 @@ class MainAgent:
             # 处理每个工具调用
             tool_results = []
             for tool_call in response.tool_calls:
-                logger.debug(f"MainAgent[{self.session_id}]   调用工具：{tool_call.function.name}")
+                logger.debug(f"MainAgent[{self.session_id}]   调用工具：{tool_call.name}")
 
                 try:
-                    # 查找工具 - 使用正确的属性访问方式
+                    # 查找工具
                     if self.agent_loop and hasattr(self.agent_loop, 'tools'):
-                        tool = self.agent_loop.tools.get(tool_call.name)  # 修复：使用 tool_call.name 而不是 tool_call.function.name
+                        tool = self.agent_loop.tools.get(tool_call.name)
                         if tool:
                             # 执行工具
                             logger.info(f"MainAgent[{self.session_id}]   执行工具：{tool_call.name}")
-                            tool_result = await tool.execute(tool_call.arguments)  # 修复：使用 tool_call.arguments 而不是 tool_call.function.arguments
+                            
+                            # 处理工具参数
+                            args = tool_call.arguments
+                            logger.debug(f"MainAgent[{self.session_id}]     - 参数类型: {type(args).__name__}")
+                            logger.debug(f"MainAgent[{self.session_id}]     - 参数内容: {str(args)[:200]}")
+                            
+                            # 执行工具（检查是否是异步）
+                            if hasattr(tool, 'execute') and asyncio.iscoroutinefunction(tool.execute):
+                                tool_result = await tool.execute(args)
+                            else:
+                                # 同步执行
+                                tool_result = tool.execute(args)
+                            
                             tool_results.append({
                                 "tool": tool_call.name,
                                 "result": tool_result
@@ -359,7 +371,7 @@ class MainAgent:
                 except Exception as e:
                     logger.error(f"MainAgent[{self.session_id}]   工具执行失败：{e}", exc_info=True)
                     tool_results.append({
-                        "tool": tool_call.name,  # 修复：使用 tool_call.name
+                        "tool": tool_call.name,
                         "result": f"执行失败：{str(e)}"
                     })
 
