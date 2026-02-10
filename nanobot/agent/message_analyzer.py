@@ -49,14 +49,24 @@ class MessageAnalyzer:
         设置预定义的意图模式和关键词库
         """
         self.logger = logger
+        
+        # 意图优先级（数字越小优先级越高）
+        self.intent_priority: Dict[str, int] = {
+            "greeting": 1,
+            "query": 2,
+            "command": 3,
+            "request": 4,
+            "feedback": 5,
+            "unknown": 999
+        }
         self.intent_patterns: Dict[str, List[re.Pattern]] = {
             "greeting": [
-                re.compile(r"^(你好|您好|哈喽|嗨|早|早上好|晚上好|下午好)", re.IGNORECASE),
+                re.compile(r"^(你好|您好|哈喽|嗨|早|早上好|晚上好|下午好)([，,\\s]*.*)?$", re.IGNORECASE),
                 re.compile(r"^.*(问候|打招呼).*$", re.IGNORECASE)
             ],
             "query": [
-                re.compile(r"^.*(查询|查找|搜索|问|请问|想知道|了解).*$", re.IGNORECASE),
-                re.compile(r"^.*(\?|\？)$")
+                re.compile(r"^(?!^(你好|您好|哈喽|嗨).*$).*(查询|查找|搜索|请问|想知道|了解).*$", re.IGNORECASE),
+                re.compile(r"^(?!^(你好|您好|哈喽|嗨).*$).*\?+$", re.IGNORECASE)
             ],
             "command": [
                 re.compile(r"^.*(执行|运行|启动|停止|暂停|继续|打开|关闭).*$", re.IGNORECASE),
@@ -132,9 +142,16 @@ class MessageAnalyzer:
             if total_patterns > 0:
                 confidence = matched_patterns / total_patterns
 
+                # 当置信度相同时，优先选择优先级更高的意图
                 if confidence > best_confidence:
                     best_confidence = confidence
                     best_intent = intent
+                elif confidence == best_confidence and confidence > 0:
+                    # 置信度相同时，选择优先级更高的
+                    best_priority = self.intent_priority.get(best_intent, 999)
+                    current_priority = self.intent_priority.get(intent, 999)
+                    if current_priority < best_priority:
+                        best_intent = intent
 
         self.logger.debug(f"意图分析结果: {best_intent}, 置信度: {best_confidence:.2f}")
         return {"intent": best_intent, "confidence": best_confidence}
