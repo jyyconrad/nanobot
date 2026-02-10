@@ -5,6 +5,7 @@ MainAgent 主代理类 - 协调所有组件的核心入口
 """
 
 import logging
+import asyncio
 from typing import Any, Dict, Optional, List
 from uuid import uuid4
 from datetime import datetime
@@ -347,10 +348,10 @@ class MainAgent:
                             
                             # 执行工具（检查是否是异步）
                             if hasattr(tool, 'execute') and asyncio.iscoroutinefunction(tool.execute):
-                                tool_result = await tool.execute(args)
+                                tool_result = await tool.execute(**args)
                             else:
                                 # 同步执行
-                                tool_result = tool.execute(args)
+                                tool_result = tool.execute(**args)
                             
                             tool_results.append({
                                 "tool": tool_call.name,
