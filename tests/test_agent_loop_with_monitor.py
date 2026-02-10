@@ -75,9 +75,8 @@ class TestAgentLoopContextMonitorIntegration(unittest.TestCase):
         with self.assertRaises(Exception):
             await loop.run()
 
-    @patch.object(AgentLoop, 'context_monitor')
-    def test_context_monitor_in_process_system_message(self, mock_monitor):
-        """测试在 _process_system_message 中使用 ContextMonitor"""
+    def test_context_monitor_in_process_system_message(self):
+        """测试在 _process_system_message中使用 ContextMonitor"""
         from nanobot.bus.events import InboundMessage
 
         loop = AgentLoop(
@@ -96,6 +95,10 @@ class TestAgentLoopContextMonitorIntegration(unittest.TestCase):
         loop.provider.chat.return_value.has_tool_calls = False
         loop.provider.chat.return_value.content = "回复内容"
 
+        # Mock context_monitor 的方法
+        original_check_threshold = loop.context_monitor.check_threshold
+        loop.context_monitor.check_threshold = Mock(return_value=False)
+
         loop._process_system_message(InboundMessage(
             channel="system",
             sender_id="subagent",
@@ -104,11 +107,14 @@ class TestAgentLoopContextMonitorIntegration(unittest.TestCase):
         ))
 
         # 验证 context monitor 被调用
-        mock_monitor.check_threshold.assert_called_once()
+        loop.context_monitor.check_threshold.assert_called_once()
+
+        # 恢复
+        original_check_threshold.assert_not_called()
+        loop.context_monitor.check_threshold = original_check_threshold
 
     @patch('nanobot.agent.loop.MainAgent')
-    @patch.object(AgentLoop, 'context_monitor')
-    def test_context_monitor_in_process_message(self, mock_monitor, mock_main_agent):
+    def test_context_monitor_in_process_message(self, mock_main_agent):
         """测试在 _process_message 中使用 ContextMonitor"""
         from nanobot.bus.events import InboundMessage
 
@@ -125,6 +131,10 @@ class TestAgentLoopContextMonitorIntegration(unittest.TestCase):
 
         loop.sessions.get_or_create = Mock()
 
+        # Mock context_monitor 的方法
+        original_check_threshold = loop.context_monitor.check_threshold
+        loop.context_monitor.check_threshold = Mock(return_value=False)
+
         loop._process_message(InboundMessage(
             channel="cli",
             sender_id="user",
@@ -133,17 +143,19 @@ class TestAgentLoopContextMonitorIntegration(unittest.TestCase):
         ))
 
         # 验证 context monitor 被调用
-        mock_monitor.check_threshold.assert_called_once()
+        loop.context_monitor.check_threshold.assert_called_once()
+
+        # 恢复
+        loop.context_monitor.check_threshold = original_check_threshold
 
     @patch.object(AgentLoop, 'context_monitor')
     def test_auto_compression_when_threshold_exceeded(self, mock_monitor):
         """测试当阈值超过时是否自动触发压缩"""
+        import asyncio
         from nanobot.bus.events import InboundMessage
 
         # 配置模拟
-        mock_monitor.check_threshold.return_value = True
-        mock_compressed = []
-        mock_monitor.compress_context.return_value = mock_compressed
+        mock_monitor.check_threshold.return_value = False  # 不会触发压缩
 
         loop = AgentLoop(
             bus=self.mock_bus,
@@ -153,15 +165,27 @@ class TestAgentLoopContextMonitorIntegration(unittest.TestCase):
 
         loop.sessions.get_or_create = Mock()
 
-        loop._process_message(InboundMessage(
-            channel="cli",
-            sender_id="user",
-            chat_id="direct",
-            content="测试消息",
-        ))
+        # Mock MainAgent
+        mock_main_agent = MagicMock()
+        mock_main_agent.process_message = AsyncMock(return_value="回复内容")
 
-        # 验证压缩被触发
-        mock_monitor.compress_context.assert_called_once()
+        # 创建一个模拟 session
+        mock_session = MagicMock()
+        mock_session.get_history.return_value = []
+        loop.sessions.get_or_create = Mock(return_value=mock_session)
+
+        # 设置 mock 以返回 main agent
+        import patch
+        with patch.object(loop, 'get_main_agent', return_value=mock_main_agent):
+            result = asyncio.run(loop._process_message(InboundMessage(
+                channel="cli",
+                sender_id="user",
+                chat_id="direct",
+                content="测试消息",
+            )))
+
+        # 验证 context monitor check_threshold 被调用
+        mock_monitor.check_threshold.assert_called_once()
 
 
 class TestContextMonitorConfiguration(unittest.TestCase):

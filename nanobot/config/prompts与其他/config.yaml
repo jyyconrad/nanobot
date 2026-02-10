@@ -1,0 +1,111 @@
+version: "1.0"
+
+layers:
+  core:
+    required: true
+    load_order: 1
+    files:
+      - path: "core/identity.md"
+        section: "identity"
+      - path: "core/soul.md"
+        section: "soul"
+      - path: "core/tools.md"
+        section: "tools"
+      - path: "core/skills.md"
+        section: "skills"
+      - path: "core/user.md"
+        section: "user_profile"
+
+  workspace:
+    required: true
+    load_order: 2
+    files:
+      - path: "workspace/agents.md"
+        section: "agents"
+        allow_override: true
+      - path: "workspace/practices.md"
+        section: "practices"
+        allow_override: true
+
+  user:
+    required: true
+    load_order: 3
+    files:
+      - path: "user/profile.md"
+        section: "user_profile"
+        allow_override: true
+      - path: "user/preferences.md"
+        section: "user_preferences"
+        allow_override: true
+
+  memory:
+    required: false
+    load_order: 4
+    condition: "is_main_session"
+    files:
+      - path: "memory/long-term.md"
+        section: "long_term_memory"
+      - path: "memory/short-term.md"
+        section: "short_term_memory"
+      - path: "memory/context-compression.md"
+        section: "context_compression"
+      - path: "memory/heartbeat.md"
+        section: "heartbeat"
+
+  decisions:
+    required: false
+    load_order: 5
+    agent_types:
+      - "main_agent"
+    files:
+      - path:: "decisions/task-allocation.md"
+        key: "task_allocation_prompt"
+      - path: "decisions/skill-selection.md"
+        key: "skill_selection_prompt"
+      - path: "decisions/context-management.md"
+        key: "context_management_prompt"
+      - path: "decisions/intent-recognition.md"
+        key: "intent_recognition_prompt"
+
+templates:
+  main_agent: |
+    {identity}
+
+    {soul}
+
+    {skills}
+
+    {tools}
+
+    {user_profile}
+
+  sub_agent: |
+    {identity}
+
+    {soul}
+
+    {skills}
+
+    {tools}
+
+    ## Task Description
+
+    {task_description}
+
+    ## Available Tools
+
+    {tools}
+
+    ## Skills
+
+    {skills_content}
+
+    ## Best Practices
+
+    {practices}
+
+    ## User Preferences
+
+    {user_preferences}
+
+cache_ttl: 300
