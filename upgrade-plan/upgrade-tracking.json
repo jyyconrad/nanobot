@@ -1,0 +1,78 @@
+{
+  "project": "nanobot",
+  "current_version": "0.2.1",
+  "upgrade_session": {
+    "start_time": "2026-02-12T23:30:00+08:00",
+    "status": "in_progress"
+  },
+  "subagents": {
+    "planning": {
+      "session_key": "agent:main:subagent:263cc874-2815-429b-bf9b-fcf42dffe4e9",
+      "run_id": "15158a27-562e-49cd-8ee8-3c14756f7cbd",
+      "task": "分析现有功能，制定 v0.3.0 和 v0.4.0 升级计划",
+      "status": "completed",
+      "start_time": "2026-02-12T23:30:15+08:00",
+      "end_time": "2026-02-12T23:40:00+08:00",
+      "duration": "3m36s"
+    },
+    "review": {
+      "session_key": "agent:main:subagent:9e8a6a0e-0e82-4088-8ee7-c66db421d118",
+      "run_id": "24082e9e-bb9e-41b6-a6d8-0d4ddcaea5e9",
+      "task": "多维度审核升级计划的完整性和可行性",
+      "status": "completed",
+      "start_time": "2026-02-13T00:08:00+08:00",
+      "end_time": "2026-02-13T00:14:00+08:00",
+      "duration": "5m39s"
+    },
+    "implementation": {
+      "session_key": "agent:main:subagent:afb8f9de-c9c6-42ac-887b-da8b29c5d5b4",
+      "run_id": "3c518885-480a-4407-baf7-abe1687b2439",
+      "task": "实施 Nanobot v0.3.0 升级（持续工作与记忆系统升级）",
+      "status": "running",
+      "start_time": "2026-02-13T01:10:00+08:00"
+    },
+    "testing": {
+      "session_key": null,
+      "task": "E2E 测试和验证",
+      "status": "pending"
+    },
+    "documentation": {
+      "session_key": null,
+      "task": "更新文档和 code-guidelines",
+      "status": "pending"
+    }
+  },
+  "cron_job": {
+    "job_id": "786730b4-6bc5-4653-8d6b-d48487d0fa55",
+    "enabled": true,
+    "check_interval": "30min",
+    "actions": ["resume_if_stopped", "report_progress", "send_alerts"],
+    "next_run_at": 1770912476537
+  },
+  "milestones": [
+    {
+      "version": "v0.3.0",
+      "status": "implementation_in_progress",
+      "completion": 30,
+      "estimated_days": 7,
+      "key_features": [
+        "Heartbeat + Cron Job 持续工作机制",
+        "三层记忆系统（L1/L2/L3）",
+        "渐进式披露文件管理",
+        "技能系统可扩展性"
+      ]
+    },
+    {
+      "version": "v0.4.0",
+      "status": "review_completed",
+      "completion": 20,
+      "estimated_days": 10,
+      "key_features": [
+        "多渠道集成（WebChat/TUI/飞书）",
+        "架构优化",
+        "子代理管理增强",
+        "错误恢复机制"
+      ]
+    }
+  ]
+}

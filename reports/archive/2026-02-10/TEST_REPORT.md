@@ -7,7 +7,7 @@
 ## 测试环境
 - **操作系统**: macOS Sonoma 14.5 (arm64)
 - **Python 版本**: 3.13.5
-- **虚拟环境**: /Users/jiangyayun/develop/code/work_code/nanobot/temp_venv
+- **虚拟环境**: /Users/jiangyayun/develop/code/work_code/nanobot/.venv
 - **项目版本**: 0.1.0
 
 ## 问题修复

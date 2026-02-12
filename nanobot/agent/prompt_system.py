@@ -509,16 +509,32 @@ class PromptSystemV2:
     def get_all_sections(self) -> Dict[str, str]:
         """
         获取所有加载的提示词部分
-        
+
         Returns:
             提示词部分字典
         """
-        # 这个方法应该在 load_prompts() 后调用
-        # 从内部状态获取所有提示词内容
-        # TODO: 实现从加载的文件中提取
-        
-        # 暂时返回空字典
-        return {}
+        # 从所有层加载提示词
+        all_sections = {}
+
+        # 按顺序加载所有层
+        layers = self.config.get("layers", {})
+        for layer_name, layer_config in sorted(
+            layers.items(),
+            key=lambda item: item[1].get("load_order", 999)
+        ):
+            # 检查条件是否满足
+            condition = layer_config.get("condition")
+            if condition == "is_main_session" and not self._is_main_session():
+                continue
+
+            # 加载该层的所有文件
+            layer_content = self._load_layer(layer_name, layer_config)
+            all_sections.update(layer_content)
+
+        # 更新缓存
+        self.prompts_cache.update(all_sections)
+
+        return all_sections
     
     # ========== 工具方法 ==========
     

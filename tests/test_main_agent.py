@@ -8,7 +8,7 @@ import pytest
 
 from nanobot.agent.decision.models import DecisionResult
 from nanobot.agent.main_agent import MainAgent, MainAgentState
-from nanobot.agent.planner.models import TaskPlan, TaskPriority, TaskType
+from nanobot.agent.planner.models import TaskPlan, TaskPriority, TaskType, TaskStep
 from nanobot.agent.subagent.models import (
     SubagentState,
     SubagentStatus,
@@ -34,7 +34,20 @@ def mock_task_planner():
             task_type=TaskType.CODE_GENERATION,
             priority=TaskPriority.MEDIUM,
             complexity=0.7,
-            steps=["step1", "step2"],
+            steps=[
+                TaskStep(
+                    id="step1",
+                    description="step1",
+                    expected_output="output1",
+                    validation_criteria="valid1"
+                ),
+                TaskStep(
+                    id="step2",
+                    description="step2",
+                    expected_output="output2",
+                    validation_criteria="valid2"
+                )
+            ],
             estimated_time=600,
             requires_approval=True,
         )
@@ -106,6 +119,7 @@ async def test_process_message_new_task(
     # 设置 mock
     mock_cm = Mock()
     mock_cm.build_context = AsyncMock(return_value=("mock context", None))
+    mock_cm.get_history = Mock(return_value=[])
     mock_cm_cls.return_value = mock_cm
 
     mock_tp = Mock()
@@ -115,7 +129,20 @@ async def test_process_message_new_task(
             task_type=TaskType.CODE_GENERATION,
             priority=TaskPriority.MEDIUM,
             complexity=0.7,
-            steps=["step1", "step2"],
+            steps=[
+                TaskStep(
+                    id="step1",
+                    description="step1",
+                    expected_output="output1",
+                    validation_criteria="valid1"
+                ),
+                TaskStep(
+                    id="step2",
+                    description="step2",
+                    expected_output="output2",
+                    validation_criteria="valid2"
+                )
+            ],
             estimated_time=600,
             requires_approval=True,
         )
@@ -162,9 +189,18 @@ async def test_process_message_new_task(
     )
     mock_hooks_cls.return_value = mock_hooks
 
-    # 测试
-    agent = MainAgent("test-session")
-    response = await agent.process_message("Test message")
+    # 模拟 LLM 响应
+    with patch("nanobot.providers.litellm_provider.LiteLLMProvider") as mock_provider_cls:
+        mock_provider = Mock()
+        mock_response = Mock()
+        mock_response.content = "Task completed"
+        mock_response.has_tool_calls = False
+        mock_provider.chat = AsyncMock(return_value=mock_response)
+        mock_provider_cls.return_value = mock_provider
+
+        # 测试
+        agent = MainAgent("test-session")
+        response = await agent.process_message("Test message")
 
     assert isinstance(response, str)
     assert "Task completed" in response
@@ -242,6 +278,7 @@ async def test_process_message_cancellation(
     # 设置 mock
     mock_cm = Mock()
     mock_cm.build_context = AsyncMock(return_value=("mock context", None))
+    mock_cm.get_history = Mock(return_value=[])
     mock_cm_cls.return_value = mock_cm
 
     mock_tp = Mock()
@@ -298,6 +335,7 @@ async def test_process_message_correction(
     # 设置 mock
     mock_cm = Mock()
     mock_cm.build_context = AsyncMock(return_value=("mock context", None))
+    mock_cm.get_history = Mock(return_value=[])
     mock_cm_cls.return_value = mock_cm
 
     mock_tp = Mock()
@@ -311,7 +349,14 @@ async def test_process_message_correction(
             task_type=TaskType.CODE_GENERATION,
             priority=TaskPriority.MEDIUM,
             complexity=0.5,
-            steps=["step1"],
+            steps=[
+                TaskStep(
+                    id="step1",
+                    description="step1",
+                    expected_output="output1",
+                    validation_criteria="valid1"
+                )
+            ],
             estimated_time=300,
             requires_approval=False,
         )
@@ -357,10 +402,19 @@ async def test_process_message_correction(
     )
     mock_hooks_cls.return_value = mock_hooks
 
-    # 测试
-    agent = MainAgent("test-session")
-    agent.state.current_task = "current task"
-    response = await agent.process_message("修正任务：新要求")
+    # 模拟 LLM 响应
+    with patch("nanobot.providers.litellm_provider.LiteLLMProvider") as mock_provider_cls:
+        mock_provider = Mock()
+        mock_response = Mock()
+        mock_response.content = "Corrected task completed"
+        mock_response.has_tool_calls = False
+        mock_provider.chat = AsyncMock(return_value=mock_response)
+        mock_provider_cls.return_value = mock_provider
+
+        # 测试
+        agent = MainAgent("test-session")
+        agent.state.current_task = "current task"
+        response = await agent.process_message("修正任务：新要求")
 
     assert isinstance(response, str)
     assert "Corrected task completed" in response

@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from nanobot.agent.prompt_system_v2 import PromptSystemV2
+from nanobot.agent.prompt_system import PromptSystemV2
 
 
 def test_config_loading():

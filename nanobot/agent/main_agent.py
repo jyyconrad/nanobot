@@ -6,6 +6,7 @@ MainAgent 主代理类 - 协调所有组件的核心入口
 
 import logging
 import asyncio
+import inspect
 from typing import Any, Dict, Optional, List
 from uuid import uuid4
 from datetime import datetime
@@ -13,7 +14,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 # 导入现有组件
-from nanobot.agent.context_manager import ContextManager
+from nanobot.agent.context_manager import ContextManagerV2 as ContextManager
 from nanobot.agent.decision.decision_maker import ExecutionDecisionMaker
 from nanobot.agent.decision.models import DecisionRequest, DecisionResult
 from nanobot.agent.hooks import MainAgentHooks as MainAgentHooks
@@ -27,7 +28,7 @@ from nanobot.agent.workflow.workflow_manager import WorkflowManager
 
 # 新增：Prompt System V2
 try:
-    from nanobot.agent.prompt_system_v2 import PromptSystemV2, get_prompt_system_v2
+    from nanobot.agent.prompt_system import PromptSystemV2, get_prompt_system_v2
     PROMPT_SYSTEM_V2_AVAILABLE = True
 except ImportError:
     PROMPT_SYSTEM_V2_AVAILABLE = False
@@ -212,16 +213,132 @@ class MainAgent:
 
         # 使用任务规划器分析任务
         task_plan = self.task_planner.analyze_task(message)
-        
-        # TODO: 实现任务创建逻辑
-        return f"任务规划：{task_plan.summary}"
+
+        # 创建任务ID
+        task_id = f"task_{len(self.state.subagent_tasks) + 1}_{uuid4().hex[:8]}"
+
+        # 存储任务信息
+        self.state.subagent_tasks[task_id] = {
+            "id": task_id,
+            "description": message,
+            "plan": task_plan,
+            "status": "created",
+            "created_at": datetime.now().isoformat(),
+            "subtasks": []
+        }
+
+        # 创建子任务
+        for i, step in enumerate(task_plan.steps[:5], 1):  # 最多5个子任务
+            subtask_id = f"{task_id}_subtask_{i}"
+            subtask = {
+                "id": subtask_id,
+                "description": step,
+                "status": "pending",
+                "parent_task": task_id
+            }
+            self.state.subagent_tasks[task_id]["subtasks"].append(subtask)
+
+        # 更新当前任务
+        self.state.current_task = task_id
+
+        logger.info(f"MainAgent[{self.session_id}] Task created: {task_id} with {len(task_plan.steps)} steps")
+
+        # 构建响应
+        response_parts = [
+            f"✅ 任务已创建",
+            f"",
+            f"任务ID: {task_id}",
+            f"任务描述: {task_plan.summary}",
+            f"",
+            f"执行步骤:",
+        ]
+
+        for i, step in enumerate(task_plan.steps[:5], 1):
+            response_parts.append(f"  {i}. {step}")
+
+        if len(task_plan.steps) > 5:
+            response_parts.append(f"  ... 还有 {len(task_plan.steps) - 5} 个步骤")
+
+        response_parts.extend([
+            f"",
+            f"使用 '/status {task_id}' 查看任务状态",
+            f"使用 '/cancel {task_id}' 取消任务",
+        ])
+
+        return "\n".join(response_parts)
 
     async def _handle_task_status(self, message: str) -> str:
         """处理任务状态查询"""
         logger.debug(f"MainAgent[{self.session_id}] Handling task status query: {message[:50]}...")
 
-        # TODO: 实现任务状态查询逻辑
-        return "任务状态查询功能开发中"
+        # 解析任务ID
+        parts = message.split()
+        task_id = None
+
+        for part in parts:
+            if part.startswith("task_"):
+                task_id = part
+                break
+
+        # 如果没有指定任务ID，使用当前任务
+        if not task_id and self.state.current_task:
+            task_id = self.state.current_task
+
+        # 查询指定任务
+        if task_id and task_id in self.state.subagent_tasks:
+            task = self.state.subagent_tasks[task_id]
+            status = task.get("status", "unknown")
+            description = task.get("description", "无描述")
+            created_at = task.get("created_at", "未知")
+            subtasks = task.get("subtasks", [])
+
+            # 计算子任务状态
+            completed = sum(1 for s in subtasks if s.get("status") == "completed")
+            total = len(subtasks)
+
+            response_parts = [
+                f"📋 任务状态: {task_id}",
+                f"",
+                f"描述: {description}",
+                f"状态: {status}",
+                f"创建时间: {created_at}",
+                f"",
+                f"进度: {completed}/{total} 子任务完成",
+            ]
+
+            if subtasks:
+                response_parts.append(f"子任务列表:")
+                for i, subtask in enumerate(subtasks[:10], 1):  # 最多显示10个
+                    st_status = subtask.get("status", "unknown")
+                    st_desc = subtask.get("description", "无描述")[:50]
+                    status_icon = "✅" if st_status == "completed" else "⏳" if st_status == "in_progress" else "⏸️"
+                    response_parts.append(f"  {status_icon} {i}. [{st_status}] {st_desc}")
+
+                if len(subtasks) > 10:
+                    response_parts.append(f"  ... 还有 {len(subtasks) - 10} 个子任务")
+
+            return "\n".join(response_parts)
+
+        # 显示所有任务状态
+        if self.state.subagent_tasks:
+            response_parts = ["📋 所有任务状态:", ""]
+
+            for tid, task in self.state.subagent_tasks.items():
+                status = task.get("status", "unknown")
+                desc = task.get("description", "无描述")[:40]
+                status_icon = "✅" if status == "completed" else "⏳" if status == "in_progress" else "⏸️"
+                current_marker = " 👈 当前" if tid == self.state.current_task else ""
+                response_parts.append(f"{status_icon} {tid}: [{status}] {desc}{current_marker}")
+
+            response_parts.extend([
+                "",
+                f"共 {len(self.state.subagent_tasks)} 个任务",
+                "使用 '/status <task_id>' 查看详细信息",
+            ])
+
+            return "\n".join(response_parts)
+
+        return "当前没有任务。使用 '/task <描述>' 创建新任务。"
 
     async def _handle_task_cancel(self, message: str) -> str:
         """处理任务取消消息"""
@@ -347,7 +464,8 @@ class MainAgent:
                             logger.debug(f"MainAgent[{self.session_id}]     - 参数内容: {str(args)[:200]}")
                             
                             # 执行工具（检查是否是异步）
-                            if hasattr(tool, 'execute') and asyncio.iscoroutinefunction(tool.execute):
+                            import inspect
+                            if hasattr(tool, 'execute') and inspect.iscoroutinefunction(tool.execute):
                                 tool_result = await tool.execute(**args)
                             else:
                                 # 同步执行

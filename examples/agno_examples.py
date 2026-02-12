@@ -31,7 +31,7 @@ try:
     from agno.tools.function import Function
     from agno.knowledge.knowledge import Knowledge
     from agno.team.team import Team
-    from nanobot.agent.prompt_system_v2 import PromptSystemV2, get_prompt_system_v2
+    from nanobot.agent.prompt_system import PromptSystemV2, get_prompt_system_v2
     from nanobot.agent.main_agent import MainAgent, create_main_agent
     from nanobot.agent.subagent.agno_subagent import AgnoSubagentManager, AgnoSubagentConfig
     from nanobot.agent.tools.filesystem import ReadFileTool, WriteFileTool, ListDirTool

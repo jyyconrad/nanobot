@@ -24,17 +24,17 @@
 
 ```bash
 # 在项目根目录创建虚拟环境
-python -m venv temp_venv
+python -m venv .venv
 
 # 激活虚拟环境
 # macOS/Linux
-source temp_venv/bin/activate
+source .venv/bin/activate
 
 # Windows (PowerShell)
-.\temp_venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 
 # Windows (CMD)
-.\temp_venv\Scripts\activate.bat
+.\.venv\Scripts\activate.bat
 ```
 
 #### 1.2 安装 Nanobot 包
@@ -355,7 +355,7 @@ tar -czf config_backup_$(date +%Y%m%d).tar.gz config/
 tar -czf data_backup_$(date +%Y%m%d).tar.gz data/
 
 # 备份整个项目
-tar -czf nanobot_backup_$(date +%Y%m%d).tar.gz --exclude='temp_venv' --exclude='*.pyc' .
+tar -czf nanobot_backup_$(date +%Y%m%d).tar.gz --exclude='.venv' --exclude='*.pyc' .
 ```
 
 ### 2. 数据恢复

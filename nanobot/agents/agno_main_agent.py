@@ -30,7 +30,7 @@ except ImportError:
     Function = None
 
 try:
-    from nanobot.agent.prompt_system_v2 import PromptSystemV2, get_prompt_system_v2
+    from nanobot.agent.prompt_system import PromptSystemV2, get_prompt_system_v2
     PROMPT_SYSTEM_V2_AVAILABLE = True
 except ImportError:
     PROMPT_SYSTEM_V2_AVAILABLE = False
@@ -210,26 +210,53 @@ class AgnoMainAgent:
     def _create_web_toolkit(self) -> Optional[Toolkit]:
         """创建 Web 工具包"""
         try:
+            from nanobot.agent.tools.web import WebSearchTool, WebFetchTool
+
             tools = []
-            
-            # web_search
+
+            # web_search - use real WebSearchTool
+            search_tool = WebSearchTool()
+
             def web_search(query: str, count: int = 5) -> str:
                 """搜索网络"""
                 try:
-                    # 这里需要实际的搜索实现
-                    return f"搜索结果: {query} (模拟)"
+                    import asyncio
+                    # Run the async search tool
+                    result = asyncio.run(search_tool.execute(query=query, count=count))
+                    return result
                 except Exception as e:
+                    logger.error(f"Web search failed: {e}")
                     return f"搜索失败: {e}"
-            
+
             tools.append(Function(
                 name="web_search",
-                description="搜索网络",
+                description="搜索网络，使用 Brave Search API。需要 BRAVE_API_KEY 环境变量。",
                 func=web_search
             ))
-            
+
+            # web_fetch - use real WebFetchTool
+            fetch_tool = WebFetchTool()
+
+            def web_fetch(url: str, extract_mode: str = "markdown") -> str:
+                """获取网页内容"""
+                try:
+                    import asyncio
+                    # Run the async fetch tool
+                    result = asyncio.run(fetch_tool.execute(url=url, extract_mode=extract_mode))
+                    return result
+                except Exception as e:
+                    logger.error(f"Web fetch failed: {e}")
+                    return f"获取网页失败: {e}"
+
+            tools.append(Function(
+                name="web_fetch",
+                description="获取网页内容，转换为 markdown 或纯文本。",
+                func=web_fetch
+            ))
+
             return Toolkit(
                 name="web",
-                description="网络搜索和获取",
+                description="网络搜索和获取工具（使用 Brave Search API）",
                 tools=tools
             )
         except Exception as e:

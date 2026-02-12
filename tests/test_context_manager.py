@@ -11,7 +11,7 @@ ContextManager 单元测试 - 测试上下文管理增强组件
 
 import pytest
 
-from nanobot.agent.context_manager import ContextManager
+from nanobot.agent.context_manager import ContextManagerV2 as ContextManager
 
 
 class TestContextManager:
@@ -28,8 +28,8 @@ class TestContextManager:
         session_id = "test_session_1"
         context, stats = await context_manager.build_context(session_id)
 
-        # 验证上下文包含基础内容
-        assert "基础上下文" in context
+        # 验证上下文包含基础内容（现在会加载工作区的 AGENTS.md 内容）
+        assert "代理定义" in context or "Agent Instructions" in context
         assert "记忆上下文" in context
         assert "技能上下文" in context
 
@@ -52,14 +52,13 @@ class TestContextManager:
     @pytest.mark.asyncio
     async def test_compress_context(self, context_manager):
         """测试上下文压缩功能"""
-        # 创建一个很长的测试内容
-        long_content = "测试 " * 1000
+        # 创建一个非常长的测试内容，确保会被压缩
+        long_content = "测试 " * 10000  # 增大内容长度
         messages = [{"role": "user", "content": long_content}]
 
-        compressed, stats = await context_manager.compress_context(messages)
+        compressed, stats = await context_manager.compress_context(messages, max_tokens=2000)  # 降低限制
 
-        # 验证压缩有效
-        assert len(compressed) < len(long_content)
+        # 验证压缩有效（压缩后的消息列表长度可能相同，但内容会被压缩）
         assert stats.compression_ratio < 1.0
         assert stats.original_length > stats.compressed_length
 
@@ -116,8 +115,9 @@ class TestContextManager:
 
         compressed, stats = await context_manager.compress_context(messages)
 
-        # 验证关键信息被保留
-        assert any(keyword in compressed for keyword in ["代码错误", "压缩算法", "优化"])
+        # 验证关键信息被保留（检查所有压缩后的消息内容）
+        compressed_text = " ".join(msg.get("content", "") for msg in compressed)
+        assert any(keyword in compressed_text for keyword in ["代码错误", "压缩算法", "优化"])
 
     @pytest.mark.asyncio
     async def test_memory_search(self, context_manager):

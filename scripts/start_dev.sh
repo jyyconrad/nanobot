@@ -12,7 +12,7 @@ NC='\033[0m' # 无颜色
 
 # 项目根目录
 PROJECT_ROOT=$(cd "$(dirname "$0")/.." && pwd)
-VENV_PATH="$PROJECT_ROOT/temp_venv"
+VENV_PATH="$PROJECT_ROOT/.venv"
 CONFIG_DIR="$PROJECT_ROOT/config"
 DATA_DIR="$PROJECT_ROOT/data"
 
@@ -33,7 +33,7 @@ log_error() {
 check_venv() {
     if [ ! -d "$VENV_PATH" ]; then
         log_error "虚拟环境不存在: $VENV_PATH"
-        log "请先创建虚拟环境: python -m venv temp_venv"
+        log "请先创建虚拟环境: python -m venv .venv"
         return 1
     fi
     

@@ -5,7 +5,7 @@
 
 import pytest
 
-from nanobot.agent.context_manager import ContextManager
+from nanobot.agent.context_manager import ContextManagerV2 as ContextManager
 from nanobot.agent.decision.new_message_handler import NewMessageHandler
 
 

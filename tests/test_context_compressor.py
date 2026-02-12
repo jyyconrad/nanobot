@@ -34,8 +34,8 @@ class TestContextCompressor:
     @pytest.mark.asyncio
     async def test_compress_long_content(self, compressor):
         """测试压缩长内容"""
-        long_content = "测试 " * 1000
-        compressed, stats = await compressor.compress(long_content)
+        long_content = "测试 " * 10000  # 增大内容长度
+        compressed, stats = await compressor.compress(long_content, max_tokens=2000)  # 降低限制
 
         assert len(compressed) < len(long_content)
         assert stats.compression_ratio < 1.0

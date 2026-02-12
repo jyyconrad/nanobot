@@ -8,7 +8,7 @@ import os
 import pytest
 
 from nanobot.agent.context_compressor import ContextCompressor
-from nanobot.agent.context_manager import ContextManager
+from nanobot.agent.context_manager import ContextManagerV2 as ContextManager
 from nanobot.agent.decision.decision_maker import ExecutionDecisionMaker
 from nanobot.agent.planner.task_planner import TaskPlanner
 from nanobot.agent.subagent.manager import SubagentManager

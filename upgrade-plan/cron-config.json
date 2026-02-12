@@ -1,0 +1,23 @@
+{
+  "name": "nanobot-upgrade-monitor",
+  "schedule": {
+    "kind": "every",
+    "everyMs": 1800000
+  },
+  "payload": {
+    "kind": "systemEvent",
+    "text": "HEARTBEAT_UPGRADE_MONITOR"
+  },
+  "sessionTarget": "main",
+  "enabled": false,
+  "metadata": {
+    "description": "定期检查 Nanobot 升级计划进度，如果任务意外停止则自动恢复",
+    "check_interval": "30 minutes",
+    "actions": [
+      "check_subagent_status",
+      "resume_if_stopped",
+      "report_progress",
+      "send_alerts"
+    ]
+  }
+}
