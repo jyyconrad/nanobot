@@ -7,7 +7,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Memory(BaseModel):
@@ -21,14 +21,14 @@ class Memory(BaseModel):
     content: str = Field(..., description="记忆内容")
     tags: List[str] = Field(default_factory=list, description="记忆标签")
     task_id: Optional[str] = Field(None, description="关联的任务 ID")
-    timestamp: datetime = Field(default_factory=datetime.now, description="记忆创建时间")
+    timestamp: datetime = Field(
+        default_factory=datetime.now, description="记忆创建时间"
+    )
     importance: int = Field(0, description="重要性等级 (0-10)")
 
-    class Config:
-        """Pydantic 配置"""
-
-        arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat()}
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
 
 class MemorySearchQuery(BaseModel):

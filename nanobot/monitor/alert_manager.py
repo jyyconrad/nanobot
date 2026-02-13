@@ -14,13 +14,13 @@
 
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 from loguru import logger
 
-from nanobot.monitor.structured_logger import get_structured_logger
-from nanobot.monitor.health_checker import get_health_checker, HealthCheck
+from nanobot.monitor.health_checker import HealthCheck, get_health_checker
 from nanobot.monitor.performance_monitor import get_performance_monitor
+from nanobot.monitor.structured_logger import get_structured_logger
 
 
 class Alert:
@@ -285,7 +285,9 @@ class AlertManager:
                     # 发送通知
                     self._send_notifications(alert)
                 except Exception as e:
-                    logger.error(f"Failed to trigger alert for rule {rule.rule_id}: {e}")
+                    logger.error(
+                        f"Failed to trigger alert for rule {rule.rule_id}: {e}"
+                    )
 
         return new_alerts
 
@@ -373,10 +375,16 @@ class AlertManager:
         alerts = self.get_alerts()
         summary = {
             "total": len(alerts),
-            "critical": len([a for a in alerts if a.severity == "critical" and not a.resolved]),
-            "warning": len([a for a in alerts if a.severity == "warning" and not a.resolved]),
+            "critical": len(
+                [a for a in alerts if a.severity == "critical" and not a.resolved]
+            ),
+            "warning": len(
+                [a for a in alerts if a.severity == "warning" and not a.resolved]
+            ),
             "info": len([a for a in alerts if a.severity == "info" and not a.resolved]),
-            "acknowledged": len([a for a in alerts if a.acknowledged and not a.resolved]),
+            "acknowledged": len(
+                [a for a in alerts if a.acknowledged and not a.resolved]
+            ),
             "resolved": len([a for a in alerts if a.resolved]),
         }
         return summary
@@ -441,7 +449,9 @@ class AlertManager:
         Returns:
             触发的性能告警列表
         """
-        performance_alerts = self.performance_monitor.check_performance_thresholds(thresholds)
+        performance_alerts = self.performance_monitor.check_performance_thresholds(
+            thresholds
+        )
         new_alerts = []
 
         for alert_info in performance_alerts:
@@ -481,7 +491,10 @@ def _create_default_alert_rules(manager: AlertManager):
             rule_id="sys.memory.critical",
             alert_type="memory",
             severity="critical",
-            condition=lambda: get_performance_monitor().get_system_info()["memory_usage"] > 90,
+            condition=lambda: get_performance_monitor().get_system_info()[
+                "memory_usage"
+            ]
+            > 90,
             message="Critical memory usage",
             details={"threshold": 90},
             repeat_interval=1800,
@@ -493,7 +506,10 @@ def _create_default_alert_rules(manager: AlertManager):
             rule_id="sys.memory.warning",
             alert_type="memory",
             severity="warning",
-            condition=lambda: get_performance_monitor().get_system_info()["memory_usage"] > 80,
+            condition=lambda: get_performance_monitor().get_system_info()[
+                "memory_usage"
+            ]
+            > 80,
             message="High memory usage",
             details={"threshold": 80},
             repeat_interval=3600,
@@ -505,7 +521,8 @@ def _create_default_alert_rules(manager: AlertManager):
             rule_id="sys.cpu.critical",
             alert_type="cpu",
             severity="critical",
-            condition=lambda: get_performance_monitor().get_system_info()["cpu_usage"] > 95,
+            condition=lambda: get_performance_monitor().get_system_info()["cpu_usage"]
+            > 95,
             message="Critical CPU usage",
             details={"threshold": 95},
             repeat_interval=1800,
@@ -517,7 +534,8 @@ def _create_default_alert_rules(manager: AlertManager):
             rule_id="sys.cpu.warning",
             alert_type="cpu",
             severity="warning",
-            condition=lambda: get_performance_monitor().get_system_info()["cpu_usage"] > 80,
+            condition=lambda: get_performance_monitor().get_system_info()["cpu_usage"]
+            > 80,
             message="High CPU usage",
             details={"threshold": 80},
             repeat_interval=3600,
@@ -543,7 +561,8 @@ def _create_default_alert_rules(manager: AlertManager):
             rule_id="network.connectivity.failed",
             alert_type="network",
             severity="warning",
-            condition=lambda: get_health_checker().get_failed_checks() and any(
+            condition=lambda: get_health_checker().get_failed_checks()
+            and any(
                 check.component == "network.connectivity"
                 for check in get_health_checker().get_failed_checks()
             ),

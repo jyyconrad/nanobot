@@ -7,7 +7,7 @@
 import re
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from nanobot.agent.planner.models import CancellationPattern
 
@@ -18,14 +18,25 @@ class CancellationDetector(BaseModel):
     cancellation_patterns: List[CancellationPattern] = Field(
         default_factory=lambda: [
             CancellationPattern(
-                patterns=["取消.*任务", "停止.*任务", "终止.*任务", "取消.*操作", "停止.*操作"],
+                patterns=[
+                    "取消.*任务",
+                    "停止.*任务",
+                    "终止.*任务",
+                    "取消.*操作",
+                    "停止.*操作",
+                ],
                 weight=0.85,
             ),
-            CancellationPattern(patterns=["取消.*", "停止.*", "终止.*", "放弃.*"], weight=0.8),
             CancellationPattern(
-                patterns=["我.*不想.*", "不要.*", "不必.*", "不需要.*", "不用.*"], weight=0.65
+                patterns=["取消.*", "停止.*", "终止.*", "放弃.*"], weight=0.8
             ),
-            CancellationPattern(patterns=["出错.*", "失败.*", "有问题.*", "错误.*"], weight=0.6),
+            CancellationPattern(
+                patterns=["我.*不想.*", "不要.*", "不必.*", "不需要.*", "不用.*"],
+                weight=0.65,
+            ),
+            CancellationPattern(
+                patterns=["出错.*", "失败.*", "有问题.*", "错误.*"], weight=0.6
+            ),
         ]
     )
 
@@ -33,10 +44,9 @@ class CancellationDetector(BaseModel):
         default_factory=lambda: ["确定.*取消", "确认.*取消", "是否.*取消", "真的.*取消"]
     )
 
-    class Config:
-        """配置类"""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
     async def is_cancellation(self, user_input: str) -> bool:
         """

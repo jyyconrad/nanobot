@@ -2,10 +2,10 @@
 调试和诊断模块
 """
 
-import traceback
 import json
 import time
-from typing import Optional, Dict, Any, List
+import traceback
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
@@ -76,9 +76,14 @@ class Debugger:
         """
         return location in self._breakpoints
 
-    def trace(self, message: str, location: str = None,
-             request_id: str = None, task_id: str = None,
-             **kwargs):
+    def trace(
+        self,
+        message: str,
+        location: str = None,
+        request_id: str = None,
+        task_id: str = None,
+        **kwargs,
+    ):
         """
         记录跟踪信息
 
@@ -98,7 +103,7 @@ class Debugger:
             "location": location,
             "request_id": request_id,
             "task_id": task_id,
-            **kwargs
+            **kwargs,
         }
 
         self._trace_stack.append(entry)
@@ -112,9 +117,15 @@ class Debugger:
         """获取跟踪堆栈"""
         return self._trace_stack.copy()
 
-    def record_request(self, request_id: str, method: str,
-                     url: str, headers: Dict[str, str],
-                     body: Any, timestamp: float = None):
+    def record_request(
+        self,
+        request_id: str,
+        method: str,
+        url: str,
+        headers: Dict[str, str],
+        body: Any,
+        timestamp: float = None,
+    ):
         """
         记录请求信息
 
@@ -131,12 +142,17 @@ class Debugger:
             "method": method,
             "url": url,
             "headers": headers,
-            "body": body
+            "body": body,
         }
 
-    def record_response(self, request_id: str, status_code: int,
-                      headers: Dict[str, str], body: Any,
-                      timestamp: float = None):
+    def record_response(
+        self,
+        request_id: str,
+        status_code: int,
+        headers: Dict[str, str],
+        body: Any,
+        timestamp: float = None,
+    ):
         """
         记录响应信息
 
@@ -151,7 +167,7 @@ class Debugger:
             "timestamp": timestamp or time.time(),
             "status_code": status_code,
             "headers": headers,
-            "body": body
+            "body": body,
         }
 
     def get_request_response_trace(self, request_id: str) -> Optional[Dict[str, Any]]:
@@ -213,11 +229,12 @@ class Debugger:
             "type": type(exc).__name__,
             "message": str(exc),
             "stack_trace": traceback.format_exc(),
-            "traceback_list": traceback.format_stack()
+            "traceback_list": traceback.format_stack(),
         }
 
-    def log_exception(self, exc: Exception, request_id: str = None,
-                     task_id: str = None, **kwargs):
+    def log_exception(
+        self, exc: Exception, request_id: str = None, task_id: str = None, **kwargs
+    ):
         """
         记录异常信息
 
@@ -228,11 +245,7 @@ class Debugger:
             **kwargs: 附加信息
         """
         info = self.get_exception_info(exc)
-        info.update({
-            "request_id": request_id,
-            "task_id": task_id,
-            **kwargs
-        })
+        info.update({"request_id": request_id, "task_id": task_id, **kwargs})
 
         logger.error(json.dumps(info, ensure_ascii=False))
         return info
@@ -248,8 +261,10 @@ class Debugger:
 
         for request_id in self._request_tracker:
             if request_id in self._response_tracker:
-                latency = (self._response_tracker[request_id]["timestamp"] -
-                          self._request_tracker[request_id]["timestamp"])
+                latency = (
+                    self._response_tracker[request_id]["timestamp"]
+                    - self._request_tracker[request_id]["timestamp"]
+                )
                 completed_requests.append(latency)
 
         return {
@@ -259,12 +274,16 @@ class Debugger:
             "requests": {
                 "total": request_count,
                 "responded": response_count,
-                "pending": request_count - response_count
+                "pending": request_count - response_count,
             },
             "response_times": {
                 "count": len(completed_requests),
-                "avg": sum(completed_requests) / len(completed_requests) if completed_requests else 0,
+                "avg": (
+                    sum(completed_requests) / len(completed_requests)
+                    if completed_requests
+                    else 0
+                ),
                 "min": min(completed_requests) if completed_requests else 0,
-                "max": max(completed_requests) if completed_requests else 0
-            }
+                "max": max(completed_requests) if completed_requests else 0,
+            },
         }

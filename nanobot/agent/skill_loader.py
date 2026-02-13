@@ -7,7 +7,7 @@ SkillLoader 根据任务类型自动匹配和加载相关技能，
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import yaml
 from pydantic import BaseModel
@@ -94,7 +94,9 @@ class SkillLoader:
         Returns:
             技能列表（去重后）
         """
-        logger.debug("加载任务类型 '%s' 的技能，显式技能: %s", task_type, explicit_skills)
+        logger.debug(
+            "加载任务类型 '%s' 的技能，显式技能: %s", task_type, explicit_skills
+        )
 
         skills = []
 
@@ -212,7 +214,10 @@ class SkillLoader:
         try:
             skill_data = self.load_skill(skill_name)
             # 检查是否是有效的技能内容
-            if "技能" in skill_data.get("content", "") and ("未找到" in skill_data.get("content") or "加载失败" in skill_data.get("content")):
+            if "技能" in skill_data.get("content", "") and (
+                "未找到" in skill_data.get("content")
+                or "加载失败" in skill_data.get("content")
+            ):
                 return None
             return skill_data.get("content")
         except Exception as e:

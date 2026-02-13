@@ -13,10 +13,10 @@
 """
 
 import os
-import time
 import threading
+import time
 from pathlib import Path
-from typing import Dict, List, Optional, Callable
+from typing import Callable, Dict, List, Optional
 
 from loguru import logger
 
@@ -198,9 +198,7 @@ def get_config_hot_reloader(config_path: Optional[str] = None) -> ConfigHotReloa
     global _hot_reloader_instance
     if _hot_reloader_instance is None:
         if config_path is None:
-            config_path = os.environ.get(
-                "NANOBOT_CONFIG", "~/.nanobot/config.yaml"
-            )
+            config_path = os.environ.get("NANOBOT_CONFIG", "~/.nanobot/config.yaml")
         _hot_reloader_instance = ConfigHotReloader(config_path)
     return _hot_reloader_instance
 

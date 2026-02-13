@@ -17,11 +17,13 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from nanobot.agent.skill_loader import SkillLoader
-from nanobot.agent.subagent.agno_subagent import AgnoSubagent, AgnoSubagentConfig
+from nanobot.agent.subagent.agno_subagent import (AgnoSubagent,
+                                                  AgnoSubagentConfig)
 from nanobot.agent.subagent.models import SubagentTask
 from nanobot.agent.task import Task, TaskStatus
 from nanobot.agent.task_manager import TaskManager
-from nanobot.agent.tools.filesystem import ListDirTool, ReadFileTool, WriteFileTool
+from nanobot.agent.tools.filesystem import (ListDirTool, ReadFileTool,
+                                            WriteFileTool)
 from nanobot.agent.tools.registry import ToolRegistry
 from nanobot.agent.tools.shell import ExecTool
 from nanobot.agent.tools.web import WebFetchTool, WebSearchTool

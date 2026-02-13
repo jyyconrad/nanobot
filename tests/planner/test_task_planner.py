@@ -4,8 +4,13 @@ TaskPlanner 单元测试
 
 import pytest
 
-from nanobot.agent.planner.task_planner import TaskPlan, TaskPlanner, TaskPriority, TaskType
 from nanobot.agent.planner.models import TaskStep
+from nanobot.agent.planner.task_planner import (
+    TaskPlan,
+    TaskPlanner,
+    TaskPriority,
+    TaskType,
+)
 
 
 class TestTaskPlanner:
@@ -123,7 +128,9 @@ class TestTaskPlanner:
         planner = TaskPlanner()
 
         # 复杂任务
-        complex_input = "实现一个高性能的图像识别系统，包含数据预处理、特征提取、模型训练和评估"
+        complex_input = (
+            "实现一个高性能的图像识别系统，包含数据预处理、特征提取、模型训练和评估"
+        )
         assert await planner.is_complex_task(complex_input) is True
 
         # 简单任务
@@ -203,8 +210,8 @@ class TestTaskPlanner:
         plan = await planner.plan_task(user_input)
         assert isinstance(plan, TaskPlan)
         # 简单任务可能不需要澄清，但这里测试属性存在
-        assert hasattr(plan, 'clarification_needed')
-        assert hasattr(plan, 'clarification_questions')
+        assert hasattr(plan, "clarification_needed")
+        assert hasattr(plan, "clarification_questions")
         assert isinstance(plan.clarification_questions, list)
 
     @pytest.mark.asyncio

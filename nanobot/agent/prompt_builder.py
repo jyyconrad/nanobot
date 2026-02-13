@@ -44,7 +44,9 @@ class PromptBuilder:
         self.config = self._load_prompt_config(config_path)
         self.skills_cache: Dict[str, str] = {}
 
-    def _load_prompt_config(self, config_path: Optional[Union[str, Path]] = None) -> Dict[str, Any]:
+    def _load_prompt_config(
+        self, config_path: Optional[Union[str, Path]] = None
+    ) -> Dict[str, Any]:
         """
         加载提示词配置
 
@@ -139,9 +141,13 @@ class PromptBuilder:
         if custom_prompt:
             template = custom_prompt
         elif agent_type == "agno":
-            template = self.config.get("agno_subagent", {}).get("system_prompt_template", "")
+            template = self.config.get("agno_subagent", {}).get(
+                "system_prompt_template", ""
+            )
         else:
-            template = self.config.get("sub_agent", {}).get("system_prompt_template", "")
+            template = self.config.get("sub_agent", {}).get(
+                "system_prompt_template", ""
+            )
 
         # 格式化模板变量
         prompt = template.replace("{task_description}", task_description)
@@ -177,7 +183,9 @@ class PromptBuilder:
 
         # 添加时间和工作区信息（如果尚未包含）
         if "{workspace}" not in template and workspace:
-            prompt_parts.append(f"\n## 工作区\n你的工作目录：{Path(workspace).resolve()}")
+            prompt_parts.append(
+                f"\n## 工作区\n你的工作目录：{Path(workspace).resolve()}"
+            )
 
         return "\n".join(prompt_parts)
 
@@ -275,11 +283,17 @@ class PromptBuilder:
 
         tool_names = [tool.name for tool in tools.get_tools()]
 
-        if "read_file" in tool_names or "write_file" in tool_names or "list_dir" in tool_names:
+        if (
+            "read_file" in tool_names
+            or "write_file" in tool_names
+            or "list_dir" in tool_names
+        ):
             guidelines.append(
                 "1. **文件操作**：在进行文件读取或写入操作时，请确保指定正确的文件路径，最好使用相对路径。"
             )
-            guidelines.append("2. **目录操作**：使用 list_dir 查看目录内容时，注意检查返回结果是否包含预期文件。")
+            guidelines.append(
+                "2. **目录操作**：使用 list_dir 查看目录内容时，注意检查返回结果是否包含预期文件。"
+            )
 
         if "exec" in tool_names:
             guidelines.append(
@@ -290,8 +304,12 @@ class PromptBuilder:
             )
 
         if "web_search" in tool_names or "web_fetch" in tool_names:
-            guidelines.append("5. **网络搜索**：使用 web_search 查找信息时，确保搜索关键词准确。")
-            guidelines.append("6. **网页获取**：使用 web_fetch 时，注意检查是否成功获取到内容。")
+            guidelines.append(
+                "5. **网络搜索**：使用 web_search 查找信息时，确保搜索关键词准确。"
+            )
+            guidelines.append(
+                "6. **网页获取**：使用 web_fetch 时，注意检查是否成功获取到内容。"
+            )
 
         if not guidelines:
             guidelines.append("1. **工具使用**：请根据任务需要合理使用提供的工具。")
@@ -334,7 +352,9 @@ class PromptBuilder:
             "web_fetch": {"name": "web_fetch", "description": "获取网页内容"},
         }
 
-    def get_guidelines(self, available_tools: Optional[ToolRegistry] = None) -> List[str]:
+    def get_guidelines(
+        self, available_tools: Optional[ToolRegistry] = None
+    ) -> List[str]:
         """
         获取指导原则列表（根据工具可用性动态生成）
 
@@ -357,9 +377,7 @@ class PromptBuilder:
             )
 
         if "exec" in tool_names:
-            guidelines.append(
-                "执行命令时要谨慎，避免执行可能对系统造成损害的操作。"
-            )
+            guidelines.append("执行命令时要谨慎，避免执行可能对系统造成损害的操作。")
 
         if "web_search" in tool_names:
             guidelines.append(
@@ -367,9 +385,7 @@ class PromptBuilder:
             )
 
         if "web_fetch" in tool_names:
-            guidelines.append(
-                "获取网页内容时，注意检查返回结果是否包含所需信息。"
-            )
+            guidelines.append("获取网页内容时，注意检查返回结果是否包含所需信息。")
 
         return guidelines
 

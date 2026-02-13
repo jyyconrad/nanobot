@@ -9,8 +9,9 @@
 5. 决策指导提示词构建
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from nanobot.agent.prompt_builder import PromptBuilder, get_prompt_builder
 
@@ -61,9 +62,7 @@ class TestPromptBuilder:
         """测试 Agno 子智能体提示词构建"""
         builder = PromptBuilder()
         task = "测试任务"
-        prompt = builder.build_subagent_prompt(
-            task_description=task, agent_type="agno"
-        )
+        prompt = builder.build_subagent_prompt(task_description=task, agent_type="agno")
         assert isinstance(prompt, str)
         assert len(prompt.strip()) > 0
         assert task in prompt

@@ -24,7 +24,9 @@ class SubagentStatus(str, Enum):
 class SubagentTask(BaseModel):
     """Subagent 任务模型"""
 
-    task_id: str = Field(default_factory=lambda: str(uuid4()), description="任务唯一标识符")
+    task_id: str = Field(
+        default_factory=lambda: str(uuid4()), description="任务唯一标识符"
+    )
     description: str = Field(..., description="任务描述")
     config: Dict[str, Any] = Field(default_factory=dict, description="任务配置")
     agent_type: Optional[str] = Field(None, description="代理类型")
@@ -69,7 +71,9 @@ class SubagentConfig(BaseModel):
     retry_count: int = Field(3, description="重试次数")
     retry_delay: int = Field(10, description="重试延迟 (秒)")
     enable_streaming: bool = Field(False, description="是否启用流式输出")
-    custom_params: Dict[str, Any] = Field(default_factory=dict, description="自定义参数")
+    custom_params: Dict[str, Any] = Field(
+        default_factory=dict, description="自定义参数"
+    )
 
 
 class SubagentMetrics(BaseModel):
@@ -90,4 +94,6 @@ class SubagentPerformance(BaseModel):
     metrics: SubagentMetrics = Field(..., description="性能指标")
     success_rate: float = Field(0.0, description="成功率 (0-1)")
     avg_response_time: float = Field(0.0, description="平均响应时间 (秒)")
-    resource_usage: Dict[str, float] = Field(default_factory=dict, description="资源使用情况")
+    resource_usage: Dict[str, float] = Field(
+        default_factory=dict, description="资源使用情况"
+    )

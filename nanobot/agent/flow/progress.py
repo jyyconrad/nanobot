@@ -12,12 +12,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from loguru import logger
 
-from .models import (
-    FlowProgress,
-    FlowState,
-    FlowStep,
-    WizardStep,
-)
+from .models import FlowProgress, FlowState, FlowStep, WizardStep
 
 
 class ProgressFormatter:
@@ -80,7 +75,7 @@ class ProgressFormatter:
 
         for i, step in enumerate(steps, 1):
             # 确定状态图标
-            if hasattr(step, 'state'):
+            if hasattr(step, "state"):
                 # FlowStep
                 state = step.state
                 if state == FlowState.COMPLETED:
@@ -124,6 +119,7 @@ class ProgressFormatter:
         Returns:
             格式化后的时间字符串
         """
+
         def format_duration(seconds: float) -> str:
             if seconds < 60:
                 return f"{int(seconds)}秒"
@@ -172,7 +168,9 @@ class ProgressTracker:
         self._start_time = datetime.now()
         self._state = FlowState.INIT
 
-    def start(self, first_step_id: Optional[str] = None, first_step_name: Optional[str] = None):
+    def start(
+        self, first_step_id: Optional[str] = None, first_step_name: Optional[str] = None
+    ):
         """
         开始追踪
 
@@ -395,7 +393,9 @@ class WizardRunner:
         # 默认行为：等待用户输入
         return None
 
-    def _determine_next_step(self, current_step: WizardStep, result: Any) -> Optional[str]:
+    def _determine_next_step(
+        self, current_step: WizardStep, result: Any
+    ) -> Optional[str]:
         """
         确定下一步骤
 

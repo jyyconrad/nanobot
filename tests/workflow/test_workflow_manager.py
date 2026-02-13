@@ -272,7 +272,10 @@ class TestWorkflowManager:
         """Test getting tasks in a workflow."""
         steps = [
             WorkflowStep(
-                step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING
+                step_id="step1",
+                name="Step 1",
+                description="Step 1",
+                status=TaskState.PENDING,
             ),
             WorkflowStep(
                 step_id="step2",
@@ -301,19 +304,26 @@ class TestWorkflowManager:
     def test_handle_task_message(self):
         """Test handling task-related messages."""
         # Test task list message
-        response = self.manager.handle_task_message(MessageCategory.TASK_LIST, "列出任务")
+        response = self.manager.handle_task_message(
+            MessageCategory.TASK_LIST, "列出任务"
+        )
         assert "No active workflows" in response
 
         # Create a workflow and test again
         steps = [
             WorkflowStep(
-                step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING
+                step_id="step1",
+                name="Step 1",
+                description="Step 1",
+                status=TaskState.PENDING,
             ),
         ]
 
         workflow_id = self.manager.create_workflow("Test Workflow", steps)
 
-        response = self.manager.handle_task_message(MessageCategory.TASK_LIST, "列出任务")
+        response = self.manager.handle_task_message(
+            MessageCategory.TASK_LIST, "列出任务"
+        )
         assert "Test Workflow" in response
         assert workflow_id in response
 
@@ -325,7 +335,10 @@ class TestWorkflowManager:
         # Create a workflow in manager1
         steps = [
             WorkflowStep(
-                step_id="step1", name="Step 1", description="Step 1", status=TaskState.PENDING
+                step_id="step1",
+                name="Step 1",
+                description="Step 1",
+                status=TaskState.PENDING,
             ),
         ]
 

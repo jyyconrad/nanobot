@@ -35,7 +35,9 @@ class TestContextCompressor:
     async def test_compress_long_content(self, compressor):
         """测试压缩长内容"""
         long_content = "测试 " * 10000  # 增大内容长度
-        compressed, stats = await compressor.compress(long_content, max_tokens=2000)  # 降低限制
+        compressed, stats = await compressor.compress(
+            long_content, max_tokens=2000
+        )  # 降低限制
 
         assert len(compressed) < len(long_content)
         assert stats.compression_ratio < 1.0
@@ -70,8 +72,12 @@ class TestContextCompressor:
         # 创建一个非常长的消息列表
         messages = []
         for i in range(10):
-            messages.append({"role": "user", "content": f"这是一个非常长的测试消息{i}，" * 20})
-            messages.append({"role": "assistant", "content": f"这是一个非常长的回复消息{i}，" * 20})
+            messages.append(
+                {"role": "user", "content": f"这是一个非常长的测试消息{i}，" * 20}
+            )
+            messages.append(
+                {"role": "assistant", "content": f"这是一个非常长的回复消息{i}，" * 20}
+            )
 
         compressed_messages, stats = await compressor.compress_messages(messages)
 

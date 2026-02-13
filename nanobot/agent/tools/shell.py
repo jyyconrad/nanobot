@@ -48,7 +48,10 @@ class ExecTool(Tool):
         return {
             "type": "object",
             "properties": {
-                "command": {"type": "string", "description": "The shell command to execute"},
+                "command": {
+                    "type": "string",
+                    "description": "The shell command to execute",
+                },
                 "working_dir": {
                     "type": "string",
                     "description": "Optional working directory for the command",
@@ -57,7 +60,9 @@ class ExecTool(Tool):
             "required": ["command"],
         }
 
-    async def execute(self, command: str, working_dir: str | None = None, **kwargs: Any) -> str:
+    async def execute(
+        self, command: str, working_dir: str | None = None, **kwargs: Any
+    ) -> str:
         cwd = working_dir or self.working_dir or os.getcwd()
         guard_error = self._guard_command(command, cwd)
         if guard_error:
@@ -72,7 +77,9 @@ class ExecTool(Tool):
             )
 
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=self.timeout)
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(), timeout=self.timeout
+                )
             except asyncio.TimeoutError:
                 process.kill()
                 return f"Error: Command timed out after {self.timeout} seconds"
@@ -95,7 +102,10 @@ class ExecTool(Tool):
             # Truncate very long output
             max_len = 10000
             if len(result) > max_len:
-                result = result[:max_len] + f"\n... (truncated, {len(result) - max_len} more chars)"
+                result = (
+                    result[:max_len]
+                    + f"\n... (truncated, {len(result) - max_len} more chars)"
+                )
 
             return result
 
@@ -117,7 +127,9 @@ class ExecTool(Tool):
 
         if self.restrict_to_workspace:
             if "..\\" in cmd or "../" in cmd:
-                return "Error: Command blocked by safety guard (path traversal detected)"
+                return (
+                    "Error: Command blocked by safety guard (path traversal detected)"
+                )
 
             cwd_path = Path(cwd).resolve()
 

@@ -5,16 +5,16 @@
 集成LLM调用进行智能任务分解，支持多轮澄清和详细步骤生成。
 """
 
-from typing import Any, Dict, List, Optional, Union, ClassVar
 import json
 import re
+from typing import Any, ClassVar, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from nanobot.agent.planner.cancellation_detector import CancellationDetector
 from nanobot.agent.planner.complexity_analyzer import ComplexityAnalyzer
 from nanobot.agent.planner.correction_detector import CorrectionDetector
-from nanobot.agent.planner.models import TaskPlan, TaskPriority, TaskType, TaskStep
+from nanobot.agent.planner.models import TaskPlan, TaskPriority, TaskStep, TaskType
 from nanobot.agent.planner.task_detector import TaskDetector
 from nanobot.providers import LiteLLMProvider, LLMProvider
 
@@ -25,16 +25,19 @@ class TaskPlanner(BaseModel):
     complexity_analyzer: ComplexityAnalyzer = Field(default_factory=ComplexityAnalyzer)
     task_detector: TaskDetector = Field(default_factory=TaskDetector)
     correction_detector: CorrectionDetector = Field(default_factory=CorrectionDetector)
-    cancellation_detector: CancellationDetector = Field(default_factory=CancellationDetector)
+    cancellation_detector: CancellationDetector = Field(
+        default_factory=CancellationDetector
+    )
     llm_provider: LLMProvider = Field(default_factory=LiteLLMProvider)
 
-    class Config:
-        """配置类"""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
     # 任务分解的Prompt模板
-    TASK_DECOMPOSITION_PROMPT: ClassVar[str] = """你是一个专业的任务分解专家。请将用户的任务分解为详细的执行步骤。
+    TASK_DECOMPOSITION_PROMPT: ClassVar[
+        str
+    ] = """你是一个专业的任务分解专家。请将用户的任务分解为详细的执行步骤。
 
 任务描述：{user_input}
 
@@ -72,7 +75,9 @@ class TaskPlanner(BaseModel):
 }}"""
 
     # 需求澄清的Prompt模板
-    CLARIFICATION_PROMPT: ClassVar[str] = """你是一个专业的需求分析专家。请分析用户的任务描述，识别需要澄清的信息。
+    CLARIFICATION_PROMPT: ClassVar[
+        str
+    ] = """你是一个专业的需求分析专家。请分析用户的任务描述，识别需要澄清的信息。
 
 任务描述：{user_input}
 
@@ -112,11 +117,15 @@ class TaskPlanner(BaseModel):
                 if await self.cancellation_detector.is_cancellation(user_input):
                     return {
                         "action": "cancel",
-                        "reason": await self.cancellation_detector.get_reason(user_input),
+                        "reason": await self.cancellation_detector.get_reason(
+                            user_input
+                        ),
                     }
 
             # 检查是否是修正指令
-            correction = await self.correction_detector.detect_correction(user_input, context)
+            correction = await self.correction_detector.detect_correction(
+                user_input, context
+            )
             if correction:
                 return {"action": "correct", "correction": correction}
 
@@ -131,7 +140,9 @@ class TaskPlanner(BaseModel):
             task_type = await self.task_detector.detect_task_type(user_input)
 
             # 分析复杂度
-            complexity = await self.complexity_analyzer.analyze_complexity(user_input, task_type)
+            complexity = await self.complexity_analyzer.analyze_complexity(
+                user_input, task_type
+            )
 
             # 生成执行计划
             plan = await self._generate_plan(user_input, task_type, complexity, context)
@@ -161,8 +172,8 @@ class TaskPlanner(BaseModel):
             任务执行计划
         """
         # 检查是否需要澄清需求
-        clarification_needed, clarification_questions = await self._check_clarification_needed(
-            user_input, context
+        clarification_needed, clarification_questions = (
+            await self._check_clarification_needed(user_input, context)
         )
 
         if clarification_needed:
@@ -175,7 +186,7 @@ class TaskPlanner(BaseModel):
                 requires_approval=True,
                 clarification_needed=True,
                 clarification_questions=clarification_questions,
-                dependencies=[]
+                dependencies=[],
             )
 
         # 根据任务类型和复杂度生成执行步骤
@@ -202,7 +213,7 @@ class TaskPlanner(BaseModel):
             requires_approval=requires_approval,
             clarification_needed=False,
             clarification_questions=[],
-            dependencies=dependencies
+            dependencies=dependencies,
         )
 
     async def _check_clarification_needed(
@@ -221,21 +232,27 @@ class TaskPlanner(BaseModel):
         context_str = json.dumps(context, ensure_ascii=False) if context else "无"
 
         prompt = self.CLARIFICATION_PROMPT.format(
-            user_input=user_input,
-            context=context_str
+            user_input=user_input, context=context_str
         )
 
         try:
             messages = [
-                {"role": "system", "content": "你是一个专业的需求分析专家，擅长识别任务需求中的模糊点。"},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "你是一个专业的需求分析专家，擅长识别任务需求中的模糊点。",
+                },
+                {"role": "user", "content": prompt},
             ]
 
-            response = await self.llm_provider.chat(messages, temperature=0.2, max_tokens=1024)
+            response = await self.llm_provider.chat(
+                messages, temperature=0.2, max_tokens=1024
+            )
 
             if response.content:
                 data = self._parse_llm_response(response.content)
-                return data.get("clarification_needed", False), data.get("clarification_questions", [])
+                return data.get("clarification_needed", False), data.get(
+                    "clarification_questions", []
+                )
 
         except Exception as e:
             print(f"检查澄清需求失败: {str(e)}")
@@ -258,7 +275,9 @@ class TaskPlanner(BaseModel):
         dependencies = []
 
         # 简单的依赖检测逻辑
-        if any(keyword in user_input for keyword in ["数据库", "API", "接口", "外部服务"]):
+        if any(
+            keyword in user_input for keyword in ["数据库", "API", "接口", "外部服务"]
+        ):
             dependencies.append("需要访问外部API或数据库")
 
         if any(keyword in user_input for keyword in ["文件", "文档", "数据"]):
@@ -299,7 +318,10 @@ class TaskPlanner(BaseModel):
         return await self._decompose_task_with_llm(user_input, task_type, context)
 
     async def _decompose_task_with_llm(
-        self, user_input: str, task_type: TaskType, context: Optional[Dict[str, Any]] = None
+        self,
+        user_input: str,
+        task_type: TaskType,
+        context: Optional[Dict[str, Any]] = None,
     ) -> List[TaskStep]:
         """
         使用LLM进行任务分解
@@ -317,17 +339,21 @@ class TaskPlanner(BaseModel):
             context_info = f"上下文信息：{json.dumps(context, ensure_ascii=False)}"
 
         prompt = self.TASK_DECOMPOSITION_PROMPT.format(
-            user_input=user_input,
-            context_info=context_info
+            user_input=user_input, context_info=context_info
         )
 
         try:
             messages = [
-                {"role": "system", "content": "你是一个专业的任务分解专家，擅长将复杂任务分解为详细的执行步骤。"},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "你是一个专业的任务分解专家，擅长将复杂任务分解为详细的执行步骤。",
+                },
+                {"role": "user", "content": prompt},
             ]
 
-            response = await self.llm_provider.chat(messages, temperature=0.3, max_tokens=4096)
+            response = await self.llm_provider.chat(
+                messages, temperature=0.3, max_tokens=4096
+            )
 
             if response.content:
                 # 解析LLM返回的JSON结果
@@ -351,7 +377,7 @@ class TaskPlanner(BaseModel):
             解析后的JSON数据
         """
         # 尝试从响应中提取JSON部分
-        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        json_match = re.search(r"\{.*\}", content, re.DOTALL)
         if json_match:
             try:
                 return json.loads(json_match.group())
@@ -359,7 +385,12 @@ class TaskPlanner(BaseModel):
                 print(f"JSON解析失败: {str(e)}")
 
         # 如果没有JSON格式，返回默认结构
-        return {"steps": [], "dependencies": [], "clarification_needed": False, "clarification_questions": []}
+        return {
+            "steps": [],
+            "dependencies": [],
+            "clarification_needed": False,
+            "clarification_questions": [],
+        }
 
     def _convert_to_task_steps(self, data: Dict[str, Any]) -> List[TaskStep]:
         """
@@ -378,11 +409,13 @@ class TaskPlanner(BaseModel):
                     id=f"step{i+1}",
                     description=step_data.get("description", f"步骤{i+1}"),
                     expected_output=step_data.get("expected_output", "完成该步骤"),
-                    validation_criteria=step_data.get("validation_criteria", "步骤执行成功"),
+                    validation_criteria=step_data.get(
+                        "validation_criteria", "步骤执行成功"
+                    ),
                     dependencies=step_data.get("dependencies", []),
                     parallel=step_data.get("parallel", False),
                     condition=step_data.get("condition"),
-                    priority=TaskPriority(step_data.get("priority", "medium"))
+                    priority=TaskPriority(step_data.get("priority", "medium")),
                 )
                 steps.append(step)
             except Exception as e:
@@ -396,7 +429,7 @@ class TaskPlanner(BaseModel):
                     expected_output="明确任务目标和范围",
                     validation_criteria="任务需求文档已创建",
                     dependencies=[],
-                    parallel=False
+                    parallel=False,
                 ),
                 TaskStep(
                     id="step2",
@@ -404,7 +437,7 @@ class TaskPlanner(BaseModel):
                     expected_output="任务执行完成",
                     validation_criteria="任务结果符合预期",
                     dependencies=["step1"],
-                    parallel=False
+                    parallel=False,
                 ),
                 TaskStep(
                     id="step3",
@@ -412,8 +445,8 @@ class TaskPlanner(BaseModel):
                     expected_output="任务结果已验证",
                     validation_criteria="结果通过质量检查",
                     dependencies=["step2"],
-                    parallel=False
-                )
+                    parallel=False,
+                ),
             ]
 
         return steps
@@ -430,51 +463,240 @@ class TaskPlanner(BaseModel):
         """
         if task_type == TaskType.CODE_GENERATION:
             return [
-                TaskStep(id="step1", description="分析代码需求", expected_output="明确功能需求和接口设计", validation_criteria="需求文档已创建", dependencies=[], parallel=False),
-                TaskStep(id="step2", description="设计代码结构", expected_output="确定代码架构和模块划分", validation_criteria="架构设计文档已完成", dependencies=["step1"], parallel=False),
-                TaskStep(id="step3", description="编写代码实现", expected_output="代码实现已完成", validation_criteria="代码通过语法检查", dependencies=["step2"], parallel=False),
-                TaskStep(id="step4", description="测试代码功能", expected_output="代码功能测试通过", validation_criteria="所有测试用例通过", dependencies=["step3"], parallel=False),
-                TaskStep(id="step5", description="优化代码性能", expected_output="代码性能已优化", validation_criteria="性能指标达标", dependencies=["step4"], parallel=False)
+                TaskStep(
+                    id="step1",
+                    description="分析代码需求",
+                    expected_output="明确功能需求和接口设计",
+                    validation_criteria="需求文档已创建",
+                    dependencies=[],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step2",
+                    description="设计代码结构",
+                    expected_output="确定代码架构和模块划分",
+                    validation_criteria="架构设计文档已完成",
+                    dependencies=["step1"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step3",
+                    description="编写代码实现",
+                    expected_output="代码实现已完成",
+                    validation_criteria="代码通过语法检查",
+                    dependencies=["step2"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step4",
+                    description="测试代码功能",
+                    expected_output="代码功能测试通过",
+                    validation_criteria="所有测试用例通过",
+                    dependencies=["step3"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step5",
+                    description="优化代码性能",
+                    expected_output="代码性能已优化",
+                    validation_criteria="性能指标达标",
+                    dependencies=["step4"],
+                    parallel=False,
+                ),
             ]
         elif task_type == TaskType.TEXT_SUMMARIZATION:
             return [
-                TaskStep(id="step1", description="分析文本内容", expected_output="理解文本主题和结构", validation_criteria="文本内容已分析", dependencies=[], parallel=False),
-                TaskStep(id="step2", description="提取关键信息", expected_output="提取文本中的关键要点", validation_criteria="关键信息已提取", dependencies=["step1"], parallel=False),
-                TaskStep(id="step3", description="生成摘要", expected_output="文本摘要已生成", validation_criteria="摘要符合要求", dependencies=["step2"], parallel=False),
-                TaskStep(id="step4", description="优化摘要质量", expected_output="摘要质量已优化", validation_criteria="摘要清晰准确", dependencies=["step3"], parallel=False)
+                TaskStep(
+                    id="step1",
+                    description="分析文本内容",
+                    expected_output="理解文本主题和结构",
+                    validation_criteria="文本内容已分析",
+                    dependencies=[],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step2",
+                    description="提取关键信息",
+                    expected_output="提取文本中的关键要点",
+                    validation_criteria="关键信息已提取",
+                    dependencies=["step1"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step3",
+                    description="生成摘要",
+                    expected_output="文本摘要已生成",
+                    validation_criteria="摘要符合要求",
+                    dependencies=["step2"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step4",
+                    description="优化摘要质量",
+                    expected_output="摘要质量已优化",
+                    validation_criteria="摘要清晰准确",
+                    dependencies=["step3"],
+                    parallel=False,
+                ),
             ]
         elif task_type == TaskType.DATA_ANALYSIS:
             return [
-                TaskStep(id="step1", description="分析数据需求", expected_output="明确数据分析目标", validation_criteria="需求文档已创建", dependencies=[], parallel=False),
-                TaskStep(id="step2", description="收集数据", expected_output="数据收集完成", validation_criteria="数据源已获取", dependencies=["step1"], parallel=False),
-                TaskStep(id="step3", description="清理数据", expected_output="数据清理完成", validation_criteria="数据质量达标", dependencies=["step2"], parallel=False),
-                TaskStep(id="step4", description="分析数据", expected_output="数据分析完成", validation_criteria="分析结果已生成", dependencies=["step3"], parallel=False),
-                TaskStep(id="step5", description="可视化结果", expected_output="结果可视化完成", validation_criteria="图表清晰易读", dependencies=["step4"], parallel=False)
+                TaskStep(
+                    id="step1",
+                    description="分析数据需求",
+                    expected_output="明确数据分析目标",
+                    validation_criteria="需求文档已创建",
+                    dependencies=[],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step2",
+                    description="收集数据",
+                    expected_output="数据收集完成",
+                    validation_criteria="数据源已获取",
+                    dependencies=["step1"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step3",
+                    description="清理数据",
+                    expected_output="数据清理完成",
+                    validation_criteria="数据质量达标",
+                    dependencies=["step2"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step4",
+                    description="分析数据",
+                    expected_output="数据分析完成",
+                    validation_criteria="分析结果已生成",
+                    dependencies=["step3"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step5",
+                    description="可视化结果",
+                    expected_output="结果可视化完成",
+                    validation_criteria="图表清晰易读",
+                    dependencies=["step4"],
+                    parallel=False,
+                ),
             ]
         elif task_type == TaskType.WEB_SEARCH:
             return [
-                TaskStep(id="step1", description="分析搜索需求", expected_output="明确搜索关键词和范围", validation_criteria="搜索条件已确定", dependencies=[], parallel=False),
-                TaskStep(id="step2", description="执行搜索", expected_output="搜索结果已获取", validation_criteria="搜索结果已返回", dependencies=["step1"], parallel=False),
-                TaskStep(id="step3", description="处理搜索结果", expected_output="结果处理完成", validation_criteria="结果已筛选", dependencies=["step2"], parallel=False),
-                TaskStep(id="step4", description="总结结果", expected_output="搜索结果已总结", validation_criteria="结果符合需求", dependencies=["step3"], parallel=False)
+                TaskStep(
+                    id="step1",
+                    description="分析搜索需求",
+                    expected_output="明确搜索关键词和范围",
+                    validation_criteria="搜索条件已确定",
+                    dependencies=[],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step2",
+                    description="执行搜索",
+                    expected_output="搜索结果已获取",
+                    validation_criteria="搜索结果已返回",
+                    dependencies=["step1"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step3",
+                    description="处理搜索结果",
+                    expected_output="结果处理完成",
+                    validation_criteria="结果已筛选",
+                    dependencies=["step2"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step4",
+                    description="总结结果",
+                    expected_output="搜索结果已总结",
+                    validation_criteria="结果符合需求",
+                    dependencies=["step3"],
+                    parallel=False,
+                ),
             ]
         elif task_type == TaskType.FILE_OPERATION:
             return [
-                TaskStep(id="step1", description="分析文件操作需求", expected_output="明确文件操作类型", validation_criteria="操作类型已确定", dependencies=[], parallel=False),
-                TaskStep(id="step2", description="执行文件操作", expected_output="文件操作完成", validation_criteria="操作执行成功", dependencies=["step1"], parallel=False),
-                TaskStep(id="step3", description="验证操作结果", expected_output="操作结果已验证", validation_criteria="结果符合预期", dependencies=["step2"], parallel=False)
+                TaskStep(
+                    id="step1",
+                    description="分析文件操作需求",
+                    expected_output="明确文件操作类型",
+                    validation_criteria="操作类型已确定",
+                    dependencies=[],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step2",
+                    description="执行文件操作",
+                    expected_output="文件操作完成",
+                    validation_criteria="操作执行成功",
+                    dependencies=["step1"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step3",
+                    description="验证操作结果",
+                    expected_output="操作结果已验证",
+                    validation_criteria="结果符合预期",
+                    dependencies=["step2"],
+                    parallel=False,
+                ),
             ]
         elif task_type == TaskType.SYSTEM_COMMAND:
             return [
-                TaskStep(id="step1", description="分析系统命令需求", expected_output="明确命令参数和选项", validation_criteria="命令已确定", dependencies=[], parallel=False),
-                TaskStep(id="step2", description="执行系统命令", expected_output="命令执行完成", validation_criteria="命令执行成功", dependencies=["step1"], parallel=False),
-                TaskStep(id="step3", description="检查命令结果", expected_output="命令结果已检查", validation_criteria="结果符合预期", dependencies=["step2"], parallel=False)
+                TaskStep(
+                    id="step1",
+                    description="分析系统命令需求",
+                    expected_output="明确命令参数和选项",
+                    validation_criteria="命令已确定",
+                    dependencies=[],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step2",
+                    description="执行系统命令",
+                    expected_output="命令执行完成",
+                    validation_criteria="命令执行成功",
+                    dependencies=["step1"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step3",
+                    description="检查命令结果",
+                    expected_output="命令结果已检查",
+                    validation_criteria="结果符合预期",
+                    dependencies=["step2"],
+                    parallel=False,
+                ),
             ]
         else:
             return [
-                TaskStep(id="step1", description="分析任务需求", expected_output="明确任务目标", validation_criteria="需求已理解", dependencies=[], parallel=False),
-                TaskStep(id="step2", description="执行任务", expected_output="任务执行完成", validation_criteria="任务已完成", dependencies=["step1"], parallel=False),
-                TaskStep(id="step3", description="检查结果", expected_output="结果已检查", validation_criteria="结果符合要求", dependencies=["step2"], parallel=False)
+                TaskStep(
+                    id="step1",
+                    description="分析任务需求",
+                    expected_output="明确任务目标",
+                    validation_criteria="需求已理解",
+                    dependencies=[],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step2",
+                    description="执行任务",
+                    expected_output="任务执行完成",
+                    validation_criteria="任务已完成",
+                    dependencies=["step1"],
+                    parallel=False,
+                ),
+                TaskStep(
+                    id="step3",
+                    description="检查结果",
+                    expected_output="结果已检查",
+                    validation_criteria="结果符合要求",
+                    dependencies=["step2"],
+                    parallel=False,
+                ),
             ]
 
     def _estimate_time(self, complexity: float, step_count: int) -> int:
@@ -504,7 +726,9 @@ class TaskPlanner(BaseModel):
             step_factor = 1 + step_count * 0.2
             return int(base_time * complexity_factor * step_factor)
 
-    def _determine_priority(self, complexity: float, task_type: TaskType) -> TaskPriority:
+    def _determine_priority(
+        self, complexity: float, task_type: TaskType
+    ) -> TaskPriority:
         """
         确定任务优先级
 
@@ -517,7 +741,10 @@ class TaskPlanner(BaseModel):
         """
         if task_type == TaskType.SYSTEM_COMMAND or complexity > 0.8:
             return TaskPriority.URGENT
-        elif task_type in [TaskType.CODE_GENERATION, TaskType.DATA_ANALYSIS] or complexity > 0.6:
+        elif (
+            task_type in [TaskType.CODE_GENERATION, TaskType.DATA_ANALYSIS]
+            or complexity > 0.6
+        ):
             return TaskPriority.HIGH
         elif complexity > 0.4:
             return TaskPriority.MEDIUM
@@ -554,7 +781,12 @@ class TaskPlanner(BaseModel):
         independent_steps = [step for step in steps if not step.dependencies]
 
         # 2. 按优先级排序
-        priority_order = [TaskPriority.URGENT, TaskPriority.HIGH, TaskPriority.MEDIUM, TaskPriority.LOW]
+        priority_order = [
+            TaskPriority.URGENT,
+            TaskPriority.HIGH,
+            TaskPriority.MEDIUM,
+            TaskPriority.LOW,
+        ]
 
         # 3. 构建依赖图
         dependency_graph = self._build_dependency_graph(steps)
@@ -638,7 +870,9 @@ class TaskPlanner(BaseModel):
 
         return groups
 
-    def _generate_schedule_from_groups(self, parallel_groups: List[List[str]]) -> List[TaskStep]:
+    def _generate_schedule_from_groups(
+        self, parallel_groups: List[List[str]]
+    ) -> List[TaskStep]:
         """
         从并行组生成调度计划
 
@@ -674,7 +908,9 @@ class TaskPlanner(BaseModel):
             是否为复杂任务
         """
         task_type = await self.task_detector.detect_task_type(user_input)
-        complexity = await self.complexity_analyzer.analyze_complexity(user_input, task_type)
+        complexity = await self.complexity_analyzer.analyze_complexity(
+            user_input, task_type
+        )
         return complexity > 0.6
 
     async def get_task_type(self, user_input: str) -> TaskType:

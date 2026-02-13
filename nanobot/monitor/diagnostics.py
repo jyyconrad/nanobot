@@ -13,17 +13,17 @@
 """
 
 import os
-import sys
-import psutil
 import platform
+import sys
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
+import psutil
 from loguru import logger
 
-from nanobot.monitor.structured_logger import get_structured_logger
-from nanobot.monitor.performance_monitor import get_performance_monitor
 from nanobot.monitor.health_checker import get_health_checker
+from nanobot.monitor.performance_monitor import get_performance_monitor
+from nanobot.monitor.structured_logger import get_structured_logger
 
 
 class SystemDiagnostic:
@@ -94,7 +94,9 @@ class SystemDiagnostic:
             "memory_percent": process.memory_percent(),
             "threads": process.num_threads(),
             "created": datetime.fromtimestamp(process.create_time()).isoformat(),
-            "uptime": (datetime.now() - datetime.fromtimestamp(process.create_time())).total_seconds(),
+            "uptime": (
+                datetime.now() - datetime.fromtimestamp(process.create_time())
+            ).total_seconds(),
         }
 
         return info
@@ -110,11 +112,13 @@ class SystemDiagnostic:
         threads = []
 
         for thread in process.threads():
-            threads.append({
-                "id": thread.id,
-                "user_time": thread.user_time,
-                "system_time": thread.system_time,
-            })
+            threads.append(
+                {
+                    "id": thread.id,
+                    "user_time": thread.user_time,
+                    "system_time": thread.system_time,
+                }
+            )
 
         return threads
 
@@ -182,12 +186,14 @@ class SystemDiagnostic:
                 "stats": psutil.net_if_stats()[name],
             }
             for addr in addrs:
-                interface["addresses"].append({
-                    "family": addr.family.name,
-                    "address": addr.address,
-                    "netmask": addr.netmask,
-                    "broadcast": addr.broadcast,
-                })
+                interface["addresses"].append(
+                    {
+                        "family": addr.family.name,
+                        "address": addr.address,
+                        "netmask": addr.netmask,
+                        "broadcast": addr.broadcast,
+                    }
+                )
             interfaces[name] = interface
 
         return {
@@ -205,15 +211,17 @@ class SystemDiagnostic:
         connections = []
         try:
             for conn in psutil.net_connections(kind="inet"):
-                connections.append({
-                    "fd": conn.fd,
-                    "family": conn.family.name,
-                    "type": conn.type.name,
-                    "laddr": conn.laddr,
-                    "raddr": conn.raddr,
-                    "status": conn.status,
-                    "pid": conn.pid,
-                })
+                connections.append(
+                    {
+                        "fd": conn.fd,
+                        "family": conn.family.name,
+                        "type": conn.type.name,
+                        "laddr": conn.laddr,
+                        "raddr": conn.raddr,
+                        "status": conn.status,
+                        "pid": conn.pid,
+                    }
+                )
         except Exception as e:
             logger.debug(f"Failed to get network connections: {e}")
 
@@ -231,12 +239,14 @@ class SystemDiagnostic:
 
         try:
             for file in process.open_files():
-                files.append({
-                    "path": file.path,
-                    "fd": file.fd,
-                    "position": file.position,
-                    "mode": file.mode,
-                })
+                files.append(
+                    {
+                        "path": file.path,
+                        "fd": file.fd,
+                        "position": file.position,
+                        "mode": file.mode,
+                    }
+                )
         except Exception as e:
             logger.debug(f"Failed to get file handles: {e}")
 
@@ -334,11 +344,13 @@ class SystemDiagnostic:
         # 检查文件句柄数量
         file_count = len(self.get_file_handles())
         if file_count > 100:
-            leaks.append({
-                "type": "file_handles",
-                "message": f"Too many open file handles: {file_count}",
-                "count": file_count,
-            })
+            leaks.append(
+                {
+                    "type": "file_handles",
+                    "message": f"Too many open file handles: {file_count}",
+                    "count": file_count,
+                }
+            )
 
         return leaks
 
@@ -356,11 +368,13 @@ class SystemDiagnostic:
         # 注意：这是一个简单的死锁检测方法
         # 在生产环境中，可能需要使用更复杂的方法
         if len(threads) > 50:
-            deadlocks.append({
-                "type": "thread_count",
-                "message": f"High thread count: {len(threads)}",
-                "count": len(threads),
-            })
+            deadlocks.append(
+                {
+                    "type": "thread_count",
+                    "message": f"High thread count: {len(threads)}",
+                    "count": len(threads),
+                }
+            )
 
         return deadlocks
 

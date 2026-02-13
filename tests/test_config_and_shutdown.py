@@ -9,38 +9,39 @@ import os
 import sys
 import tempfile
 import time
+
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from nanobot.config.hot_reload import (
+    add_config_callback,
     get_config_hot_reloader,
+    is_config_watcher_running,
+    reload_config,
     start_config_watcher,
     stop_config_watcher,
-    reload_config,
-    add_config_callback,
-    is_config_watcher_running,
-)
-from nanobot.utils.graceful_shutdown import (
-    get_shutdown_manager,
-    request_shutdown,
-    is_shutdown_requested,
-    wait_for_shutdown,
-    shutdown,
-    add_shutdown_hook,
-    get_shutdown_status,
 )
 from nanobot.utils.cache import (
-    get_memory_cache,
-    get_file_cache,
-    MemoryCache,
     FileCache,
-    cache_get,
-    cache_set,
+    MemoryCache,
+    cache_clear,
     cache_delete,
     cache_exists,
-    cache_clear,
+    cache_get,
+    cache_set,
     cache_size,
+    get_file_cache,
+    get_memory_cache,
+)
+from nanobot.utils.graceful_shutdown import (
+    add_shutdown_hook,
+    get_shutdown_manager,
+    get_shutdown_status,
+    is_shutdown_requested,
+    request_shutdown,
+    shutdown,
+    wait_for_shutdown,
 )
 
 
@@ -295,11 +296,11 @@ class TestIntegration:
     def test_initialization(self):
         """测试所有组件是否能正确初始化"""
         # 测试所有单例是否能正确初始化
-        from nanobot.monitor.structured_logger import get_structured_logger
-        from nanobot.monitor.performance_monitor import get_performance_monitor
-        from nanobot.monitor.health_checker import get_health_checker
         from nanobot.monitor.alert_manager import get_alert_manager
         from nanobot.monitor.diagnostics import get_system_diagnostic
+        from nanobot.monitor.health_checker import get_health_checker
+        from nanobot.monitor.performance_monitor import get_performance_monitor
+        from nanobot.monitor.structured_logger import get_structured_logger
 
         logger = get_structured_logger()
         assert logger is not None

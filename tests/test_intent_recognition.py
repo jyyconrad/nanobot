@@ -4,26 +4,25 @@
 测试三层识别器和综合识别器的功能。
 """
 
-import pytest
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
+
+import pytest
 
 from nanobot.agent.intent import (
-    RuleBasedRecognizer,
-    MatchType,
     CodeBasedRecognizer,
-    LLMRecognizer,
-    LLMProvider,
     HybridRecognizer,
+    LLMProvider,
+    LLMRecognizer,
+    MatchType,
+    MockLLMClient,
     RecognizerType,
-    MockLLMClient
+    RuleBasedRecognizer,
 )
-
 
 # 配置日志
 logging.basicConfig(
-    level=logging.WARNING,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.WARNING, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 
@@ -39,31 +38,19 @@ class TestRuleBasedRecognizer:
     def test_add_keyword_rule(self):
         """测试添加关键词规则"""
         recognizer = RuleBasedRecognizer()
-        recognizer.add_keyword_rule(
-            "greeting",
-            "greeting",
-            ["你好", "hello"]
-        )
+        recognizer.add_keyword_rule("greeting", "greeting", ["你好", "hello"])
         assert recognizer.rule_count == 1
 
     def test_add_regex_rule(self):
         """测试添加正则表达式规则"""
         recognizer = RuleBasedRecognizer()
-        recognizer.add_regex_rule(
-            "phone",
-            "contact.phone",
-            r"\d{3}-\d{8}|\d{4}-\d{7}"
-        )
+        recognizer.add_regex_rule("phone", "contact.phone", r"\d{3}-\d{8}|\d{4}-\d{7}")
         assert recognizer.rule_count == 1
 
     def test_recognize_keyword(self):
         """测试关键词识别"""
         recognizer = RuleBasedRecognizer()
-        recognizer.add_keyword_rule(
-            "greeting",
-            "greeting",
-            ["你好", "hello"]
-        )
+        recognizer.add_keyword_rule("greeting", "greeting", ["你好", "hello"])
         result = recognizer.recognize("你好，有什么可以帮您？")
         assert result is not None
         assert result.intent == "greeting"
@@ -72,11 +59,7 @@ class TestRuleBasedRecognizer:
     def test_recognize_regex(self):
         """测试正则表达式识别"""
         recognizer = RuleBasedRecognizer()
-        recognizer.add_regex_rule(
-            "phone",
-            "contact.phone",
-            r"\d{3}-\d{8}|\d{4}-\d{7}"
-        )
+        recognizer.add_regex_rule("phone", "contact.phone", r"\d{3}-\d{8}|\d{4}-\d{7}")
         result = recognizer.recognize("我的电话是：010-12345678")
         assert result is not None
         assert result.intent == "contact.phone"
@@ -85,18 +68,8 @@ class TestRuleBasedRecognizer:
     def test_priority(self):
         """测试优先级规则"""
         recognizer = RuleBasedRecognizer()
-        recognizer.add_keyword_rule(
-            "general",
-            "general.query",
-            ["查询"],
-            priority=1
-        )
-        recognizer.add_keyword_rule(
-            "weather",
-            "weather.query",
-            ["天气"],
-            priority=10
-        )
+        recognizer.add_keyword_rule("general", "general.query", ["查询"], priority=1)
+        recognizer.add_keyword_rule("weather", "weather.query", ["天气"], priority=10)
         result = recognizer.recognize("今天的天气怎么样？")
         assert result is not None
         assert result.intent == "weather.query"
@@ -134,11 +107,7 @@ class TestCodeBasedRecognizer:
         def is_weather(text, context):
             return "天气" in text.lower()
 
-        recognizer.add_rule(
-            "weather",
-            "weather.query",
-            is_weather
-        )
+        recognizer.add_rule("weather", "weather.query", is_weather)
 
         assert recognizer.rule_count == 1
 
@@ -149,11 +118,7 @@ class TestCodeBasedRecognizer:
         def is_weather(text, context):
             return "天气" in text.lower()
 
-        recognizer.add_rule(
-            "weather",
-            "weather.query",
-            is_weather
-        )
+        recognizer.add_rule("weather", "weather.query", is_weather)
 
         result = recognizer.recognize("今天的天气怎么样？")
         assert result is not None
@@ -173,23 +138,23 @@ class TestCodeBasedRecognizer:
             "weather_short",
             "weather.query.short",
             [contains_weather, short_text],
-            operator=all
+            operator=all,
         )
 
         result1 = recognizer.recognize("今天的天气怎么样？")
         assert result1 is not None
         assert result1.intent == "weather.query.short"
 
-        result2 = recognizer.recognize("今天的天气非常好，阳光明媚，适合户外活动！" * 10)
+        result2 = recognizer.recognize(
+            "今天的天气非常好，阳光明媚，适合户外活动！" * 10
+        )
         assert result2 is None
 
     def test_keyword_condition_rule(self):
         """测试关键词条件规则"""
         recognizer = CodeBasedRecognizer()
         recognizer.add_keyword_condition_rule(
-            "weather",
-            "weather.query",
-            ["天气", "温度"]
+            "weather", "weather.query", ["天气", "温度"]
         )
         assert recognizer.rule_count == 1
 
@@ -205,10 +170,7 @@ class TestCodeBasedRecognizer:
         """测试文本长度规则"""
         recognizer = CodeBasedRecognizer()
         recognizer.add_length_rule(
-            "short_text",
-            "short.text",
-            min_length=5,
-            max_length=10
+            "short_text", "short.text", min_length=5, max_length=10
         )
         assert recognizer.rule_count == 1
 
@@ -225,12 +187,7 @@ class TestCodeBasedRecognizer:
     def test_context_rule(self):
         """测试上下文规则"""
         recognizer = CodeBasedRecognizer()
-        recognizer.add_context_rule(
-            "user_vip",
-            "vip.service",
-            "user_type",
-            "vip"
-        )
+        recognizer.add_context_rule("user_vip", "vip.service", "user_type", "vip")
         assert recognizer.rule_count == 1
 
         result1 = recognizer.recognize("我需要帮助", context={"user_type": "vip"})
@@ -276,11 +233,9 @@ class TestLLMRecognizer:
         """测试批量识别"""
         recognizer = LLMRecognizer()
         recognizer.set_client(MockLLMClient())
-        results = recognizer.recognize_batch([
-            "今天的天气怎么样？",
-            "我想预订机票",
-            "你好"
-        ])
+        results = recognizer.recognize_batch(
+            ["今天的天气怎么样？", "我想预订机票", "你好"]
+        )
         assert len(results) == 3
         assert all(result is not None for result in results)
 
@@ -311,9 +266,7 @@ class TestHybridRecognizer:
 
         # 添加规则识别
         recognizer.rule_recognizer.add_keyword_rule(
-            "weather",
-            "weather.query",
-            ["天气"]
+            "weather", "weather.query", ["天气"]
         )
 
         # 添加代码识别
@@ -321,9 +274,7 @@ class TestHybridRecognizer:
             return "天气" in text.lower()
 
         recognizer.code_recognizer.add_rule(
-            "weather_code",
-            "weather.query.code",
-            is_weather
+            "weather_code", "weather.query.code", is_weather
         )
 
         result = recognizer.recognize("今天的天气怎么样？")
@@ -350,10 +301,7 @@ class TestHybridRecognizer:
 
         # 添加规则识别（高优先级）
         recognizer.rule_recognizer.add_keyword_rule(
-            "weather",
-            "weather.query",
-            ["天气"],
-            priority=10
+            "weather", "weather.query", ["天气"], priority=10
         )
 
         # 添加代码识别（低优先级）
@@ -361,10 +309,7 @@ class TestHybridRecognizer:
             return "天气" in text.lower()
 
         recognizer.code_recognizer.add_rule(
-            "weather_code",
-            "weather.query.code",
-            is_weather,
-            priority=5
+            "weather_code", "weather.query.code", is_weather, priority=5
         )
 
         result = recognizer.recognize("今天的天气怎么样？")
@@ -380,9 +325,7 @@ class TestHybridRecognizer:
 
         # 添加规则识别
         recognizer.rule_recognizer.add_keyword_rule(
-            "weather",
-            "weather.query",
-            ["天气"]
+            "weather", "weather.query", ["天气"]
         )
 
         # 添加代码识别
@@ -390,9 +333,7 @@ class TestHybridRecognizer:
             return "天气" in text.lower()
 
         recognizer.code_recognizer.add_rule(
-            "weather_code",
-            "weather.query.code",
-            is_weather
+            "weather_code", "weather.query.code", is_weather
         )
 
         results = recognizer.get_all_results("今天的天气怎么样？")
@@ -413,22 +354,13 @@ class TestIntegration:
 
         # 添加规则识别
         recognizer.rule_recognizer.add_keyword_rule(
-            "greeting",
-            "greeting",
-            ["你好", "hello"],
-            priority=10
+            "greeting", "greeting", ["你好", "hello"], priority=10
         )
         recognizer.rule_recognizer.add_keyword_rule(
-            "weather",
-            "weather.query",
-            ["天气", "温度"],
-            priority=8
+            "weather", "weather.query", ["天气", "温度"], priority=8
         )
         recognizer.rule_recognizer.add_regex_rule(
-            "phone",
-            "contact.phone",
-            r"\d{3}-\d{8}|\d{4}-\d{7}",
-            priority=5
+            "phone", "contact.phone", r"\d{3}-\d{8}|\d{4}-\d{7}", priority=5
         )
 
         # 添加代码识别
@@ -436,11 +368,7 @@ class TestIntegration:
             return "机票" in text.lower() or "航班" in text.lower()
 
         recognizer.code_recognizer.add_rule(
-            "flight",
-            "flight.query",
-            is_flight_query,
-            confidence=0.9,
-            priority=7
+            "flight", "flight.query", is_flight_query, confidence=0.9, priority=7
         )
 
         def is_complaint(text, context):
@@ -448,24 +376,16 @@ class TestIntegration:
             return any(word in text.lower() for word in words)
 
         recognizer.code_recognizer.add_rule(
-            "complaint",
-            "complaint",
-            is_complaint,
-            confidence=0.95,
-            priority=9
+            "complaint", "complaint", is_complaint, confidence=0.95, priority=9
         )
 
         # 添加 LLM 示例
-        recognizer.llm_recognizer.add_samples([
-            {
-                "text": "我想预订一张从北京到上海的机票",
-                "intent": "flight.query"
-            },
-            {
-                "text": "你们的服务太差了",
-                "intent": "complaint"
-            }
-        ])
+        recognizer.llm_recognizer.add_samples(
+            [
+                {"text": "我想预订一张从北京到上海的机票", "intent": "flight.query"},
+                {"text": "你们的服务太差了", "intent": "complaint"},
+            ]
+        )
 
         # 测试 1: 问候识别
         result1 = recognizer.recognize("你好，有什么可以帮您？")

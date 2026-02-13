@@ -121,13 +121,17 @@ class SkillDecisionHandler:
             if self.tool_registry.has("get_available_skills"):
                 result = await self.tool_registry.execute("get_available_skills", {})
                 config_info["available_skills"] = self._parse_skills_list(result)
-                logger.debug(f"SkillDecisionHandler: 可用 skills: {config_info['available_skills']}")
+                logger.debug(
+                    f"SkillDecisionHandler: 可用 skills: {config_info['available_skills']}"
+                )
 
             # 获取可用的 agents
             if self.tool_registry.has("get_available_agents"):
                 result = await self.tool_registry.execute("get_available_agents", {})
                 config_info["available_agents"] = self._parse_agents_list(result)
-                logger.debug(f"SkillDecisionHandler: 可用 agents: {config_info['available_agents']}")
+                logger.debug(
+                    f"SkillDecisionHandler: 可用 agents: {config_info['available_agents']}"
+                )
 
             # 获取技能映射
             config_info["skill_mapping"] = self.skill_loader.get_task_type_mapping()
@@ -157,7 +161,9 @@ class SkillDecisionHandler:
         # 使用 SkillLoader 加载技能
         skills = await self.skill_loader.load_skills_for_task(task_type)
 
-        logger.info(f"SkillDecisionHandler: 为任务选择了 {len(skills)} 个技能: {skills}")
+        logger.info(
+            f"SkillDecisionHandler: 为任务选择了 {len(skills)} 个技能: {skills}"
+        )
         return skills
 
     async def _analyze_task_type(self, task_description: str) -> str:

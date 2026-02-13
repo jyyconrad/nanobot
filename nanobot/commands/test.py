@@ -23,14 +23,21 @@ class TestCommand(Command):
 
         # 1. 类型检查
         try:
-            subprocess.run(["ruff", "check", "--select", "I"], check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["ruff", "check", "--select", "I"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             results.append("✅ Type check passed")
         except subprocess.CalledProcessError as e:
             results.append(f"❌ Type check failed: {e.output}")
 
         # 2. Lint
         try:
-            subprocess.run(["ruff", "check", "."], check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["ruff", "check", "."], check=True, capture_output=True, text=True
+            )
             results.append("✅ Lint passed")
         except subprocess.CalledProcessError as e:
             results.append(f"❌ Lint failed: {e.output}")

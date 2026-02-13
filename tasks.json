@@ -62,9 +62,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-12T13:19:46.457393",
-    "updated_at": "2026-02-12T13:19:46.462371",
-    "completed_at": "2026-02-12T13:19:46.462370",
+    "created_at": "2026-02-14T07:09:22.901307",
+    "updated_at": "2026-02-14T07:09:22.913204",
+    "completed_at": "2026-02-14T07:09:22.913203",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -74,9 +74,9 @@
     "description": "原始任务",
     "status": "failed",
     "priority": 1,
-    "created_at": "2026-02-12T13:19:46.465639",
-    "updated_at": "2026-02-12T13:19:46.470585",
-    "completed_at": "2026-02-12T13:19:46.470584",
+    "created_at": "2026-02-14T07:09:22.923741",
+    "updated_at": "2026-02-14T07:09:22.935563",
+    "completed_at": "2026-02-14T07:09:22.935562",
     "result": null,
     "error": "'AgnoSubagent' object has no attribute 'execute'"
   },
@@ -646,6 +646,519 @@
     "priority": 3,
     "created_at": "2026-02-12T13:17:57.662658",
     "updated_at": "2026-02-12T13:17:57.710591",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "3b16d69f-fd1d-4f85-9115-7c0d5b20427d",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:11:12.921441"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:11:12.797456",
+    "updated_at": "2026-02-14T05:11:12.921476",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "ba44dd86-9533-4be5-9fc9-2669ce1e6746",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:11:13.054774"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:11:12.937640",
+    "updated_at": "2026-02-14T05:11:13.054789",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "d0da32a8-3798-4bf5-9a76-cb6dd40b3340",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:11:13.067763",
+    "updated_at": "2026-02-14T05:11:13.067764",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "686d7c12-24a8-4c9a-abaa-9c8cb7f9911a",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:11:13.194086"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:11:13.075188",
+    "updated_at": "2026-02-14T05:11:13.194100",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "75da8c8f-1cdd-45a2-a4c5-a13ee51ad600",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:13:35.831512"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:13:35.730190",
+    "updated_at": "2026-02-14T05:13:35.831515",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "f7fd88b9-12f3-47b1-96aa-f9db10085158",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:13:35.936865"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:13:35.835991",
+    "updated_at": "2026-02-14T05:13:35.936867",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "c07675b7-0e58-4be9-b6e2-97038057cf37",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:13:35.948489",
+    "updated_at": "2026-02-14T05:13:35.948490",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "8ed440ca-57c7-4d81-9193-09ce89999e4e",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:13:36.054217"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:13:35.950616",
+    "updated_at": "2026-02-14T05:13:36.054221",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "0744ba18-9caa-4538-b070-2a324b15c570",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:17:24.496826"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:17:24.380124",
+    "updated_at": "2026-02-14T05:17:24.496828",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "afef8b96-62fc-4461-b692-77be8d3be7bf",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:17:24.632109"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:17:24.509137",
+    "updated_at": "2026-02-14T05:17:24.632112",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "c256052d-d07e-467e-80c5-a56582ea4ca5",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:17:24.636934",
+    "updated_at": "2026-02-14T05:17:24.636934",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "26c183bf-0b56-4193-b9eb-aa9353de98d5",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:17:24.736906"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:17:24.639102",
+    "updated_at": "2026-02-14T05:17:24.736909",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "df614ff7-5c89-41fe-8c4a-14208074c683",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:21:28.234725"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:21:28.101668",
+    "updated_at": "2026-02-14T05:21:28.234735",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "910c4782-4386-40be-9905-91341c2c6ace",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:21:28.364883"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:21:28.248196",
+    "updated_at": "2026-02-14T05:21:28.364899",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "b9ada9fc-1f58-4e2f-a00d-9e66dae87394",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:21:28.401292",
+    "updated_at": "2026-02-14T05:21:28.401293",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "8cf5e32f-d231-4652-9e1e-797b53aa91bb",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:21:28.543066"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:21:28.410822",
+    "updated_at": "2026-02-14T05:21:28.543079",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "aaaca1d0-8954-4a4a-a17f-2eeed127aac4",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:24:39.172157"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:24:39.073020",
+    "updated_at": "2026-02-14T05:24:39.172159",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "b1c6ac1f-817e-4306-ba23-abcf7e218f41",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:24:39.296493"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:24:39.176895",
+    "updated_at": "2026-02-14T05:24:39.296496",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "a1c82737-5533-4a4f-aaa7-07423275a74d",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:24:39.308216",
+    "updated_at": "2026-02-14T05:24:39.308217",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "d0e70598-cdec-4877-9f74-c19b5aa91aab",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:24:39.407661"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:24:39.310456",
+    "updated_at": "2026-02-14T05:24:39.407664",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "f8a2f584-3697-4add-adc7-4d0e6463444d",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:26:33.026722"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:26:32.910011",
+    "updated_at": "2026-02-14T05:26:33.026728",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "45051167-6a51-449c-907d-d1a49a3e407c",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:26:33.174388"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:26:33.038167",
+    "updated_at": "2026-02-14T05:26:33.174399",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "429377e0-3523-4b79-9b15-463504d9d6f0",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:26:33.196720",
+    "updated_at": "2026-02-14T05:26:33.196722",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "25260598-defb-413d-9482-a28e36c1696c",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 05:26:33.368679"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T05:26:33.205156",
+    "updated_at": "2026-02-14T05:26:33.368694",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "d361cd93-c3ca-4390-b1ea-0f2a528cf253",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:01:27.852129"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:01:27.726965",
+    "updated_at": "2026-02-14T07:01:27.852131",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "f5e8db55-b448-488e-9abc-205ddc3bf6d6",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:01:27.966723"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:01:27.864285",
+    "updated_at": "2026-02-14T07:01:27.966727",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "9bd13a86-d1b5-450e-9701-5044bf5364ef",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:01:27.973879",
+    "updated_at": "2026-02-14T07:01:27.973880",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "136e7e7f-9993-4b94-b016-6400be4b2115",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:01:28.105971"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:01:27.977557",
+    "updated_at": "2026-02-14T07:01:28.105981",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "be55c521-3cda-4c59-95d9-379eb0bd2447",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:06:36.354871"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:06:36.243809",
+    "updated_at": "2026-02-14T07:06:36.354879",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "54d8d138-45b1-483b-8390-be32091c5884",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:06:36.487825"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:06:36.371781",
+    "updated_at": "2026-02-14T07:06:36.487840",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "9814ccfa-6364-44f0-acb7-e2754d1b7e6f",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:06:36.505829",
+    "updated_at": "2026-02-14T07:06:36.505831",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "4fdd325c-3bb1-4c92-a554-b19e4540bc67",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:06:36.642900"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:06:36.515117",
+    "updated_at": "2026-02-14T07:06:36.642914",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "e76a0784-8207-4f8d-811d-d7ddbc72c3f5",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:11:15.811467"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:11:15.661158",
+    "updated_at": "2026-02-14T07:11:15.811480",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "b7dbc8c3-1e36-43b0-9343-b3b5854b81d1",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:11:15.963401"
+    },
+    "description": "This is a very long task description that should be truncatedThis is a very long task description that should be truncated",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:11:15.827227",
+    "updated_at": "2026-02-14T07:11:15.963419",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "1ed3f027-c98e-4d73-b1af-6010bfb955d7",
+    "title": "Test task",
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:11:15.982760",
+    "updated_at": "2026-02-14T07:11:15.982762",
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "94c5858f-4b1c-49b2-8125-35e08b764179",
+    "title": {
+      "progress": 100.0,
+      "updated_at": "2026-02-14 07:11:16.121919"
+    },
+    "description": "Test task",
+    "status": "running",
+    "priority": 3,
+    "created_at": "2026-02-14T07:11:15.992836",
+    "updated_at": "2026-02-14T07:11:16.121923",
     "completed_at": null,
     "result": null,
     "error": null

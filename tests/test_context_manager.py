@@ -47,7 +47,9 @@ class TestContextManager:
 
         # 验证上下文包含任务相关的技能
         assert "技能上下文" in context
-        assert any(keyword in context.lower() for keyword in ["coding", "debugging", "testing"])
+        assert any(
+            keyword in context.lower() for keyword in ["coding", "debugging", "testing"]
+        )
 
     @pytest.mark.asyncio
     async def test_compress_context(self, context_manager):
@@ -56,7 +58,9 @@ class TestContextManager:
         long_content = "测试 " * 10000  # 增大内容长度
         messages = [{"role": "user", "content": long_content}]
 
-        compressed, stats = await context_manager.compress_context(messages, max_tokens=2000)  # 降低限制
+        compressed, stats = await context_manager.compress_context(
+            messages, max_tokens=2000
+        )  # 降低限制
 
         # 验证压缩有效（压缩后的消息列表长度可能相同，但内容会被压缩）
         assert stats.compression_ratio < 1.0
@@ -81,7 +85,9 @@ class TestContextManager:
 
         # 首先添加一些记忆
         await context_manager.memory_store.add_memory(
-            content="这是一个测试记忆", tags=["session", session_id], task_id="test_task_1"
+            content="这是一个测试记忆",
+            tags=["session", session_id],
+            task_id="test_task_1",
         )
 
         # 构建上下文
@@ -117,7 +123,9 @@ class TestContextManager:
 
         # 验证关键信息被保留（检查所有压缩后的消息内容）
         compressed_text = " ".join(msg.get("content", "") for msg in compressed)
-        assert any(keyword in compressed_text for keyword in ["代码错误", "压缩算法", "优化"])
+        assert any(
+            keyword in compressed_text for keyword in ["代码错误", "压缩算法", "优化"]
+        )
 
     @pytest.mark.asyncio
     async def test_memory_search(self, context_manager):
@@ -125,9 +133,10 @@ class TestContextManager:
         task_id = "test_task_2"
 
         # 先清理记忆存储，防止前序测试影响
-        for memory in context_manager.memory_store._memories:
-            if memory.task_id == task_id:
-                context_manager.memory_store._memories.remove(memory)
+        context_manager.memory_store._memories = [
+            memory for memory in context_manager.memory_store._memories 
+            if memory.task_id != task_id
+        ]
 
         # 添加测试记忆
         await context_manager.memory_store.add_memory(
@@ -159,7 +168,9 @@ class TestContextManager:
     @pytest.mark.asyncio
     async def test_skill_validation(self, context_manager):
         """测试技能验证功能"""
-        skills = await context_manager.skill_loader.validate_skills(["coding", "invalid_skill"])
+        skills = await context_manager.skill_loader.validate_skills(
+            ["coding", "invalid_skill"]
+        )
 
         # 验证无效技能被过滤
         assert len(skills) == 1

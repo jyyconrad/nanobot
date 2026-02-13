@@ -61,7 +61,9 @@ class SubagentHooks:
                 name="post_run", priority=10, description="After subagent completes"
             ),
             "register_tools": HookType(
-                name="register_tools", priority=2, description="When tools are being registered"
+                name="register_tools",
+                priority=2,
+                description="When tools are being registered",
             ),
             "pre_iteration": HookType(
                 name="pre_iteration", priority=3, description="Before each iteration"
@@ -70,13 +72,19 @@ class SubagentHooks:
                 name="post_iteration", priority=9, description="After each iteration"
             ),
             "pre_tool_call": HookType(
-                name="pre_tool_call", priority=4, description="Before executing tool calls"
+                name="pre_tool_call",
+                priority=4,
+                description="Before executing tool calls",
             ),
             "post_tool_call": HookType(
-                name="post_tool_call", priority=8, description="After executing tool calls"
+                name="post_tool_call",
+                priority=8,
+                description="After executing tool calls",
             ),
             "pre_complete": HookType(
-                name="pre_complete", priority=5, description="Before completing the task"
+                name="pre_complete",
+                priority=5,
+                description="Before completing the task",
             ),
             "post_complete": HookType(
                 name="post_complete", priority=11, description="After task is completed"
@@ -87,12 +95,20 @@ class SubagentHooks:
             "post_cancel": HookType(
                 name="post_cancel", priority=12, description="After task is cancelled"
             ),
-            "pre_fail": HookType(name="pre_fail", priority=7, description="Before task fails"),
-            "post_fail": HookType(name="post_fail", priority=13, description="After task fails"),
+            "pre_fail": HookType(
+                name="pre_fail", priority=7, description="Before task fails"
+            ),
+            "post_fail": HookType(
+                name="post_fail", priority=13, description="After task fails"
+            ),
         }
 
     async def register_hook(
-        self, hook_type: str, callback: Callable, priority: int = 5, enabled: bool = True
+        self,
+        hook_type: str,
+        callback: Callable,
+        priority: int = 5,
+        enabled: bool = True,
     ) -> None:
         """
         Register a new hook callback.
@@ -111,7 +127,10 @@ class SubagentHooks:
 
         self._hooks[hook_type].append(
             HookRegistration(
-                hook_type=hook_type, callback=callback, priority=priority, enabled=enabled
+                hook_type=hook_type,
+                callback=callback,
+                priority=priority,
+                enabled=enabled,
             )
         )
 
@@ -134,11 +153,15 @@ class SubagentHooks:
         if hook_type not in self._hooks:
             raise ValueError(f"Invalid hook type: {hook_type}")
 
-        self._hooks[hook_type] = [h for h in self._hooks[hook_type] if h.callback != callback]
+        self._hooks[hook_type] = [
+            h for h in self._hooks[hook_type] if h.callback != callback
+        ]
 
         logger.debug(f"Unregistered hook {hook_type} with callback {callback.__name__}")
 
-    async def execute_hook(self, hook_type: str, subagent_id: str, **kwargs) -> List[Any]:
+    async def execute_hook(
+        self, hook_type: str, subagent_id: str, **kwargs
+    ) -> List[Any]:
         """
         Execute all registered hooks for a specific hook type.
 
@@ -163,14 +186,18 @@ class SubagentHooks:
                     logger.debug(
                         f"Executing hook {hook_type} with callback {registration.callback.__name__}"
                     )
-                    result = await self._call_callback(registration.callback, subagent_id, **kwargs)
+                    result = await self._call_callback(
+                        registration.callback, subagent_id, **kwargs
+                    )
                     results.append(result)
                 except Exception as e:
                     logger.error(f"Hook {hook_type} failed: {e}")
 
         return results
 
-    async def _call_callback(self, callback: Callable, subagent_id: str, **kwargs) -> Any:
+    async def _call_callback(
+        self, callback: Callable, subagent_id: str, **kwargs
+    ) -> Any:
         """Call a single hook callback."""
         if asyncio.iscoroutinefunction(callback):
             return await callback(subagent_id, **kwargs)
@@ -192,17 +219,29 @@ class SubagentHooks:
             "register_tools", "tools_registration", tools=tools, **kwargs
         )
 
-    async def pre_iteration(self, subagent_id: str, iteration: int, **kwargs) -> List[Any]:
+    async def pre_iteration(
+        self, subagent_id: str, iteration: int, **kwargs
+    ) -> List[Any]:
         """Execute pre_iteration hooks."""
-        return await self.execute_hook("pre_iteration", subagent_id, iteration=iteration, **kwargs)
+        return await self.execute_hook(
+            "pre_iteration", subagent_id, iteration=iteration, **kwargs
+        )
 
-    async def post_iteration(self, subagent_id: str, iteration: int, **kwargs) -> List[Any]:
+    async def post_iteration(
+        self, subagent_id: str, iteration: int, **kwargs
+    ) -> List[Any]:
         """Execute post_iteration hooks."""
-        return await self.execute_hook("post_iteration", subagent_id, iteration=iteration, **kwargs)
+        return await self.execute_hook(
+            "post_iteration", subagent_id, iteration=iteration, **kwargs
+        )
 
-    async def pre_tool_call(self, subagent_id: str, tool_call: Any, **kwargs) -> List[Any]:
+    async def pre_tool_call(
+        self, subagent_id: str, tool_call: Any, **kwargs
+    ) -> List[Any]:
         """Execute pre_tool_call hooks."""
-        return await self.execute_hook("pre_tool_call", subagent_id, tool_call=tool_call, **kwargs)
+        return await self.execute_hook(
+            "pre_tool_call", subagent_id, tool_call=tool_call, **kwargs
+        )
 
     async def post_tool_call(
         self, subagent_id: str, tool_call: Any, result: Any, **kwargs
@@ -214,11 +253,15 @@ class SubagentHooks:
 
     async def pre_complete(self, subagent_id: str, result: str, **kwargs) -> List[Any]:
         """Execute pre_complete hooks."""
-        return await self.execute_hook("pre_complete", subagent_id, result=result, **kwargs)
+        return await self.execute_hook(
+            "pre_complete", subagent_id, result=result, **kwargs
+        )
 
     async def post_complete(self, subagent_id: str, result: str, **kwargs) -> List[Any]:
         """Execute post_complete hooks."""
-        return await self.execute_hook("post_complete", subagent_id, result=result, **kwargs)
+        return await self.execute_hook(
+            "post_complete", subagent_id, result=result, **kwargs
+        )
 
     async def pre_cancel(self, subagent_id: str, **kwargs) -> List[Any]:
         """Execute pre_cancel hooks."""
@@ -281,7 +324,9 @@ class SubagentHooks:
         for registration in self._hooks[hook_type]:
             if registration.callback == callback:
                 registration.enabled = True
-                logger.debug(f"Enabled hook {hook_type} with callback {callback.__name__}")
+                logger.debug(
+                    f"Enabled hook {hook_type} with callback {callback.__name__}"
+                )
 
     async def disable_hook(self, hook_type: str, callback: Callable) -> None:
         """
@@ -300,7 +345,9 @@ class SubagentHooks:
         for registration in self._hooks[hook_type]:
             if registration.callback == callback:
                 registration.enabled = False
-                logger.debug(f"Disabled hook {hook_type} with callback {callback.__name__}")
+                logger.debug(
+                    f"Disabled hook {hook_type} with callback {callback.__name__}"
+                )
 
     async def clear_hooks(self, hook_type: str = None) -> None:
         """
@@ -365,7 +412,9 @@ class SubagentHooks:
         """Add a hook for tracking completion."""
 
         async def track_completion(subagent_id: str, result: str):
-            logger.info(f"Subagent [{subagent_id}] completed with result: {result[:100]}...")
+            logger.info(
+                f"Subagent [{subagent_id}] completed with result: {result[:100]}..."
+            )
 
         await self.register_hook("pre_complete", track_completion, priority=1)
 

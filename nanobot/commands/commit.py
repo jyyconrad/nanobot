@@ -28,9 +28,7 @@ class CommitCommand(Command):
 
         # 2. 分析 git 状态
         status = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True,
-            text=True
+            ["git", "status", "--porcelain"], capture_output=True, text=True
         ).stdout
 
         if not status.strip():

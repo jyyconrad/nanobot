@@ -11,7 +11,10 @@ def test_cli_help_command():
     """测试 CLI 帮助命令"""
     try:
         result = subprocess.run(
-            ["python3", "-m", "nanobot", "--help"], capture_output=True, text=True, check=True
+            ["python3", "-m", "nanobot", "--help"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
         assert "Usage:" in result.stdout
@@ -27,7 +30,10 @@ def test_cli_version_command():
     """测试 CLI 版本命令"""
     try:
         result = subprocess.run(
-            ["python3", "-m", "nanobot", "--version"], capture_output=True, text=True, check=True
+            ["python3", "-m", "nanobot", "--version"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
         assert "version" in result.stdout.lower() or "v" in result.stdout

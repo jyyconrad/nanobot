@@ -2,27 +2,29 @@
 OpenTelemetry 分布式追踪模块
 """
 
-import traceback
 import time
-from typing import Optional, Dict, Any, List
+import traceback
 from contextvars import ContextVar
+from typing import Any, Dict, List, Optional
 
 import opentelemetry.sdk.trace as trace_sdk
+from loguru import logger
 from opentelemetry import trace
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.trace import Status, StatusCode
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.trace import SpanAttributes
-
-from loguru import logger
+from opentelemetry.trace import Status, StatusCode
 
 
 class OpenTelemetryTracer:
     """OpenTelemetry 分布式追踪器"""
 
-    def __init__(self, service_name: str = "nanobot",
-                 otlp_endpoint: str = "http://localhost:4317"):
+    def __init__(
+        self,
+        service_name: str = "nanobot",
+        otlp_endpoint: str = "http://localhost:4317",
+    ):
         """
         初始化 OpenTelemetry 追踪器
 
@@ -40,13 +42,15 @@ class OpenTelemetryTracer:
         """初始化 OpenTelemetry 追踪器"""
         try:
             # 配置资源
-            resource = Resource.create({
-                "service.name": self.service_name,
-                "service.version": "0.2.1",  # 使用项目版本
-                "telemetry.sdk.name": "opentelemetry",
-                "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": "1.17.0"
-            })
+            resource = Resource.create(
+                {
+                    "service.name": self.service_name,
+                    "service.version": "0.4.0",  # 使用项目版本
+                    "telemetry.sdk.name": "opentelemetry",
+                    "telemetry.sdk.language": "python",
+                    "telemetry.sdk.version": "1.17.0",
+                }
+            )
 
             # 创建追踪提供者
             self._provider = trace_sdk.TracerProvider(resource=resource)
@@ -75,8 +79,9 @@ class OpenTelemetryTracer:
         """检查是否已初始化"""
         return self._initialized
 
-    def start_span(self, name: str, kind: int = None,
-                   attributes: Dict[str, Any] = None) -> trace.Span:
+    def start_span(
+        self, name: str, kind: int = None, attributes: Dict[str, Any] = None
+    ) -> trace.Span:
         """
         开始新的跨度
 
@@ -106,8 +111,9 @@ class OpenTelemetryTracer:
             logger.warning(f"Failed to start span: {e}")
             return _NullSpan()
 
-    def end_span(self, span: trace.Span, status: int = StatusCode.OK,
-                description: str = None):
+    def end_span(
+        self, span: trace.Span, status: int = StatusCode.OK, description: str = None
+    ):
         """
         结束跨度
 
@@ -123,8 +129,9 @@ class OpenTelemetryTracer:
         except Exception as e:
             logger.warning(f"Failed to end span: {e}")
 
-    def record_exception(self, span: trace.Span, exception: Exception,
-                       attributes: Dict[str, Any] = None):
+    def record_exception(
+        self, span: trace.Span, exception: Exception, attributes: Dict[str, Any] = None
+    ):
         """
         记录异常
 
@@ -140,8 +147,7 @@ class OpenTelemetryTracer:
         except Exception as e:
             logger.warning(f"Failed to record exception: {e}")
 
-    def trace_function(self, name: str = None,
-                     attributes: Dict[str, Any] = None):
+    def trace_function(self, name: str = None, attributes: Dict[str, Any] = None):
         """
         装饰器：自动追踪函数调用
 
@@ -152,6 +158,7 @@ class OpenTelemetryTracer:
         Returns:
             装饰器函数
         """
+
         def decorator(func):
             def wrapper(*args, **kwargs):
                 span_name = name or func.__name__
@@ -167,11 +174,12 @@ class OpenTelemetryTracer:
                     raise
 
             return wrapper
+
         return decorator
 
-    def trace_agent_execution(self, agent_id: str,
-                             request_id: str = None,
-                             task_id: str = None) -> trace.Span:
+    def trace_agent_execution(
+        self, agent_id: str, request_id: str = None, task_id: str = None
+    ) -> trace.Span:
         """
         追踪Agent执行过程
 
@@ -183,10 +191,7 @@ class OpenTelemetryTracer:
         Returns:
             跨度对象
         """
-        attributes = {
-            "agent.id": agent_id,
-            "nanobot.version": "0.2.1"
-        }
+        attributes = {"agent.id": agent_id, "nanobot.version": "0.4.0"}
 
         if request_id:
             attributes["request.id"] = request_id
@@ -194,12 +199,13 @@ class OpenTelemetryTracer:
         if task_id:
             attributes["task.id"] = task_id
 
-        return self.start_span("agent_execution",
-                             kind=trace.SpanKind.SERVER,
-                             attributes=attributes)
+        return self.start_span(
+            "agent_execution", kind=trace.SpanKind.SERVER, attributes=attributes
+        )
 
-    def trace_llm_call(self, provider: str, model: str,
-                      request_id: str = None) -> trace.Span:
+    def trace_llm_call(
+        self, provider: str, model: str, request_id: str = None
+    ) -> trace.Span:
         """
         追踪LLM调用
 
@@ -214,18 +220,17 @@ class OpenTelemetryTracer:
         attributes = {
             "llm.provider": provider,
             "llm.model": model,
-            "nanobot.version": "0.2.1"
+            "nanobot.version": "0.4.0",
         }
 
         if request_id:
             attributes["request.id"] = request_id
 
-        return self.start_span("llm_call",
-                             kind=trace.SpanKind.CLIENT,
-                             attributes=attributes)
+        return self.start_span(
+            "llm_call", kind=trace.SpanKind.CLIENT, attributes=attributes
+        )
 
-    def trace_tool_call(self, tool_name: str,
-                       request_id: str = None) -> trace.Span:
+    def trace_tool_call(self, tool_name: str, request_id: str = None) -> trace.Span:
         """
         追踪工具调用
 
@@ -236,20 +241,16 @@ class OpenTelemetryTracer:
         Returns:
             跨度对象
         """
-        attributes = {
-            "tool.name": tool_name,
-            "nanobot.version": "0.2.1"
-        }
+        attributes = {"tool.name": tool_name, "nanobot.version": "0.4.0"}
 
         if request_id:
             attributes["request.id"] = request_id
 
-        return self.start_span(f"tool_{tool_name}",
-                             kind=trace.SpanKind.CLIENT,
-                             attributes=attributes)
+        return self.start_span(
+            f"tool_{tool_name}", kind=trace.SpanKind.CLIENT, attributes=attributes
+        )
 
-    def trace_task_execution(self, task_id: str,
-                           task_name: str = None) -> trace.Span:
+    def trace_task_execution(self, task_id: str, task_name: str = None) -> trace.Span:
         """
         追踪任务执行
 
@@ -260,17 +261,14 @@ class OpenTelemetryTracer:
         Returns:
             跨度对象
         """
-        attributes = {
-            "task.id": task_id,
-            "nanobot.version": "0.2.1"
-        }
+        attributes = {"task.id": task_id, "nanobot.version": "0.4.0"}
 
         if task_name:
             attributes["task.name"] = task_name
 
-        return self.start_span(f"task_{task_id}",
-                             kind=trace.SpanKind.INTERNAL,
-                             attributes=attributes)
+        return self.start_span(
+            f"task_{task_id}", kind=trace.SpanKind.INTERNAL, attributes=attributes
+        )
 
     def shutdown(self):
         """关闭追踪器"""

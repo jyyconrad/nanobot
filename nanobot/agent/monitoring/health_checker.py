@@ -2,11 +2,11 @@
 健康检查和自动恢复模块
 """
 
-import time
-import threading
 import subprocess
-from typing import Optional, List, Dict, Any
+import threading
+import time
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
@@ -16,6 +16,7 @@ from .state_tracker import AgentState, StateTracker
 @dataclass
 class HealthCheckResult:
     """健康检查结果"""
+
     check_name: str
     is_healthy: bool
     message: str
@@ -36,8 +37,9 @@ class HealthChecker:
         self._check_thread: Optional[threading.Thread] = None
         self._interval = 30  # 检查间隔（秒）
 
-    def register_check(self, check_name: str, check_func,
-                      recovery_action=None, description: str = ""):
+    def register_check(
+        self, check_name: str, check_func, recovery_action=None, description: str = ""
+    ):
         """
         注册健康检查
 
@@ -47,12 +49,14 @@ class HealthChecker:
             recovery_action: 恢复操作函数，可选
             description: 检查描述
         """
-        self._checks.append({
-            "name": check_name,
-            "func": check_func,
-            "recovery": recovery_action,
-            "description": description
-        })
+        self._checks.append(
+            {
+                "name": check_name,
+                "func": check_func,
+                "recovery": recovery_action,
+                "description": description,
+            }
+        )
 
     def register_recovery_action(self, name: str, action, description: str = ""):
         """
@@ -63,11 +67,9 @@ class HealthChecker:
             action: 操作函数
             description: 操作描述
         """
-        self._recovery_actions.append({
-            "name": name,
-            "action": action,
-            "description": description
-        })
+        self._recovery_actions.append(
+            {"name": name, "action": action, "description": description}
+        )
 
     def run_all_checks(self) -> List[HealthCheckResult]:
         """运行所有健康检查"""
@@ -77,22 +79,26 @@ class HealthChecker:
             try:
                 is_healthy, message, details = check["func"]()
                 duration = time.time() - start_time
-                results.append(HealthCheckResult(
-                    check_name=check["name"],
-                    is_healthy=is_healthy,
-                    message=message,
-                    duration=duration,
-                    details=details or {}
-                ))
+                results.append(
+                    HealthCheckResult(
+                        check_name=check["name"],
+                        is_healthy=is_healthy,
+                        message=message,
+                        duration=duration,
+                        details=details or {},
+                    )
+                )
             except Exception as e:
                 duration = time.time() - start_time
-                results.append(HealthCheckResult(
-                    check_name=check["name"],
-                    is_healthy=False,
-                    message=f"Check failed: {str(e)}",
-                    duration=duration,
-                    details={"error": str(e)}
-                ))
+                results.append(
+                    HealthCheckResult(
+                        check_name=check["name"],
+                        is_healthy=False,
+                        message=f"Check failed: {str(e)}",
+                        duration=duration,
+                        details={"error": str(e)},
+                    )
+                )
                 logger.error(f"Health check failed: {check['name']} - {e}")
 
         self._last_check = results[0] if results else None
@@ -116,16 +122,17 @@ class HealthChecker:
                     "healthy": check.is_healthy,
                     "message": check.message,
                     "duration": check.duration,
-                    "details": check.details
-                } for check in checks
-            ]
+                    "details": check.details,
+                }
+                for check in checks
+            ],
         }
 
         if self.state_tracker:
             status["agent_state"] = {
                 "state": self.state_tracker.get_state().value,
                 "uptime": self.state_tracker.get_uptime(),
-                "last_heartbeat": time.time() - self.state_tracker.get_last_heartbeat()
+                "last_heartbeat": time.time() - self.state_tracker.get_last_heartbeat(),
             }
 
         return status
@@ -162,12 +169,14 @@ class HealthChecker:
         for check in checks:
             if not check.is_healthy:
                 recovered = self.perform_recovery(check.check_name)
-                results.append({
-                    "check_name": check.check_name,
-                    "recovered": recovered,
-                    "original_message": check.message,
-                    "timestamp": time.time()
-                })
+                results.append(
+                    {
+                        "check_name": check.check_name,
+                        "recovered": recovered,
+                        "original_message": check.message,
+                        "timestamp": time.time(),
+                    }
+                )
 
                 if recovered:
                     logger.info(f"Auto-recovered from {check.check_name}")
@@ -223,14 +232,20 @@ def create_default_health_checker(state_tracker: StateTracker) -> HealthChecker:
     def check_agent_alive():
         is_alive = state_tracker.is_alive()
         if is_alive:
-            return (True, "Agent is alive and responding", {
-                "last_heartbeat": time.time() - state_tracker.get_last_heartbeat(),
-                "uptime": state_tracker.get_uptime()
-            })
+            return (
+                True,
+                "Agent is alive and responding",
+                {
+                    "last_heartbeat": time.time() - state_tracker.get_last_heartbeat(),
+                    "uptime": state_tracker.get_uptime(),
+                },
+            )
         else:
-            return (False, "Agent is not responding", {
-                "last_heartbeat": time.time() - state_tracker.get_last_heartbeat()
-            })
+            return (
+                False,
+                "Agent is not responding",
+                {"last_heartbeat": time.time() - state_tracker.get_last_heartbeat()},
+            )
 
     checker.register_check("agent_alive", check_agent_alive)
 
@@ -238,9 +253,14 @@ def create_default_health_checker(state_tracker: StateTracker) -> HealthChecker:
     def check_cpu_usage():
         try:
             import psutil
+
             cpu_usage = psutil.cpu_percent(interval=1)
             if cpu_usage > 90:
-                return (False, f"High CPU usage: {cpu_usage:.1f}%", {"usage": cpu_usage})
+                return (
+                    False,
+                    f"High CPU usage: {cpu_usage:.1f}%",
+                    {"usage": cpu_usage},
+                )
             return (True, f"CPU usage: {cpu_usage:.1f}%", {"usage": cpu_usage})
         except Exception as e:
             return (False, f"CPU check failed: {e}", {"error": str(e)})
@@ -251,9 +271,14 @@ def create_default_health_checker(state_tracker: StateTracker) -> HealthChecker:
     def check_memory_usage():
         try:
             import psutil
+
             memory_usage = psutil.virtual_memory().percent
             if memory_usage > 90:
-                return (False, f"High memory usage: {memory_usage:.1f}%", {"usage": memory_usage})
+                return (
+                    False,
+                    f"High memory usage: {memory_usage:.1f}%",
+                    {"usage": memory_usage},
+                )
             return (True, f"Memory usage: {memory_usage:.1f}%", {"usage": memory_usage})
         except Exception as e:
             return (False, f"Memory check failed: {e}", {"error": str(e)})

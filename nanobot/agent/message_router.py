@@ -6,15 +6,16 @@
 """
 
 import logging
-from typing import Callable, Dict, Any, Optional, List, Union, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-from .message_analyzer import MessageAnalyzer, AnalysisResult
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+from .message_analyzer import AnalysisResult, MessageAnalyzer
 
 # 配置日志记录
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
@@ -24,6 +25,7 @@ class RouteMatchType(Enum):
     """
     路由匹配类型枚举
     """
+
     EXACT = "exact"
     CONTAINS = "contains"
     REGEX = "regex"
@@ -36,6 +38,7 @@ class RouteRule:
     """
     路由规则数据类
     """
+
     name: str
     match_type: RouteMatchType
     match_value: Union[str, List[str]]
@@ -77,7 +80,9 @@ class MessageRouter:
         self.handlers[name] = handler
         self.logger.debug(f"注册处理器: {name}")
 
-    def unregister_handler(self, name: str) -> Optional[Callable[[Dict[str, Any]], Any]]:
+    def unregister_handler(
+        self, name: str
+    ) -> Optional[Callable[[Dict[str, Any]], Any]]:
         """
         注销消息处理器
 
@@ -92,10 +97,7 @@ class MessageRouter:
             self.logger.debug(f"注销处理器: {name}")
 
             # 同时从路由规则中移除使用该处理器的规则
-            self.routes = [
-                route for route in self.routes
-                if route.handler != handler
-            ]
+            self.routes = [route for route in self.routes if route.handler != handler]
 
         return handler
 
@@ -167,11 +169,9 @@ class MessageRouter:
         # 执行处理
         if matched_route:
             try:
-                result = matched_route.handler({
-                    "message": message,
-                    "analysis": analysis,
-                    "route": matched_route
-                })
+                result = matched_route.handler(
+                    {"message": message, "analysis": analysis, "route": matched_route}
+                )
                 self.logger.info(f"路由处理完成: {matched_route.name}")
                 return result
             except Exception as e:
@@ -180,10 +180,9 @@ class MessageRouter:
         # 使用默认处理器
         if self.default_handler:
             try:
-                result = self.default_handler({
-                    "message": message,
-                    "analysis": analysis
-                })
+                result = self.default_handler(
+                    {"message": message, "analysis": analysis}
+                )
                 self.logger.info("使用默认处理器处理消息")
                 return result
             except Exception as e:
@@ -221,10 +220,15 @@ class MessageRouter:
 
         elif route.match_type == RouteMatchType.REGEX:
             import re
+
             if isinstance(match_value, str):
-                return re.search(match_value, analysis.raw_text, re.IGNORECASE) is not None
+                return (
+                    re.search(match_value, analysis.raw_text, re.IGNORECASE) is not None
+                )
             elif isinstance(match_value, list):
-                return any(re.search(v, analysis.raw_text, re.IGNORECASE) for v in match_value)
+                return any(
+                    re.search(v, analysis.raw_text, re.IGNORECASE) for v in match_value
+                )
 
         elif route.match_type == RouteMatchType.INTENT:
             if isinstance(match_value, str):
@@ -240,14 +244,16 @@ class MessageRouter:
 
         return False
 
-    def create_route(self,
-                     name: str,
-                     match_type: Union[RouteMatchType, str],
-                     match_value: Union[str, List[str]],
-                     handler: Union[str, Callable[[Dict[str, Any]], Any]],
-                     priority: int = 0,
-                     condition: Optional[Callable[[AnalysisResult], bool]] = None,
-                     metadata: Optional[Dict[str, Any]] = None) -> RouteRule:
+    def create_route(
+        self,
+        name: str,
+        match_type: Union[RouteMatchType, str],
+        match_value: Union[str, List[str]],
+        handler: Union[str, Callable[[Dict[str, Any]], Any]],
+        priority: int = 0,
+        condition: Optional[Callable[[AnalysisResult], bool]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> RouteRule:
         """
         快速创建并添加路由规则
 
@@ -280,7 +286,7 @@ class MessageRouter:
             handler=handler,
             priority=priority,
             condition=condition,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.add_route(rule)
@@ -327,10 +333,12 @@ class MessageRouter:
                     handler=config["handler"],
                     priority=config.get("priority", 0),
                     condition=config.get("condition"),
-                    metadata=config.get("metadata")
+                    metadata=config.get("metadata"),
                 )
             except Exception as e:
-                self.logger.error(f"导入路由规则失败: {config.get('name', 'Unknown')}, 错误: {e}")
+                self.logger.error(
+                    f"导入路由规则失败: {config.get('name', 'Unknown')}, 错误: {e}"
+                )
 
     def export_rules(self) -> List[Dict[str, Any]]:
         """
@@ -341,14 +349,16 @@ class MessageRouter:
         """
         rules_config = []
         for route in self.routes:
-            rules_config.append({
-                "name": route.name,
-                "match_type": route.match_type.value,
-                "match_value": route.match_value,
-                "handler": None,  # 不导出函数对象
-                "priority": route.priority,
-                "metadata": route.metadata
-            })
+            rules_config.append(
+                {
+                    "name": route.name,
+                    "match_type": route.match_type.value,
+                    "match_value": route.match_value,
+                    "handler": None,  # 不导出函数对象
+                    "priority": route.priority,
+                    "metadata": route.metadata,
+                }
+            )
         return rules_config
 
 

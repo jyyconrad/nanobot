@@ -27,8 +27,12 @@ class InterruptRequest(BaseModel):
     subagent_id: str = Field(..., description="Target subagent ID")
     type: str = Field(..., description="Interrupt type")
     message: str = Field(..., description="Interrupt message")
-    timestamp: datetime = Field(default_factory=datetime.now, description="Request timestamp")
-    processed: bool = Field(default=False, description="Whether the interrupt has been processed")
+    timestamp: datetime = Field(
+        default_factory=datetime.now, description="Request timestamp"
+    )
+    processed: bool = Field(
+        default=False, description="Whether the interrupt has been processed"
+    )
 
 
 class InterruptHandler:
@@ -51,9 +55,15 @@ class InterruptHandler:
             "correct": InterruptType(
                 type="correct", priority=4, description="Correct task description"
             ),
-            "pause": InterruptType(type="pause", priority=3, description="Pause task execution"),
-            "resume": InterruptType(type="resume", priority=2, description="Resume paused task"),
-            "status": InterruptType(type="status", priority=1, description="Check task status"),
+            "pause": InterruptType(
+                type="pause", priority=3, description="Pause task execution"
+            ),
+            "resume": InterruptType(
+                type="resume", priority=2, description="Resume paused task"
+            ),
+            "status": InterruptType(
+                type="status", priority=1, description="Check task status"
+            ),
         }
 
     async def check_for_interrupt(self, subagent_id: str) -> bool:
@@ -108,7 +118,9 @@ class InterruptHandler:
             logger.warning(f"Subagent [{subagent_id}] not found")
             return
 
-        logger.info(f"Correcting subagent [{subagent_id}] with new task: {interrupt.message}")
+        logger.info(
+            f"Correcting subagent [{subagent_id}] with new task: {interrupt.message}"
+        )
         await self.manager.cancel_subagent(subagent_id)
 
         # Spawn new subagent with corrected task
@@ -156,7 +168,9 @@ class InterruptHandler:
         else:
             logger.warning(f"Subagent [{subagent_id}] not found")
 
-    async def add_interrupt(self, subagent_id: str, interrupt_type: str, message: str = ""):
+    async def add_interrupt(
+        self, subagent_id: str, interrupt_type: str, message: str = ""
+    ):
         """
         Add a new interrupt request.
 
@@ -180,7 +194,9 @@ class InterruptHandler:
         )
 
         self._pending_interrupts[subagent_id] = request
-        logger.debug(f"Added {interrupt_type} interrupt for subagent [{subagent_id}]: {message}")
+        logger.debug(
+            f"Added {interrupt_type} interrupt for subagent [{subagent_id}]: {message}"
+        )
 
         return request
 
@@ -195,7 +211,9 @@ class InterruptHandler:
         for subagent_id, request in self._pending_interrupts.items():
             if request.request_id == request_id:
                 to_remove.append(subagent_id)
-                logger.debug(f"Cancelled interrupt {request_id} for subagent [{subagent_id}]")
+                logger.debug(
+                    f"Cancelled interrupt {request_id} for subagent [{subagent_id}]"
+                )
 
         for subagent_id in to_remove:
             del self._pending_interrupts[subagent_id]
@@ -225,7 +243,10 @@ class InterruptHandler:
     async def pause_all_subagents(self):
         """Pause all running subagents."""
         for subagent_id, subagent in self.manager._subagent_map.items():
-            if subagent.status == "running" and subagent_id not in self._paused_subagents:
+            if (
+                subagent.status == "running"
+                and subagent_id not in self._paused_subagents
+            ):
                 self._paused_subagents.add(subagent_id)
 
         logger.info(f"Paused {len(self._paused_subagents)} subagents")

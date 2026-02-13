@@ -3,12 +3,26 @@
 """
 
 import time
+
 import pytest
-from nanobot.agent.monitoring.state_tracker import StateTracker, AgentState, TaskProgress
-from nanobot.agent.monitoring.metrics_collector import MetricsCollector, LLMCallMetrics, ToolUseMetrics, ContextMetrics
-from nanobot.agent.monitoring.logger import StructuredLogger
-from nanobot.agent.monitoring.health_checker import HealthChecker, create_default_health_checker
+
 from nanobot.agent.monitoring.debugger import Debugger
+from nanobot.agent.monitoring.health_checker import (
+    HealthChecker,
+    create_default_health_checker,
+)
+from nanobot.agent.monitoring.logger import StructuredLogger
+from nanobot.agent.monitoring.metrics_collector import (
+    ContextMetrics,
+    LLMCallMetrics,
+    MetricsCollector,
+    ToolUseMetrics,
+)
+from nanobot.agent.monitoring.state_tracker import (
+    AgentState,
+    StateTracker,
+    TaskProgress,
+)
 
 
 class TestStateTracker:
@@ -87,7 +101,7 @@ class TestMetricsCollector:
             latency=1.2,
             prompt_tokens=100,
             completion_tokens=50,
-            cost=0.002
+            cost=0.002,
         )
 
         llm_metrics = collector.get_llm_metrics()
@@ -99,9 +113,7 @@ class TestMetricsCollector:
         """测试工具使用记录"""
         collector = MetricsCollector()
         collector.record_tool_use(
-            tool_name="file_operations",
-            execution_time=0.5,
-            success=True
+            tool_name="file_operations", execution_time=0.5, success=True
         )
 
         tool_metrics = collector.get_tool_metrics()
@@ -175,10 +187,13 @@ class TestStructuredLogger:
     def test_context_logging(self):
         """测试上下文日志记录"""
         logger = StructuredLogger("test_logger")
-        logger.log_with_context("INFO", "Request processed",
-                           request_id="req_001",
-                           task_id="task_001",
-                           session_id="session_001")
+        logger.log_with_context(
+            "INFO",
+            "Request processed",
+            request_id="req_001",
+            task_id="task_001",
+            session_id="session_001",
+        )
 
     def test_log_paths(self):
         """测试日志路径"""
@@ -234,9 +249,7 @@ class TestHealthChecker:
             recovered = True
 
         checker.register_check(
-            "custom_check",
-            lambda: (False, "Test failure", {}),
-            recovery_action
+            "custom_check", lambda: (False, "Test failure", {}), recovery_action
         )
 
         assert not recovered
@@ -284,8 +297,12 @@ class TestDebugger:
         debugger = Debugger()
         debugger.enable()
 
-        debugger.trace("Starting processing", location="process_request",
-                      request_id="req_001", task_id="task_001")
+        debugger.trace(
+            "Starting processing",
+            location="process_request",
+            request_id="req_001",
+            task_id="task_001",
+        )
 
         trace_stack = debugger.get_trace_stack()
         assert len(trace_stack) > 0
@@ -298,12 +315,14 @@ class TestDebugger:
         debugger = Debugger()
         debugger.enable()
 
-        debugger.record_request("req_001", "GET", "/api/v1/test",
-                              {"User-Agent": "Test"}, {"data": "test"})
+        debugger.record_request(
+            "req_001", "GET", "/api/v1/test", {"User-Agent": "Test"}, {"data": "test"}
+        )
 
         time.sleep(0.1)
-        debugger.record_response("req_001", 200, {"Content-Type": "application/json"},
-                               {"result": "success"})
+        debugger.record_response(
+            "req_001", 200, {"Content-Type": "application/json"}, {"result": "success"}
+        )
 
         trace = debugger.get_request_response_trace("req_001")
         assert trace is not None

@@ -19,12 +19,9 @@ class ReadFileTool(Tool):
         return {
             "type": "object",
             "properties": {
-                "file_path": {
-                    "type": "string",
-                    "description": "Path to file to read"
-                }
+                "file_path": {"type": "string", "description": "Path to file to read"}
             },
-            "required": ["file_path"]
+            "required": ["file_path"],
         }
 
     async def execute(self, file_path: str, **kwargs) -> str:
@@ -55,16 +52,13 @@ class WriteFileTool(Tool):
         return {
             "type": "object",
             "properties": {
-                "file_path": {
-                    "type": "string",
-                    "description": "Path to file to write"
-                },
+                "file_path": {"type": "string", "description": "Path to file to write"},
                 "content": {
                     "type": "string",
-                    "description": "Content to write to file"
-                }
+                    "description": "Content to write to file",
+                },
             },
-            "required": ["file_path", "content"]
+            "required": ["file_path", "content"],
         }
 
     async def execute(self, file_path: str, content: str, **kwargs) -> str:
@@ -100,10 +94,10 @@ class ListDirTool(Tool):
             "properties": {
                 "dir_path": {
                     "type": "string",
-                    "description": "Path to directory to list"
+                    "description": "Path to directory to list",
                 }
             },
-            "required": ["dir_path"]
+            "required": ["dir_path"],
         }
 
     async def execute(self, dir_path: str, **kwargs) -> str:
@@ -119,7 +113,7 @@ class ListDirTool(Tool):
             path = Path(dir_path)
             if not path.is_dir():
                 return f"Error: {dir_path} is not a directory"
-            
+
             items = []
             for item in path.iterdir():
                 items.append(str(item))

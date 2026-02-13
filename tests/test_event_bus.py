@@ -1,13 +1,15 @@
 """Tests for event bus and service communication."""
 
 import asyncio
+
 import pytest
+
 from nanobot.agents.event_bus import (
     Event,
-    EventType,
     EventBus,
     EventListener,
-    ServiceCommunicator
+    EventType,
+    ServiceCommunicator,
 )
 
 
@@ -20,9 +22,7 @@ class TestEventBus:
         bus = EventBus()
 
         event = await bus.publish(
-            EventType.TASK_STARTED,
-            "test-service",
-            {"task_id": "123"}
+            EventType.TASK_STARTED, "test-service", {"task_id": "123"}
         )
 
         assert event.event_type == EventType.TASK_STARTED
@@ -39,17 +39,10 @@ class TestEventBus:
             received_events.append(event)
 
         # Subscribe
-        listener_id = await bus.subscribe(
-            EventType.TASK_COMPLETED,
-            event_handler
-        )
+        listener_id = await bus.subscribe(EventType.TASK_COMPLETED, event_handler)
 
         # Publish event
-        await bus.publish(
-            EventType.TASK_COMPLETED,
-            "test-service",
-            {"task_id": "123"}
-        )
+        await bus.publish(EventType.TASK_COMPLETED, "test-service", {"task_id": "123"})
 
         # Wait for processing
         await asyncio.sleep(0.1)
@@ -72,23 +65,17 @@ class TestEventBus:
 
         # Subscribe with filter
         await bus.subscribe(
-            EventType.TASK_COMPLETED,
-            event_handler,
-            event_filter=event_filter
+            EventType.TASK_COMPLETED, event_handler, event_filter=event_filter
         )
 
         # Publish matching event
         await bus.publish(
-            EventType.TASK_COMPLETED,
-            "test-service",
-            {"task_id": "target"}
+            EventType.TASK_COMPLETED, "test-service", {"task_id": "target"}
         )
 
         # Publish non-matching event
         await bus.publish(
-            EventType.TASK_COMPLETED,
-            "test-service",
-            {"task_id": "other"}
+            EventType.TASK_COMPLETED, "test-service", {"task_id": "other"}
         )
 
         await asyncio.sleep(0.1)
@@ -107,17 +94,10 @@ class TestEventBus:
             received_events.append(event)
 
         # Subscribe
-        listener_id = await bus.subscribe(
-            EventType.TASK_STARTED,
-            event_handler
-        )
+        listener_id = await bus.subscribe(EventType.TASK_STARTED, event_handler)
 
         # Publish one event
-        await bus.publish(
-            EventType.TASK_STARTED,
-            "test-service",
-            {"task_id": "1"}
-        )
+        await bus.publish(EventType.TASK_STARTED, "test-service", {"task_id": "1"})
 
         await asyncio.sleep(0.1)
         assert len(received_events) == 1
@@ -126,11 +106,7 @@ class TestEventBus:
         await bus.unsubscribe(EventType.TASK_STARTED, listener_id)
 
         # Publish another event
-        await bus.publish(
-            EventType.TASK_STARTED,
-            "test-service",
-            {"task_id": "2"}
-        )
+        await bus.publish(EventType.TASK_STARTED, "test-service", {"task_id": "2"})
 
         await asyncio.sleep(0.1)
         # Should not receive second event
@@ -154,11 +130,7 @@ class TestEventBus:
         await bus.subscribe(EventType.TASK_STARTED, handler2)
 
         # Publish
-        await bus.publish(
-            EventType.TASK_STARTED,
-            "test-service",
-            {"task_id": "123"}
-        )
+        await bus.publish(EventType.TASK_STARTED, "test-service", {"task_id": "123"})
 
         await asyncio.sleep(0.1)
 
@@ -174,9 +146,7 @@ class TestEventBus:
         # Publish several events
         for i in range(5):
             await bus.publish(
-                EventType.TASK_COMPLETED,
-                "test-service",
-                {"task_id": str(i)}
+                EventType.TASK_COMPLETED, "test-service", {"task_id": str(i)}
             )
 
         # Get history
@@ -190,21 +160,9 @@ class TestEventBus:
         bus = EventBus(max_history=100)
 
         # Publish events from different sources
-        await bus.publish(
-            EventType.TASK_COMPLETED,
-            "service-a",
-            {"task_id": "1"}
-        )
-        await bus.publish(
-            EventType.TASK_COMPLETED,
-            "service-b",
-            {"task_id": "2"}
-        )
-        await bus.publish(
-            EventType.TASK_STARTED,
-            "service-a",
-            {"task_id": "3"}
-        )
+        await bus.publish(EventType.TASK_COMPLETED, "service-a", {"task_id": "1"})
+        await bus.publish(EventType.TASK_COMPLETED, "service-b", {"task_id": "2"})
+        await bus.publish(EventType.TASK_STARTED, "service-a", {"task_id": "3"})
 
         # Filter by source
         service_a_events = await bus.get_history(source="service-a")
@@ -222,9 +180,7 @@ class TestEventBus:
         # Publish events
         for i in range(3):
             await bus.publish(
-                EventType.TASK_COMPLETED,
-                "test-service",
-                {"task_id": str(i)}
+                EventType.TASK_COMPLETED, "test-service", {"task_id": str(i)}
             )
 
         # Wait for processing
@@ -238,11 +194,7 @@ class TestEventBus:
         """Test clearing event history."""
         bus = EventBus()
 
-        await bus.publish(
-            EventType.TASK_COMPLETED,
-            "test-service",
-            {"task_id": "1"}
-        )
+        await bus.publish(EventType.TASK_COMPLETED, "test-service", {"task_id": "1"})
 
         history = await bus.get_history()
         assert len(history) == 1
@@ -273,9 +225,7 @@ class TestServiceCommunicator:
 
         # Send request from client
         response = await client.send_request(
-            "server-service",
-            "multiply",
-            {"value": 21}
+            "server-service", "multiply", {"value": 21}
         )
 
         assert response is not None
@@ -295,10 +245,7 @@ class TestServiceCommunicator:
 
         # Send request to non-existent service
         response = await client.send_request(
-            "non-existent-service",
-            "test-request",
-            {},
-            timeout=1.0
+            "non-existent-service", "test-request", {}, timeout=1.0
         )
 
         # Should timeout and return None
@@ -324,10 +271,7 @@ class TestServiceCommunicator:
         await bus.subscribe(EventType.STATUS_CHANGED, event_handler)
 
         # Broadcast from service-a
-        await service_a.broadcast_event(
-            EventType.STATUS_CHANGED,
-            {"status": "ready"}
-        )
+        await service_a.broadcast_event(EventType.STATUS_CHANGED, {"status": "ready"})
 
         await asyncio.sleep(0.1)
 
@@ -356,12 +300,7 @@ class TestServiceCommunicator:
         await service.cleanup()
 
         # Send request - should not be handled
-        response = await service.send_request(
-            "test-service",
-            "test",
-            {},
-            timeout=1.0
-        )
+        response = await service.send_request("test-service", "test", {}, timeout=1.0)
 
         assert response is None
 

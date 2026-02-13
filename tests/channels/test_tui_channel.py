@@ -27,6 +27,7 @@ def mock_bus():
 def tui_channel(mock_config, mock_bus):
     """Create TUI channel instance."""
     from nanobot.channels.tui_channel import TUIChannel
+
     return TUIChannel(mock_config, mock_bus)
 
 
@@ -40,20 +41,13 @@ class TestTUIChannel:
         assert tui_channel.use_colors == mock_config.colors
         assert tui_channel.is_running is False
 
-
-
     @pytest.mark.asyncio
     async def test_send_message(self, tui_channel):
         """Test sending (displaying) a message."""
         from nanobot.bus.events import OutboundMessage
 
         outbound_msg = OutboundMessage(
-            channel="tui",
-            chat_id="tui",
-            content="Hello, World!",
-            sender_id="bot",
-            media=[],
-            metadata={}
+            channel="tui", chat_id="tui", content="Hello, World!", media=[], metadata={}
         )
 
         # Should not raise, just display
@@ -63,7 +57,7 @@ class TestTUIChannel:
     async def test_start_stop(self, tui_channel):
         """Test starting and stopping channel."""
         # Mock input to avoid blocking
-        with patch.object(tui_channel, '_input_loop', new=AsyncMock()):
+        with patch.object(tui_channel, "_input_loop", new=AsyncMock()):
             await tui_channel.start()
             assert tui_channel.is_running is True
 
@@ -73,8 +67,10 @@ class TestTUIChannel:
     @pytest.mark.asyncio
     async def test_input_loop_exit_command(self, tui_channel, mock_bus):
         """Test input loop with exit command."""
+        tui_channel._running = True
+
         # Mock input to return exit command
-        with patch.object(tui_channel, '_get_input_async', return_value=AsyncMock(return_value="exit")):
+        with patch.object(tui_channel, "_get_input_async", side_effect=["exit"]):
             await tui_channel._input_loop()
 
             # Should handle exit command gracefully
@@ -86,7 +82,7 @@ class TestTUIChannel:
         tui_channel._running = True
 
         # Mock input to return message then None to exit
-        inputs = ["Hello, bot!", None]
+        inputs = ["Hello, bot!", "exit"]
         input_iter = iter(inputs)
 
         async def mock_input():
@@ -95,9 +91,8 @@ class TestTUIChannel:
             except StopIteration:
                 return None
 
-        with patch.object(tui_channel, '_get_input_async', side_effect=mock_input):
-            await asyncio.sleep(0.1)  # Let the loop run briefly
-            tui_channel._running = False
+        with patch.object(tui_channel, "_get_input_async", side_effect=mock_input):
+            await tui_channel._input_loop()
 
         # Verify message was published
         mock_bus.publish_inbound.assert_called()
@@ -110,7 +105,8 @@ class TestTUIChannel:
         """Test async input with timeout."""
         # Mock input to raise TimeoutError on first call, return input on second
         import asyncio
-        with patch('select.select', return_value=([], [], [])):
+
+        with patch("select.select", return_value=([], [], [])):
             result = await tui_channel._get_input_async()
             assert result is None
 
@@ -121,8 +117,8 @@ class TestTUIChannel:
         import select
 
         # Mock select to indicate data available
-        with patch('select.select', return_value=([Mock()], [], [])):
-            with patch('builtins.input', return_value="test input"):
+        with patch("select.select", return_value=([Mock()], [], [])):
+            with patch("builtins.input", return_value="test input"):
                 result = await tui_channel._get_input_async()
                 assert result == "test input"
 
@@ -150,7 +146,7 @@ class TestTUIChannel:
         tui_channel._rich_console = None
 
         # Mock print
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             tui_channel._display_message("User", "Hello there!")
             mock_print.assert_called()
 
@@ -159,7 +155,7 @@ class TestTUIChannel:
         tui_channel._rich_console = Mock()
         tui_channel.use_colors = True
 
-        tui_channel._display_rich_message("User", "Hello")
+        tui_channel._display_rich_message("User", "Hello", "text")
         tui_channel._rich_console.print.assert_called()
 
     def test_display_rich_message_colors_disabled(self, tui_channel):
@@ -167,20 +163,22 @@ class TestTUIChannel:
         tui_channel._rich_console = Mock()
         tui_channel.use_colors = False
 
-        tui_channel._display_rich_message("User", "Hello")
+        tui_channel._display_rich_message("User", "Hello", "text")
         tui_channel._rich_console.print.assert_called()
 
     def test_display_plain_message(self, tui_channel):
         """Test plain message display."""
-        with patch('builtins.print') as mock_print:
-            tui_channel._display_plain_message("User", "Hello")
+        with patch("builtins.print") as mock_print:
+            tui_channel._display_plain_message("User", "Hello", "text")
             mock_print.assert_called_with("[User] Hello")
 
     @pytest.mark.asyncio
     async def test_input_loop_keyboard_interrupt(self, tui_channel):
         """Test input loop with keyboard interrupt."""
         # Mock input to raise KeyboardInterrupt
-        with patch.object(tui_channel, '_get_input_async', side_effect=KeyboardInterrupt):
+        with patch.object(
+            tui_channel, "_get_input_async", side_effect=KeyboardInterrupt
+        ):
             await tui_channel._input_loop()
 
         # Should handle gracefully
@@ -190,7 +188,7 @@ class TestTUIChannel:
     async def test_input_loop_eof_error(self, tui_channel):
         """Test input loop with EOF error."""
         # Mock input to raise EOFError
-        with patch.object(tui_channel, '_get_input_async', side_effect=EOFError):
+        with patch.object(tui_channel, "_get_input_async", side_effect=EOFError):
             await tui_channel._input_loop()
 
         # Should handle gracefully
@@ -202,7 +200,9 @@ class TestTUIChannel:
         tui_channel._running = True
 
         # Mock input to raise exception
-        with patch.object(tui_channel, '_get_input_async', side_effect=Exception("Unexpected error")):
+        with patch.object(
+            tui_channel, "_get_input_async", side_effect=Exception("Unexpected error")
+        ):
             await tui_channel._input_loop()
 
         # Should handle gracefully

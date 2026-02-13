@@ -190,8 +190,12 @@ class SubagentManager:
 
                     # Execute tools
                     for tool_call in response.tool_calls:
-                        logger.debug(f"Subagent [{subagent_id}] executing: {tool_call.name}")
-                        result = await tools.execute(tool_call.name, tool_call.arguments)
+                        logger.debug(
+                            f"Subagent [{subagent_id}] executing: {tool_call.name}"
+                        )
+                        result = await tools.execute(
+                            tool_call.name, tool_call.arguments
+                        )
                         messages.append(
                             {
                                 "role": "tool",
@@ -214,7 +218,9 @@ class SubagentManager:
             if task_obj:
                 task_obj.mark_completed(final_result)
 
-            await self._announce_result(subagent_id, label, task, final_result, origin, "ok")
+            await self._announce_result(
+                subagent_id, label, task, final_result, origin, "ok"
+            )
 
         except Exception as e:
             error_msg = f"Error: {str(e)}"
@@ -225,7 +231,9 @@ class SubagentManager:
             if task_obj:
                 task_obj.mark_failed(error_msg)
 
-            await self._announce_result(subagent_id, label, task, error_msg, origin, "error")
+            await self._announce_result(
+                subagent_id, label, task, error_msg, origin, "error"
+            )
 
     async def _announce_result(
         self,
@@ -321,7 +329,9 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
             return True
         return False
 
-    async def update_task_progress(self, task_id: str, progress: float, message: str = ""):
+    async def update_task_progress(
+        self, task_id: str, progress: float, message: str = ""
+    ):
         """Update task progress."""
         task = self._task_manager.get_task(task_id)
         if task:

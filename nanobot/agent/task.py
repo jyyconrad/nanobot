@@ -93,7 +93,9 @@ class Task:
         self.result = error
         self.completed_at = datetime.now()
         self.updated_at = datetime.now()
-        self.history.append(f"[{datetime.now().strftime('%H:%M:%S')}] 任务失败: {error}")
+        self.history.append(
+            f"[{datetime.now().strftime('%H:%M:%S')}] 任务失败: {error}"
+        )
 
     def to_dict(self) -> dict:
         """转换为字典格式"""
@@ -110,7 +112,9 @@ class Task:
             "chat_id": self.chat_id,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "completed_at": (
+                self.completed_at.isoformat() if self.completed_at else None
+            ),
             "result": self.result,
             "history": self.history,
             "metadata": self.metadata,

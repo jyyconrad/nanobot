@@ -7,7 +7,7 @@
 import re
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from nanobot.agent.planner.models import Correction, CorrectionPattern
 
@@ -23,17 +23,27 @@ class CorrectionDetector(BaseModel):
                 weight=1.0,
             ),
             CorrectionPattern(
-                type="add", patterns=["添加.*", "增加.*", "补充.*", "新增.*"], weight=0.9
+                type="add",
+                patterns=["添加.*", "增加.*", "补充.*", "新增.*"],
+                weight=0.9,
             ),
             CorrectionPattern(
-                type="remove", patterns=["删除.*", "移除.*", "去掉.*", "取消.*"], weight=0.85
-            ),
-            CorrectionPattern(type="fix", patterns=["修复.*", "修正.*", "改错.*"], weight=0.8),
-            CorrectionPattern(
-                type="improve", patterns=["优化.*", "改进.*", "提升.*", "完善.*"], weight=0.75
+                type="remove",
+                patterns=["删除.*", "移除.*", "去掉.*", "取消.*"],
+                weight=0.85,
             ),
             CorrectionPattern(
-                type="clarify", patterns=["澄清.*", "说明.*", "解释.*", "明确.*"], weight=0.7
+                type="fix", patterns=["修复.*", "修正.*", "改错.*"], weight=0.8
+            ),
+            CorrectionPattern(
+                type="improve",
+                patterns=["优化.*", "改进.*", "提升.*", "完善.*"],
+                weight=0.75,
+            ),
+            CorrectionPattern(
+                type="clarify",
+                patterns=["澄清.*", "说明.*", "解释.*", "明确.*"],
+                weight=0.7,
             ),
         ]
     )
@@ -42,10 +52,9 @@ class CorrectionDetector(BaseModel):
         default_factory=lambda: ["不是.*", "不要.*", "不必.*", "不需要.*", "不用.*"]
     )
 
-    class Config:
-        """配置类"""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
     async def detect_correction(
         self, user_input: str, context: Optional[Dict[str, Any]] = None
@@ -72,7 +81,9 @@ class CorrectionDetector(BaseModel):
                 if not await self._is_related_to_last_task(user_input, last_task):
                     return None
 
-                correction = await self._detect_correction_from_context(user_input, context)
+                correction = await self._detect_correction_from_context(
+                    user_input, context
+                )
                 if correction:
                     return correction
 
@@ -158,7 +169,10 @@ class CorrectionDetector(BaseModel):
                 pass  # 继续处理
             elif "调整" in user_input:
                 return Correction(
-                    type="change", content=user_input, target="这个参数", confidence=0.75
+                    type="change",
+                    content=user_input,
+                    target="这个参数",
+                    confidence=0.75,
                 )
             else:
                 return None
@@ -169,9 +183,13 @@ class CorrectionDetector(BaseModel):
         # 提取修正目标
         target = await self._extract_correction_target(user_input)
 
-        return Correction(type=best_type, content=content, target=target, confidence=confidence)
+        return Correction(
+            type=best_type, content=content, target=target, confidence=confidence
+        )
 
-    async def _extract_correction_content(self, user_input: str, correction_type: str) -> str:
+    async def _extract_correction_content(
+        self, user_input: str, correction_type: str
+    ) -> str:
         """
         提取修正内容
 
@@ -278,7 +296,9 @@ class CorrectionDetector(BaseModel):
                     return True
         return False
 
-    async def _is_related_to_last_task(self, user_input: str, last_task: Dict[str, Any]) -> bool:
+    async def _is_related_to_last_task(
+        self, user_input: str, last_task: Dict[str, Any]
+    ) -> bool:
         """
         检查是否与上一个任务相关
 
@@ -295,13 +315,24 @@ class CorrectionDetector(BaseModel):
             input_text = user_input.lower()
 
             # 检查是否包含相同的关键词
-            common_words = ["代码", "文件", "数据", "分析", "搜索", "任务", "函数", "配置"]
+            common_words = [
+                "代码",
+                "文件",
+                "数据",
+                "分析",
+                "搜索",
+                "任务",
+                "函数",
+                "配置",
+            ]
             for word in common_words:
                 if word in description and word in input_text:
                     return True
 
             # 对于编程相关的任务，更宽松地判断相关性
-            if ("代码" in input_text or "函数" in input_text or "程序" in input_text) and (
+            if (
+                "代码" in input_text or "函数" in input_text or "程序" in input_text
+            ) and (
                 "代码" in description
                 or "函数" in description
                 or "程序" in description
@@ -310,7 +341,10 @@ class CorrectionDetector(BaseModel):
                 return True
 
             # 检查是否包含指示代词
-            if any(word in input_text for word in ["这个", "那个", "刚才", "之前", "之前的"]):
+            if any(
+                word in input_text
+                for word in ["这个", "那个", "刚才", "之前", "之前的"]
+            ):
                 return True
 
         return False

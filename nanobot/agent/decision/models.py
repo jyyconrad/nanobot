@@ -13,7 +13,9 @@ class DecisionRequest(BaseModel):
     request_type: str = Field(..., description="请求类型")
     data: Dict[str, Any] = Field(default_factory=dict, description="请求数据")
     task: Optional[Any] = Field(None, description="关联任务")
-    context: Optional[Dict[str, Any]] = Field(default_factory=dict, description="上下文信息")
+    context: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="上下文信息"
+    )
 
 
 class DecisionResult(BaseModel):
@@ -54,7 +56,9 @@ class CorrectionRequest(BaseModel):
     correction: str = Field(..., description="修正内容")
     original_message_id: Optional[str] = Field(None, description="原始消息ID")
     task_id: Optional[str] = Field(None, description="关联任务ID")
-    context: Optional[Dict[str, Any]] = Field(default_factory=dict, description="上下文信息")
+    context: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="上下文信息"
+    )
 
 
 class CancellationRequest(BaseModel):
@@ -63,4 +67,6 @@ class CancellationRequest(BaseModel):
     message_id: str = Field(..., description="消息ID")
     cancellation_reason: Optional[str] = Field(None, description="取消原因")
     task_id: Optional[str] = Field(None, description="关联任务ID")
-    context: Optional[Dict[str, Any]] = Field(default_factory=dict, description="上下文信息")
+    context: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="上下文信息"
+    )

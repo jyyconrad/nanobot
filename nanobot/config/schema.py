@@ -108,7 +108,9 @@ class ExecToolConfig(BaseModel):
     """Shell exec tool configuration."""
 
     timeout: int = 60
-    restrict_to_workspace: bool = False  # If true, block commands accessing paths outside workspace
+    restrict_to_workspace: bool = (
+        False  # If true, block commands accessing paths outside workspace
+    )
 
 
 class ToolsConfig(BaseModel):
@@ -162,7 +164,11 @@ class OpencodeAgentsConfig(BaseModel):
     enabled: bool = False  # 是否启用 opencode agents
     source_dir: str = "~/.config/opencode/agents"  # opencode agents 源目录
     agents: list[str] = Field(
-        default_factory=lambda: ["code-reviewer", "frontend-developer", "backend-developer"]
+        default_factory=lambda: [
+            "code-reviewer",
+            "frontend-developer",
+            "backend-developer",
+        ]
     )  # 要加载的 agents 列表
 
 
@@ -172,7 +178,9 @@ class MCPServerConfig(BaseModel):
     name: str = Field(..., description="MCP server name")
     url: str = Field(..., description="MCP server URL")
     auth_token: Optional[str] = Field(None, description="Authentication token")
-    auth_type: str = Field("bearer", description="Authentication type (bearer, basic, etc.)")
+    auth_type: str = Field(
+        "bearer", description="Authentication type (bearer, basic, etc.)"
+    )
 
 
 class OpencodeConfig(BaseModel):
@@ -182,7 +190,9 @@ class OpencodeConfig(BaseModel):
     skills: OpencodeSkillsConfig = Field(default_factory=OpencodeSkillsConfig)
     commands: OpencodeCommandsConfig = Field(default_factory=OpencodeCommandsConfig)
     agents: OpencodeAgentsConfig = Field(default_factory=OpencodeAgentsConfig)
-    mcp_servers: list[MCPServerConfig] = Field(default_factory=list, description="MCP server configurations")
+    mcp_servers: list[MCPServerConfig] = Field(
+        default_factory=list, description="MCP server configurations"
+    )
 
 
 class MonitoringConfig(BaseModel):
@@ -240,7 +250,9 @@ class Config(BaseSettings):
             if "model" in config_data["llm"]:
                 migrated["agents"]["defaults"]["model"] = config_data["llm"]["model"]
             if "temperature" in config_data["llm"]:
-                migrated["agents"]["defaults"]["temperature"] = config_data["llm"]["temperature"]
+                migrated["agents"]["defaults"]["temperature"] = config_data["llm"][
+                    "temperature"
+                ]
 
         # 处理旧格式的 database 配置
         if "database" in config_data:
@@ -262,14 +274,23 @@ class Config(BaseSettings):
             if "engine" in config_data["ai"]:
                 migrated["agents"]["defaults"]["model"] = config_data["ai"]["engine"]
             if "temp" in config_data["ai"]:
-                migrated["agents"]["defaults"]["temperature"] = config_data["ai"]["temp"]
+                migrated["agents"]["defaults"]["temperature"] = config_data["ai"][
+                    "temp"
+                ]
 
         # 处理 legacy 格式的 db 配置
         if "db" in config_data:
             pass
 
         # 保留新格式的配置字段
-        for key in ["agents", "channels", "providers", "gateway", "tools", "monitoring"]:
+        for key in [
+            "agents",
+            "channels",
+            "providers",
+            "gateway",
+            "tools",
+            "monitoring",
+        ]:
             if key in config_data and key not in migrated:
                 migrated[key] = config_data[key]
 
@@ -362,6 +383,7 @@ class Config(BaseSettings):
             return self.providers.volcengine.api_base
         return None
 
-    class Config:
-        env_prefix = "NANOBOT_"
-        env_nested_delimiter = "__"
+    model_config = {
+        "env_prefix": "NANOBOT_",
+        "env_nested_delimiter": "__"
+    }

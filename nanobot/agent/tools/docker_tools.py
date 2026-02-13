@@ -3,6 +3,7 @@ Docker 工具 - 执行 Docker 操作
 """
 
 from typing import Any, Dict
+
 from nanobot.agent.tools.base import Tool
 
 
@@ -35,7 +36,9 @@ class DockerBuildTool(Tool):
         },
     }
 
-    async def execute(self, context: str, tag: str, dockerfile: str = None, build_args: dict = None) -> str:
+    async def execute(
+        self, context: str, tag: str, dockerfile: str = None, build_args: dict = None
+    ) -> str:
         """执行 Docker 镜像构建"""
         try:
             import subprocess
@@ -108,8 +111,13 @@ class DockerRunTool(Tool):
     }
 
     async def execute(
-        self, image: str, name: str = None, ports: list = None, volumes: list = None,
-        environment: dict = None, command: str = None
+        self,
+        image: str,
+        name: str = None,
+        ports: list = None,
+        volumes: list = None,
+        environment: dict = None,
+        command: str = None,
     ) -> str:
         """执行 Docker 容器运行"""
         try:
@@ -177,7 +185,9 @@ class DockerComposeTool(Tool):
         },
     }
 
-    async def execute(self, command: str, compose_file: str = None, detach: bool = False) -> str:
+    async def execute(
+        self, command: str, compose_file: str = None, detach: bool = False
+    ) -> str:
         """执行 Docker Compose 命令"""
         try:
             import subprocess
@@ -304,7 +314,9 @@ class DockerRemoveTool(Tool):
         },
     }
 
-    async def execute(self, target: str, type: str = "container", force: bool = False) -> str:
+    async def execute(
+        self, target: str, type: str = "container", force: bool = False
+    ) -> str:
         """执行 Docker 删除操作"""
         try:
             import subprocess

@@ -30,6 +30,7 @@ def mock_bus():
 def webchat_channel(mock_config, mock_bus):
     """Create WebChat channel instance."""
     from nanobot.channels.webchat_channel import WebChatChannel
+
     return WebChatChannel(mock_config, mock_bus)
 
 
@@ -47,11 +48,12 @@ class TestWebChatChannel:
     @pytest.mark.asyncio
     async def test_connect_success(self, webchat_channel):
         """Test successful WebSocket connection."""
-        with patch("nanobot.channels.webchat_channel.connect") as mock_connect:
+        with patch("websockets.connect") as mock_connect:
             # Mock WebSocket connection
             mock_ws = AsyncMock()
             mock_ws.send = AsyncMock()
-            mock_connect.return_value = mock_ws
+            mock_connect.return_value = asyncio.Future()
+            mock_connect.return_value.set_result(mock_ws)
 
             result = await webchat_channel.connect()
             assert result is True
@@ -59,9 +61,7 @@ class TestWebChatChannel:
     @pytest.mark.asyncio
     async def test_connect_failure(self, webchat_channel):
         """Test failed WebSocket connection."""
-        with patch("nanobot.channels.webchat_channel.connect") as mock_connect:
-            mock_connect.side_effect = Exception("Connection failed")
-
+        with patch("websockets.connect", side_effect=Exception("Connection failed")):
             result = await webchat_channel.connect()
             assert result is False
 
@@ -80,9 +80,8 @@ class TestWebChatChannel:
             channel="webchat",
             chat_id="user123",
             content="Hello, World!",
-            sender_id="bot",
             media=[],
-            metadata={}
+            metadata={},
         )
 
         await webchat_channel.send(outbound_msg)
@@ -99,12 +98,7 @@ class TestWebChatChannel:
         from nanobot.bus.events import OutboundMessage
 
         outbound_msg = OutboundMessage(
-            channel="webchat",
-            chat_id="user123",
-            content="Hello",
-            sender_id="bot",
-            media=[],
-            metadata={}
+            channel="webchat", chat_id="user123", content="Hello", media=[], metadata={}
         )
 
         # Should not raise, just log error
@@ -119,7 +113,7 @@ class TestWebChatChannel:
             "type": "text",
             "content": "Test message",
             "timestamp": 1234567890.0,
-            "metadata": {}
+            "metadata": {},
         }
 
         await webchat_channel._handle_incoming_message(webchat_msg)
@@ -132,14 +126,13 @@ class TestWebChatChannel:
         assert inbound_msg.content == "Test message"
 
     @pytest.mark.asyncio
-    async def test_handle_incoming_message_unauthorized(self, webchat_channel, mock_bus, mock_config):
+    async def test_handle_incoming_message_unauthorized(
+        self, webchat_channel, mock_bus, mock_config
+    ):
         """Test handling message from unauthorized user."""
         mock_config.allow_from = ["user123"]
 
-        webchat_msg = {
-            "from": "user456",  # Not in allow list
-            "content": "Test"
-        }
+        webchat_msg = {"from": "user456", "content": "Test"}  # Not in allow list
 
         await webchat_channel._handle_incoming_message(webchat_msg)
 
@@ -160,15 +153,16 @@ class TestWebChatChannel:
         mock_config.allow_from = ["user123"]
         assert webchat_channel.is_allowed("user123|other") is True
 
-    def test_authenticate_user(self, webchat_channel, mock_config):
+    @pytest.mark.asyncio
+    async def test_authenticate_user(self, webchat_channel, mock_config):
         """Test user authentication."""
         # Valid token
-        result = webchat_channel.authenticate_user("user123", "test-api-key")
+        result = await webchat_channel.authenticate_user("user123", "test-api-key")
         assert result is True
         assert webchat_channel._authenticated is True
 
         # Invalid token
-        result = webchat_channel.authenticate_user("user456", "wrong-token")
+        result = await webchat_channel.authenticate_user("user456", "wrong-token")
         assert result is False
 
     def test_get_user_info(self, webchat_channel):
@@ -198,12 +192,11 @@ class TestWebChatChannel:
     @pytest.mark.asyncio
     async def test_start_stop(self, webchat_channel):
         """Test starting and stopping the channel."""
-        with patch.object(webchat_channel, 'connect', return_value=AsyncMock(return_value=True)):
-            # Mock connect to return True
-            webchat_channel.connect = AsyncMock(return_value=True)
+        # Mock connect to return True
+        webchat_channel.connect = AsyncMock(return_value=True)
 
-            await webchat_channel.start()
-            assert webchat_channel.is_running is True
+        await webchat_channel.start()
+        assert webchat_channel.is_running is True
 
-            await webchat_channel.stop()
-            assert webchat_channel.is_running is False
+        await webchat_channel.stop()
+        assert webchat_channel.is_running is False

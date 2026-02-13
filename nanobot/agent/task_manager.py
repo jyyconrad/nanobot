@@ -5,20 +5,21 @@ TaskManager - 任务管理模块
 支持任务持久化存储和加载。
 """
 
-import os
 import json
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
+import os
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
-
 
 # 配置日志
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
 logger.addHandler(handler)
 
 
@@ -41,6 +42,7 @@ class Task:
         result: 任务执行结果 (可选)
         error: 任务执行错误信息 (可选)
     """
+
     title: str
     description: str
     task_id: str = field(default_factory=lambda: str(uuid4()))
@@ -61,7 +63,9 @@ class Task:
         """验证任务状态是否合法"""
         valid_statuses = ["pending", "running", "completed", "failed"]
         if self.status not in valid_statuses:
-            raise ValueError(f"Invalid status: {self.status}. Must be one of {valid_statuses}")
+            raise ValueError(
+                f"Invalid status: {self.status}. Must be one of {valid_statuses}"
+            )
 
     def _validate_priority(self):
         """验证任务优先级是否合法"""
@@ -83,9 +87,11 @@ class Task:
             "priority": self.priority,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "completed_at": (
+                self.completed_at.isoformat() if self.completed_at else None
+            ),
             "result": self.result,
-            "error": self.error
+            "error": self.error,
         }
 
     @classmethod
@@ -107,9 +113,13 @@ class Task:
             priority=data["priority"],
             created_at=datetime.fromisoformat(data["created_at"]),
             updated_at=datetime.fromisoformat(data["updated_at"]),
-            completed_at=datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else None,
+            completed_at=(
+                datetime.fromisoformat(data["completed_at"])
+                if data.get("completed_at")
+                else None
+            ),
             result=data.get("result"),
-            error=data.get("error")
+            error=data.get("error"),
         )
 
 
@@ -130,7 +140,9 @@ class TaskManager:
         self.storage_file = storage_file
         self.tasks: Dict[str, Task] = {}
         self._load_tasks()
-        logger.info(f"TaskManager initialized with {len(self.tasks)} tasks loaded from {storage_file}")
+        logger.info(
+            f"TaskManager initialized with {len(self.tasks)} tasks loaded from {storage_file}"
+        )
 
     def _load_tasks(self):
         """从存储文件加载任务"""
@@ -142,12 +154,16 @@ class TaskManager:
                         task_data["task_id"]: Task.from_dict(task_data)
                         for task_data in tasks_data
                     }
-                logger.info(f"Successfully loaded {len(self.tasks)} tasks from {self.storage_file}")
+                logger.info(
+                    f"Successfully loaded {len(self.tasks)} tasks from {self.storage_file}"
+                )
             except Exception as e:
                 logger.error(f"Failed to load tasks from {self.storage_file}: {e}")
                 self.tasks = {}
         else:
-            logger.info(f"Storage file {self.storage_file} does not exist. Starting with empty task list.")
+            logger.info(
+                f"Storage file {self.storage_file} does not exist. Starting with empty task list."
+            )
 
     def _save_tasks(self):
         """保存任务到存储文件"""
@@ -155,16 +171,14 @@ class TaskManager:
             tasks_data = [task.to_dict() for task in self.tasks.values()]
             with open(self.storage_file, "w", encoding="utf-8") as f:
                 json.dump(tasks_data, f, ensure_ascii=False, indent=2, default=str)
-            logger.debug(f"Successfully saved {len(self.tasks)} tasks to {self.storage_file}")
+            logger.debug(
+                f"Successfully saved {len(self.tasks)} tasks to {self.storage_file}"
+            )
         except Exception as e:
             logger.error(f"Failed to save tasks to {self.storage_file}: {e}")
 
     def create_task(
-        self,
-        title: str,
-        description: str,
-        priority: int = 3,
-        status: str = "pending"
+        self, title: str, description: str, priority: int = 3, status: str = "pending"
     ) -> Task:
         """
         创建新任务
@@ -182,10 +196,7 @@ class TaskManager:
             ValueError: 当状态或优先级不合法时
         """
         task = Task(
-            title=title,
-            description=description,
-            priority=priority,
-            status=status
+            title=title, description=description, priority=priority, status=status
         )
         self.tasks[task.task_id] = task
         self._save_tasks()
@@ -217,7 +228,7 @@ class TaskManager:
         status: Optional[str] = None,
         priority: Optional[int] = None,
         result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None
+        error: Optional[str] = None,
     ) -> Optional[Task]:
         """
         更新任务信息
@@ -251,12 +262,22 @@ class TaskManager:
         if status:
             valid_statuses = ["pending", "running", "completed", "failed"]
             if status not in valid_statuses:
-                raise ValueError(f"Invalid status: {status}. Must be one of {valid_statuses}")
+                raise ValueError(
+                    f"Invalid status: {status}. Must be one of {valid_statuses}"
+                )
             # 状态转换逻辑
-            if task.status == "pending" and status not in ["running", "completed", "failed"]:
-                raise ValueError("Pending task can only transition to running, completed, or failed")
+            if task.status == "pending" and status not in [
+                "running",
+                "completed",
+                "failed",
+            ]:
+                raise ValueError(
+                    "Pending task can only transition to running, completed, or failed"
+                )
             if task.status == "running" and status not in ["completed", "failed"]:
-                raise ValueError("Running task can only transition to completed or failed")
+                raise ValueError(
+                    "Running task can only transition to completed or failed"
+                )
             if task.status == "completed" and status != "completed":
                 raise ValueError("Completed task cannot be updated to other statuses")
             if task.status == "failed" and status != "failed":
@@ -282,6 +303,7 @@ class TaskManager:
 
         # 确保更新时间比原始时间晚
         import time
+
         while task.updated_at <= original_updated_at:
             task.updated_at = datetime.now()
             time.sleep(0.001)
@@ -295,7 +317,7 @@ class TaskManager:
         status: Optional[str] = None,
         priority: Optional[int] = None,
         start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
+        end_date: Optional[datetime] = None,
     ) -> List[Task]:
         """
         列出任务 (支持筛选)
@@ -315,13 +337,19 @@ class TaskManager:
             filtered_tasks = [task for task in filtered_tasks if task.status == status]
 
         if priority:
-            filtered_tasks = [task for task in filtered_tasks if task.priority == priority]
+            filtered_tasks = [
+                task for task in filtered_tasks if task.priority == priority
+            ]
 
         if start_date:
-            filtered_tasks = [task for task in filtered_tasks if task.created_at >= start_date]
+            filtered_tasks = [
+                task for task in filtered_tasks if task.created_at >= start_date
+            ]
 
         if end_date:
-            filtered_tasks = [task for task in filtered_tasks if task.created_at <= end_date]
+            filtered_tasks = [
+                task for task in filtered_tasks if task.created_at <= end_date
+            ]
 
         # 按创建时间降序排序
         filtered_tasks.sort(key=lambda x: x.created_at, reverse=True)

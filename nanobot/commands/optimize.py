@@ -14,7 +14,9 @@ class OptimizeCommand(Command):
 
     @property
     def description(self) -> str:
-        return "Analyze and optimize code for performance, security, and potential issues"
+        return (
+            "Analyze and optimize code for performance, security, and potential issues"
+        )
 
     async def execute(self, context: dict[str, Any]) -> str:
         """执行代码优化分析"""

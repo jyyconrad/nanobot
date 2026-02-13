@@ -233,9 +233,9 @@ class StructuredLogger:
             **kwargs: 额外的上下文信息
         """
         log_level = (
-            logger.info if status == "healthy"
-            else logger.warning if status == "warning"
-            else logger.error
+            logger.info
+            if status == "healthy"
+            else logger.warning if status == "warning" else logger.error
         )
         context = {
             "type": "healthcheck",
@@ -263,9 +263,9 @@ class StructuredLogger:
             **kwargs: 额外的上下文信息
         """
         log_level = (
-            logger.critical if severity == "critical"
-            else logger.warning if severity == "warning"
-            else logger.info
+            logger.critical
+            if severity == "critical"
+            else logger.warning if severity == "warning" else logger.info
         )
         context = {
             "type": "alert",

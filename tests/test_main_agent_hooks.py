@@ -11,7 +11,7 @@ from nanobot.agent.hooks import (
     MainAgentHooks,
     MetricsHooksDecorator,
 )
-from nanobot.agent.planner.models import TaskPlan
+from nanobot.agent.planner.models import TaskPlan, TaskStep
 from nanobot.agent.subagent.models import (
     SubagentResult,
     SubagentState,
@@ -55,7 +55,20 @@ async def test_base_hooks_after_planning(base_hooks):
         task_type=TaskType.OTHER,
         priority=TaskPriority.MEDIUM,
         complexity=0.5,
-        steps=["step1", "step2"],
+        steps=[
+            TaskStep(
+                id="step1",
+                description="step1",
+                expected_output="output1",
+                validation_criteria="valid1",
+            ),
+            TaskStep(
+                id="step2",
+                description="step2",
+                expected_output="output2",
+                validation_criteria="valid2",
+            ),
+        ],
         estimated_time=300,
         requires_approval=False,
     )
@@ -75,7 +88,9 @@ async def test_base_hooks_before_decision(base_hooks):
 @pytest.mark.asyncio
 async def test_base_hooks_after_decision(base_hooks):
     """测试基础 Hooks 的 after_decision 方法"""
-    decision = DecisionResult(success=True, action="reply", data={}, message="test response")
+    decision = DecisionResult(
+        success=True, action="reply", data={}, message="test response"
+    )
     await base_hooks.after_decision(decision)
 
 
@@ -93,7 +108,9 @@ async def test_base_hooks_on_subagent_result(base_hooks):
         task_id="test-task",
         output="test output",
         success=True,
-        state=SubagentState(task_id="test-task", status=SubagentStatus.COMPLETED, progress=1.0),
+        state=SubagentState(
+            task_id="test-task", status=SubagentStatus.COMPLETED, progress=1.0
+        ),
     )
     await base_hooks.on_subagent_result(result)
 
@@ -139,13 +156,28 @@ async def test_logging_hooks_decorator():
         task_type=TaskType.OTHER,
         priority=TaskPriority.MEDIUM,
         complexity=0.5,
-        steps=["step1", "step2"],
+        steps=[
+            TaskStep(
+                id="step1",
+                description="step1",
+                expected_output="output1",
+                validation_criteria="valid1",
+            ),
+            TaskStep(
+                id="step2",
+                description="step2",
+                expected_output="output2",
+                validation_criteria="valid2",
+            ),
+        ],
         estimated_time=300,
         requires_approval=False,
     )
     await logging_hooks.after_planning(task_plan)
     await logging_hooks.before_decision("new_message")
-    decision = DecisionResult(success=True, action="reply", data={}, message="test response")
+    decision = DecisionResult(
+        success=True, action="reply", data={}, message="test response"
+    )
     await logging_hooks.after_decision(decision)
     task = SubagentTask(task_id="test-task", description="test task")
     await logging_hooks.on_subagent_spawn("test-agent", task)
@@ -153,7 +185,9 @@ async def test_logging_hooks_decorator():
         task_id="test-task",
         output="test output",
         success=True,
-        state=SubagentState(task_id="test-task", status=SubagentStatus.COMPLETED, progress=1.0),
+        state=SubagentState(
+            task_id="test-task", status=SubagentStatus.COMPLETED, progress=1.0
+        ),
     )
     await logging_hooks.on_subagent_result(result)
     await logging_hooks.on_subagent_interrupt("interrupt message")
@@ -178,13 +212,28 @@ async def test_metrics_hooks_decorator():
         task_type=TaskType.OTHER,
         priority=TaskPriority.MEDIUM,
         complexity=0.5,
-        steps=["step1", "step2"],
+        steps=[
+            TaskStep(
+                id="step1",
+                description="step1",
+                expected_output="output1",
+                validation_criteria="valid1",
+            ),
+            TaskStep(
+                id="step2",
+                description="step2",
+                expected_output="output2",
+                validation_criteria="valid2",
+            ),
+        ],
         estimated_time=300,
         requires_approval=False,
     )
     await metrics_hooks.after_planning(task_plan)
 
-    decision = DecisionResult(success=True, action="reply", data={}, message="test response")
+    decision = DecisionResult(
+        success=True, action="reply", data={}, message="test response"
+    )
     await metrics_hooks.after_decision(decision)
 
     task = SubagentTask(task_id="test-task", description="test task")
@@ -194,7 +243,9 @@ async def test_metrics_hooks_decorator():
         task_id="test-task",
         output="test output",
         success=True,
-        state=SubagentState(task_id="test-task", status=SubagentStatus.COMPLETED, progress=1.0),
+        state=SubagentState(
+            task_id="test-task", status=SubagentStatus.COMPLETED, progress=1.0
+        ),
     )
     await metrics_hooks.on_subagent_result(result)
 
@@ -227,7 +278,9 @@ async def test_hook_result_creation():
     assert default_result.modified_message is None
 
     # 自定义值
-    custom_result = HookResult(allow=False, block=True, modified_message="modified message")
+    custom_result = HookResult(
+        allow=False, block=True, modified_message="modified message"
+    )
     assert custom_result.allow is False
     assert custom_result.block is True
     assert custom_result.modified_message == "modified message"

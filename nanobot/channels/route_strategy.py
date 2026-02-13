@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 
 class RoutePriority(Enum):
     """Message routing priority levels."""
+
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"

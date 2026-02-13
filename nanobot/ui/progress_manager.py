@@ -370,7 +370,9 @@ class ProgressManager:
                 "failed": "red",
             }.get(task.status, "white")
 
-            progress_bar = "█" * int(task.percentage / 10) + "░" * (10 - int(task.percentage / 10))
+            progress_bar = "█" * int(task.percentage / 10) + "░" * (
+                10 - int(task.percentage / 10)
+            )
             progress_text = f"{progress_bar} {task.percentage:.1f}%"
 
             table.add_row(

@@ -3,8 +3,8 @@
 import asyncio
 import json
 import subprocess
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
@@ -14,6 +14,7 @@ from nanobot.agent.tools.base import Tool
 @dataclass
 class MCPToolConfig:
     """Configuration for a single MCP server."""
+
     server_name: str
     transport: str = "stdio"  # "stdio" or "sse"
     command: Optional[str] = None  # for stdio transport
@@ -26,6 +27,7 @@ class MCPToolConfig:
 @dataclass
 class MCPConnection:
     """Represents a connection to an MCP server."""
+
     config: MCPToolConfig
     process: Optional[subprocess.Popen] = None
     tools: List[Dict[str, Any]] = field(default_factory=list)
@@ -67,7 +69,9 @@ class MCPTool(Tool):
                 await self._connect_to_server(server_config)
 
             self._initialized = True
-            logger.info(f"MCP tool initialized with {len(self.connections)} servers, {len(self._all_tools)} tools")
+            logger.info(
+                f"MCP tool initialized with {len(self.connections)} servers, {len(self._all_tools)} tools"
+            )
         except Exception as e:
             logger.error(f"Failed to initialize MCP tool: {e}")
             raise
@@ -290,7 +294,9 @@ class MCPTool(Tool):
                 tool_desc = tool_info.get("description", "No description")
                 result.append(f"  • {tool_name}: {tool_desc}")
 
-        result.append("\n\nTo call a tool, use operation='call' with tool_name and params.")
+        result.append(
+            "\n\nTo call a tool, use operation='call' with tool_name and params."
+        )
         return "\n".join(result)
 
     def _discover_servers(self) -> str:
@@ -407,7 +413,9 @@ class MCPTool(Tool):
                                 response = json.loads(response_line)
                                 if response.get("id") == request_id:
                                     if "error" in response:
-                                        logger.error(f"MCP tools/list error: {response['error']}")
+                                        logger.error(
+                                            f"MCP tools/list error: {response['error']}"
+                                        )
                                     else:
                                         result = response.get("result", {})
                                         tools = result.get("tools", [])
@@ -416,21 +424,29 @@ class MCPTool(Tool):
                                         # Register tools
                                         for tool in tools:
                                             tool_name = tool.get("name", "")
-                                            full_name = f"{conn.config.server_name}:{tool_name}"
+                                            full_name = (
+                                                f"{conn.config.server_name}:{tool_name}"
+                                            )
                                             self._all_tools[full_name] = {
                                                 "server": conn.config.server_name,
                                                 "tool": tool,
-                                                "description": tool.get("description", "No description"),
+                                                "description": tool.get(
+                                                    "description", "No description"
+                                                ),
                                             }
                                             # Also register without prefix for simple lookups
                                             if tool_name not in self._all_tools:
                                                 self._all_tools[tool_name] = {
                                                     "server": conn.config.server_name,
                                                     "tool": tool,
-                                                    "description": tool.get("description", "No description"),
+                                                    "description": tool.get(
+                                                        "description", "No description"
+                                                    ),
                                                 }
 
-                                        logger.info(f"Discovered {len(tools)} tools from {conn.config.server_name}")
+                                        logger.info(
+                                            f"Discovered {len(tools)} tools from {conn.config.server_name}"
+                                        )
                                     break
                             except json.JSONDecodeError:
                                 pass
@@ -466,7 +482,9 @@ class MCPTool(Tool):
 
         if conn.process.poll() is not None:
             stderr = conn.process.stderr.read() if conn.process.stderr else ""
-            raise RuntimeError(f"MCP server process terminated immediately. stderr: {stderr}")
+            raise RuntimeError(
+                f"MCP server process terminated immediately. stderr: {stderr}"
+            )
 
         # Discover tools after successful connection
         await self._discover_and_load_tools(conn)
@@ -515,9 +533,7 @@ class MCPTool(Tool):
 
         # Wait for response with timeout
         try:
-            result = await asyncio.wait_for(
-                future, timeout=conn.config.timeout
-            )
+            result = await asyncio.wait_for(future, timeout=conn.config.timeout)
             return result
         except asyncio.TimeoutError:
             raise TimeoutError(
@@ -674,8 +690,12 @@ class MCPTool(Tool):
                     tool_desc = tool_desc[:97] + "..."
                 result.append(f"  • {tool_name}: {tool_desc}")
 
-        result.append("\n\nTo call a tool, use operation='call' with tool_name and params.")
-        result.append("Example: tool_name='filesystem:read_file', params={'path': '/tmp/test.txt'}")
+        result.append(
+            "\n\nTo call a tool, use operation='call' with tool_name and params."
+        )
+        result.append(
+            "Example: tool_name='filesystem:read_file', params={'path': '/tmp/test.txt'}"
+        )
         return "\n".join(result)
 
     def _discover_servers(self) -> str:
@@ -685,7 +705,9 @@ class MCPTool(Tool):
             Formatted server list
         """
         if not self.connections:
-            return "No MCP servers connected. Add server configurations to use MCP tools."
+            return (
+                "No MCP servers connected. Add server configurations to use MCP tools."
+            )
 
         result = []
         result.append(f"Connected MCP Servers ({len(self.connections)} total):\n")
@@ -798,7 +820,10 @@ class MCPTool(Tool):
                 raise RuntimeError(f"MCP server process terminated. stderr: {stderr}")
 
             # Check if data is available
-            if conn.process.stdout in select.select([conn.process.stdout], [], [], 0.1)[0]:
+            if (
+                conn.process.stdout
+                in select.select([conn.process.stdout], [], [], 0.1)[0]
+            ):
                 response_line = conn.process.stdout.readline()
                 if response_line:
                     try:
@@ -824,9 +849,15 @@ class MCPTool(Tool):
                                     texts.append("[Image content]")
                                 elif item.get("type") == "resource":
                                     resource = item.get("resource", {})
-                                    texts.append(f"[Resource: {resource.get('uri', 'unknown')}]")
+                                    texts.append(
+                                        f"[Resource: {resource.get('uri', 'unknown')}]"
+                                    )
 
-                            return "\n".join(texts) if texts else "Tool executed successfully (no text output)"
+                            return (
+                                "\n".join(texts)
+                                if texts
+                                else "Tool executed successfully (no text output)"
+                            )
                     except json.JSONDecodeError:
                         logger.warning(f"Failed to parse MCP response: {response_line}")
 
@@ -842,6 +873,7 @@ class MCPTool(Tool):
                     # Try graceful shutdown first
                     try:
                         import json
+
                         shutdown_request = {
                             "jsonrpc": "2.0",
                             "id": conn.get_next_request_id(),
@@ -852,6 +884,7 @@ class MCPTool(Tool):
 
                         # Wait for response
                         import select
+
                         start_time = time.time()
                         while time.time() - start_time < 5:
                             if select.select([conn.process.stdout], [], [], 0.1)[0]:

@@ -80,7 +80,10 @@ def test_cli_interface():
 
     try:
         result = subprocess.run(
-            ["python3", "-m", "nanobot", "--help"], capture_output=True, text=True, check=True
+            ["python3", "-m", "nanobot", "--help"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         assert "Usage:" in result.stdout
         assert "nanobot" in result.stdout
@@ -93,7 +96,12 @@ def test_cli_interface():
 def test_docs_availability():
     """测试文档可用性"""
     docs_dir = "docs"
-    required_files = ["README.md", "ARCHITECTURE.md", "DEPLOYMENT.md", "MIGRATION_GUIDE.md"]
+    required_files = [
+        "README.md",
+        "ARCHITECTURE.md",
+        "DEPLOYMENT.md",
+        "MIGRATION_GUIDE.md",
+    ]
 
     for file_name in required_files:
         file_path = os.path.join(docs_dir, file_name)

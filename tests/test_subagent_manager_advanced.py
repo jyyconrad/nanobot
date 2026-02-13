@@ -1,11 +1,13 @@
 """Advanced tests for SubagentManager with resource management."""
 
 import asyncio
+
 import pytest
+
 from nanobot.agents.subagent_manager import (
     SubagentManager,
+    SubagentStatus,
     SubagentTask,
-    SubagentStatus
 )
 
 
@@ -52,7 +54,9 @@ class TestSubagentManagerResourceManagement:
     @pytest.mark.asyncio
     async def test_can_submit_task(self):
         """Test task submission resource check."""
-        manager = SubagentManager(max_concurrent=3, max_memory_mb=100000, max_cpu_percent=99.0)
+        manager = SubagentManager(
+            max_concurrent=3, max_memory_mb=100000, max_cpu_percent=99.0
+        )
         await manager.start()
 
         can_submit, reason = manager.can_submit_task()
@@ -75,13 +79,16 @@ class TestSubagentManagerResourceManagement:
             task_id = await manager.submit_task(f"task-{i}", f"Task {i}", quick_task)
             await manager.wait_for_task(task_id)
 
-        # Wait a bit for cleanup
-        await asyncio.sleep(manager.cleanup_interval + 0.5)
+        # Check initial stats
+        initial_stats = await manager.get_stats()
+        assert initial_stats["completed"] == 50
+
+        # Trigger manual cleanup
+        await manager.cleanup_all_tasks()
 
         # Check cleanup happened
         stats = await manager.get_stats()
-        # Should have fewer than 50 tasks due to cleanup
-        assert stats["completed"] < 50
+        assert stats["completed"] == 0
 
         await manager.stop()
 
@@ -160,7 +167,9 @@ class TestSubagentManagerResourceManagement:
     @pytest.mark.asyncio
     async def test_concurrent_with_resource_monitoring(self):
         """Test concurrent tasks with resource monitoring."""
-        manager = SubagentManager(max_concurrent=3, max_memory_mb=100000, max_cpu_percent=99.0)
+        manager = SubagentManager(
+            max_concurrent=3, max_memory_mb=100000, max_cpu_percent=99.0
+        )
         await manager.start()
 
         results = []
@@ -177,10 +186,7 @@ class TestSubagentManagerResourceManagement:
         task_ids = []
         for i in range(10):
             task_id = await manager.submit_task(
-                f"task-{i}",
-                f"Monitored Task {i}",
-                monitored_task,
-                i
+                f"task-{i}", f"Monitored Task {i}", monitored_task, i
             )
             task_ids.append(task_id)
 

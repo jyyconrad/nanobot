@@ -13,11 +13,11 @@
 """
 
 import os
-import sys
 import signal
-import time
+import sys
 import threading
-from typing import List, Callable, Optional
+import time
+from typing import Callable, List, Optional
 
 from loguru import logger
 
@@ -46,6 +46,7 @@ class GracefulShutdownManager:
         """
         注册信号处理函数
         """
+
         # 处理中断信号
         def handle_signal(signum, frame):
             logger.info(f"Received signal {signum}, initiating shutdown...")
@@ -133,7 +134,10 @@ class GracefulShutdownManager:
 
         # 等待所有资源清理
         start_time = time.time()
-        while not self._is_all_resources_cleaned() and time.time() - start_time < self._shutdown_timeout:
+        while (
+            not self._is_all_resources_cleaned()
+            and time.time() - start_time < self._shutdown_timeout
+        ):
             time.sleep(0.5)
 
         if time.time() - start_time >= self._shutdown_timeout:

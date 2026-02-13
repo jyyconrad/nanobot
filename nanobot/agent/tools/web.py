@@ -76,7 +76,10 @@ class WebSearchTool(Tool):
                 r = await client.get(
                     "https://api.search.brave.com/res/v1/web/search",
                     params={"q": query, "count": n},
-                    headers={"Accept": "application/json", "X-Subscription-Token": self.api_key},
+                    headers={
+                        "Accept": "application/json",
+                        "X-Subscription-Token": self.api_key,
+                    },
                     timeout=10.0,
                 )
                 r.raise_for_status()
@@ -104,7 +107,11 @@ class WebFetchTool(Tool):
         "type": "object",
         "properties": {
             "url": {"type": "string", "description": "URL to fetch"},
-            "extract_mode": {"type": "string", "enum": ["markdown", "text"], "default": "markdown"},
+            "extract_mode": {
+                "type": "string",
+                "enum": ["markdown", "text"],
+                "default": "markdown",
+            },
             "max_chars": {"type": "integer", "minimum": 100},
         },
         "required": ["url"],
@@ -114,7 +121,11 @@ class WebFetchTool(Tool):
         self.max_chars = max_chars
 
     async def execute(
-        self, url: str, extract_mode: str = "markdown", max_chars: int | None = None, **kwargs: Any
+        self,
+        url: str,
+        extract_mode: str = "markdown",
+        max_chars: int | None = None,
+        **kwargs: Any,
     ) -> str:
         from readability import Document
 
@@ -123,7 +134,9 @@ class WebFetchTool(Tool):
         # Validate URL before fetching
         is_valid, error_msg = _validate_url(url)
         if not is_valid:
-            return json.dumps({"error": f"URL validation failed: {error_msg}", "url": url})
+            return json.dumps(
+                {"error": f"URL validation failed: {error_msg}", "url": url}
+            )
 
         try:
             async with httpx.AsyncClient(
@@ -138,7 +151,9 @@ class WebFetchTool(Tool):
             if "application/json" in ctype:
                 text, extractor = json.dumps(r.json(), indent=2), "json"
             # HTML
-            elif "text/html" in ctype or r.text[:256].lower().startswith(("<!doctype", "<html")):
+            elif "text/html" in ctype or r.text[:256].lower().startswith(
+                ("<!doctype", "<html")
+            ):
                 doc = Document(r.text)
                 content = (
                     self._to_markdown(doc.summary())
@@ -184,7 +199,10 @@ class WebFetchTool(Tool):
             flags=re.I,
         )
         text = re.sub(
-            r"<li[^>]*>([\s\S]*?)</li>", lambda m: f"\n- {_strip_tags(m[1])}", text, flags=re.I
+            r"<li[^>]*>([\s\S]*?)</li>",
+            lambda m: f"\n- {_strip_tags(m[1])}",
+            text,
+            flags=re.I,
         )
         text = re.sub(r"</(p|div|section|article)>", "\n\n", text, flags=re.I)
         text = re.sub(r"<(br|hr)\s*/?>", "\n", text, flags=re.I)

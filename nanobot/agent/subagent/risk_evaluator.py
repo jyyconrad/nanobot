@@ -17,7 +17,9 @@ class RiskLevel(BaseModel):
     level: str = Field(..., description="Risk level: low, medium, high, critical")
     score: int = Field(..., description="Risk score (0-100)")
     description: str = Field(..., description="Risk description")
-    requires_approval: bool = Field(..., description="Whether human approval is required")
+    requires_approval: bool = Field(
+        ..., description="Whether human approval is required"
+    )
 
 
 class RiskAssessment(BaseModel):
@@ -27,7 +29,9 @@ class RiskAssessment(BaseModel):
     arguments: dict = Field(..., description="Tool arguments")
     risk_level: RiskLevel = Field(..., description="Risk level assessment")
     rationale: str = Field(..., description="Rationale for the assessment")
-    mitigation: Optional[str] = Field(default=None, description="Mitigation suggestions")
+    mitigation: Optional[str] = Field(
+        default=None, description="Mitigation suggestions"
+    )
 
 
 class RiskEvaluator:
@@ -73,7 +77,9 @@ class RiskEvaluator:
             r"shred\s+.*",
         ]
 
-    async def evaluate_tool_calls(self, subagent_id: str, tool_calls: List[Any]) -> bool:
+    async def evaluate_tool_calls(
+        self, subagent_id: str, tool_calls: List[Any]
+    ) -> bool:
         """
         Evaluate tool calls for risk and determine if they should be allowed.
 
@@ -99,16 +105,22 @@ class RiskEvaluator:
                 await self._request_approval(subagent_id, assessment)
                 return False
 
-        logger.debug(f"All tool calls evaluated as safe: {[a.tool_name for a in assessments]}")
+        logger.debug(
+            f"All tool calls evaluated as safe: {[a.tool_name for a in assessments]}"
+        )
         return True
 
-    async def _evaluate_single_tool_call(self, subagent_id: str, tool_call: Any) -> RiskAssessment:
+    async def _evaluate_single_tool_call(
+        self, subagent_id: str, tool_call: Any
+    ) -> RiskAssessment:
         """Evaluate a single tool call for risk."""
         tool_name = tool_call.name
         arguments = tool_call.arguments
 
         if tool_name in self._high_risk_tools:
-            return await self._evaluate_high_risk_tool(subagent_id, tool_name, arguments)
+            return await self._evaluate_high_risk_tool(
+                subagent_id, tool_name, arguments
+            )
         else:
             return await self._evaluate_low_risk_tool(subagent_id, tool_name, arguments)
 
@@ -154,7 +166,9 @@ class RiskEvaluator:
             requires_approval=risk_score >= 70,
         )
 
-        mitigation = await self._get_mitigation_suggestions(tool_name, arguments, risk_level)
+        mitigation = await self._get_mitigation_suggestions(
+            tool_name, arguments, risk_level
+        )
 
         return RiskAssessment(
             tool_name=tool_name,
@@ -169,7 +183,10 @@ class RiskEvaluator:
     ) -> RiskAssessment:
         """Evaluate low-risk tools like read file, list dir, etc."""
         risk_level = RiskLevel(
-            level="low", score=10, description="Low-risk operation", requires_approval=False
+            level="low",
+            score=10,
+            description="Low-risk operation",
+            requires_approval=False,
         )
 
         return RiskAssessment(
@@ -205,12 +222,16 @@ Please review this operation. Do you want to allow it to proceed?
         await self.bus.publish_inbound(msg)
         logger.debug(f"Approval requested for subagent {subagent_id}")
 
-    async def approve_operation(self, subagent_id: str, assessment: RiskAssessment) -> bool:
+    async def approve_operation(
+        self, subagent_id: str, assessment: RiskAssessment
+    ) -> bool:
         """Approve a high-risk operation."""
         logger.info(f"High-risk operation approved for subagent [{subagent_id}]")
         return True
 
-    async def reject_operation(self, subagent_id: str, assessment: RiskAssessment) -> bool:
+    async def reject_operation(
+        self, subagent_id: str, assessment: RiskAssessment
+    ) -> bool:
         """Reject a high-risk operation."""
         logger.warning(f"High-risk operation rejected for subagent [{subagent_id}]")
         return False
@@ -266,7 +287,9 @@ Please review this operation. Do you want to allow it to proceed?
         """Check if a tool is considered high-risk."""
         return tool_name in self._high_risk_tools
 
-    async def evaluate_custom_tool(self, tool_name: str, arguments: dict) -> RiskAssessment:
+    async def evaluate_custom_tool(
+        self, tool_name: str, arguments: dict
+    ) -> RiskAssessment:
         """
         Evaluate a custom tool call.
 
@@ -278,7 +301,8 @@ Please review this operation. Do you want to allow it to proceed?
             Risk assessment
         """
         return await self._evaluate_single_tool_call(
-            "custom", type("ToolCall", (object,), {"name": tool_name, "arguments": arguments})
+            "custom",
+            type("ToolCall", (object,), {"name": tool_name, "arguments": arguments}),
         )
 
     async def evaluate_command_safety(self, command: str) -> RiskAssessment:
@@ -293,5 +317,9 @@ Please review this operation. Do you want to allow it to proceed?
         """
         return await self._evaluate_single_tool_call(
             "custom",
-            type("ToolCall", (object,), {"name": "exec", "arguments": {"command": command}}),
+            type(
+                "ToolCall",
+                (object,),
+                {"name": "exec", "arguments": {"command": command}},
+            ),
         )

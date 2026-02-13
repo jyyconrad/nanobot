@@ -11,21 +11,15 @@ from rich.text import Text
 
 from nanobot.ui.formatters import (
     ColorTheme,
+    TableFormatter,
+    TreeFormatter,
     create_status_badge,
     format_duration,
     format_file_size,
     format_timestamp,
 )
 from nanobot.ui.progress_manager import ProgressManager, TaskProgress
-from nanobot.ui.widgets import (
-    ProgressInfo,
-    ProgressWidget,
-    StatusWidget,
-)
-from nanobot.ui.formatters import (
-    TableFormatter,
-    TreeFormatter,
-)
+from nanobot.ui.widgets import ProgressInfo, ProgressWidget, StatusWidget
 
 
 class TestTaskProgress(unittest.TestCase):

@@ -1,11 +1,13 @@
 """Tests for SubagentManager."""
 
 import asyncio
+
 import pytest
+
 from nanobot.agents.subagent_manager import (
     SubagentManager,
+    SubagentStatus,
     SubagentTask,
-    SubagentStatus
 )
 
 
@@ -38,12 +40,7 @@ class TestSubagentManager:
         async def sample_task(x, y):
             return x + y
 
-        task_id = await manager.submit_task(
-            "task-1",
-            "Test Task",
-            sample_task,
-            2, 3
-        )
+        task_id = await manager.submit_task("task-1", "Test Task", sample_task, 2, 3)
 
         assert task_id == "task-1"
         task = await manager.get_task(task_id)
@@ -63,12 +60,7 @@ class TestSubagentManager:
             await asyncio.sleep(0.1)
             return x + y
 
-        task_id = await manager.submit_task(
-            "task-2",
-            "Add Task",
-            sample_task,
-            10, 20
-        )
+        task_id = await manager.submit_task("task-2", "Add Task", sample_task, 10, 20)
 
         # Wait for task completion
         result = await manager.wait_for_task(task_id, timeout=5.0)
@@ -106,9 +98,7 @@ class TestSubagentManager:
         task_ids = []
         for i in range(5):
             task_id = await manager.submit_task(
-                f"task-{i}",
-                f"Counting Task {i}",
-                counting_task
+                f"task-{i}", f"Counting Task {i}", counting_task
             )
             task_ids.append(task_id)
 
@@ -131,11 +121,7 @@ class TestSubagentManager:
             await asyncio.sleep(0.1)
             raise ValueError("Task failed")
 
-        task_id = await manager.submit_task(
-            "task-fail",
-            "Failing Task",
-            failing_task
-        )
+        task_id = await manager.submit_task("task-fail", "Failing Task", failing_task)
 
         # Wait for task to complete (will fail)
         with pytest.raises(RuntimeError):
@@ -157,11 +143,7 @@ class TestSubagentManager:
             await asyncio.sleep(2.0)
             return "done"
 
-        task_id = await manager.submit_task(
-            "task-slow",
-            "Slow Task",
-            slow_task
-        )
+        task_id = await manager.submit_task("task-slow", "Slow Task", slow_task)
 
         # Wait for task to fail with timeout
         with pytest.raises(RuntimeError):
@@ -183,11 +165,7 @@ class TestSubagentManager:
             await asyncio.sleep(10.0)
             return "done"
 
-        task_id = await manager.submit_task(
-            "task-cancel",
-            "Long Task",
-            long_task
-        )
+        task_id = await manager.submit_task("task-cancel", "Long Task", long_task)
 
         # Cancel the task
         cancelled = await manager.cancel_task(task_id)
@@ -209,11 +187,7 @@ class TestSubagentManager:
 
         # Submit some tasks
         for i in range(3):
-            await manager.submit_task(
-                f"task-{i}",
-                f"Quick Task {i}",
-                quick_task
-            )
+            await manager.submit_task(f"task-{i}", f"Quick Task {i}", quick_task)
 
         stats = await manager.get_stats()
         assert stats["total_tasks"] >= 3
@@ -239,10 +213,7 @@ class TestSubagentManager:
         task_ids = []
         for i in range(10):
             task_id = await manager.submit_task(
-                f"mult-task-{i}",
-                f"Multiply Task {i}",
-                multiply_task,
-                i, i + 1
+                f"mult-task-{i}", f"Multiply Task {i}", multiply_task, i, i + 1
             )
             task_ids.append(task_id)
 

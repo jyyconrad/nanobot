@@ -6,28 +6,25 @@
 
 import logging
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Dict, Any, Union, Tuple
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from nanobot.agent.intent.rule_based_recognizer import (
-    RuleBasedRecognizer,
-    RecognitionResult as RuleResult
-)
+from nanobot.agent.intent.code_based_recognizer import CodeBasedRecognizer
 from nanobot.agent.intent.code_based_recognizer import (
-    CodeBasedRecognizer,
-    CodeRecognitionResult as CodeResult
+    CodeRecognitionResult as CodeResult,
 )
-from nanobot.agent.intent.llm_recognizer import (
-    LLMRecognizer,
-    LLMRecognitionResult as LLMResult,
-    LLMProvider
-)
+from nanobot.agent.intent.llm_recognizer import LLMProvider
+from nanobot.agent.intent.llm_recognizer import LLMRecognitionResult as LLMResult
+from nanobot.agent.intent.llm_recognizer import LLMRecognizer
+from nanobot.agent.intent.rule_based_recognizer import RecognitionResult as RuleResult
+from nanobot.agent.intent.rule_based_recognizer import RuleBasedRecognizer
 
 logger = logging.getLogger(__name__)
 
 
 class RecognizerType(Enum):
     """识别器类型枚举"""
+
     RULE = "rule"
     CODE = "code"
     LLM = "llm"
@@ -36,6 +33,7 @@ class RecognizerType(Enum):
 @dataclass
 class HybridRecognitionResult:
     """综合识别结果数据类"""
+
     intent: str
     confidence: float
     recognizer_type: RecognizerType
@@ -43,26 +41,32 @@ class HybridRecognitionResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
-        return (f"HybridRecognitionResult(intent='{self.intent}', "
-                f"confidence={self.confidence:.2f}, "
-                f"type={self.recognizer_type.value})")
+        return (
+            f"HybridRecognitionResult(intent='{self.intent}', "
+            f"confidence={self.confidence:.2f}, "
+            f"type={self.recognizer_type.value})"
+        )
 
 
 @dataclass
 class FallbackConfig:
     """降级策略配置"""
+
     enabled: bool = True
     min_confidence: float = 0.5
-    fallback_order: List[RecognizerType] = field(default_factory=lambda: [
-        RecognizerType.RULE,
-        RecognizerType.CODE,
-        RecognizerType.LLM
-    ])
+    fallback_order: List[RecognizerType] = field(
+        default_factory=lambda: [
+            RecognizerType.RULE,
+            RecognizerType.CODE,
+            RecognizerType.LLM,
+        ]
+    )
 
 
 @dataclass
 class ConflictResolutionConfig:
     """冲突处理配置"""
+
     strategy: str = "priority"  # priority, confidence, voting
     min_confidence_diff: float = 0.1
 
@@ -87,7 +91,7 @@ class HybridRecognizer:
     def __init__(
         self,
         fallback_config: Optional[FallbackConfig] = None,
-        conflict_config: Optional[ConflictResolutionConfig] = None
+        conflict_config: Optional[ConflictResolutionConfig] = None,
     ):
         self.rule_recognizer = RuleBasedRecognizer()
         self.code_recognizer = CodeBasedRecognizer()
@@ -104,7 +108,9 @@ class HybridRecognizer:
 
     def add_result_processor(
         self,
-        processor: Callable[[List[HybridRecognitionResult]], List[HybridRecognitionResult]]
+        processor: Callable[
+            [List[HybridRecognitionResult]], List[HybridRecognitionResult]
+        ],
     ) -> None:
         """
         添加结果处理器
@@ -116,9 +122,7 @@ class HybridRecognizer:
         logger.debug("结果处理器已添加")
 
     def recognize(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> Optional[HybridRecognitionResult]:
         """
         识别文本的意图（主入口方法）
@@ -152,9 +156,7 @@ class HybridRecognizer:
         return None
 
     def _execute_all_recognizers(
-        self,
-        text: str,
-        context: Dict[str, Any]
+        self, text: str, context: Dict[str, Any]
     ) -> List[HybridRecognitionResult]:
         """
         执行所有识别器
@@ -179,8 +181,8 @@ class HybridRecognizer:
                     source_result=rule_result,
                     metadata={
                         "rule_name": rule_result.rule_name,
-                        "match_type": rule_result.metadata.get("match_type")
-                    }
+                        "match_type": rule_result.metadata.get("match_type"),
+                    },
                 )
             )
 
@@ -193,7 +195,7 @@ class HybridRecognizer:
                     confidence=code_result.confidence,
                     recognizer_type=RecognizerType.CODE,
                     source_result=code_result,
-                    metadata=code_result.metadata
+                    metadata=code_result.metadata,
                 )
             )
 
@@ -206,7 +208,7 @@ class HybridRecognizer:
                     confidence=llm_result.confidence,
                     recognizer_type=RecognizerType.LLM,
                     source_result=llm_result,
-                    metadata={"reasoning": llm_result.reasoning}
+                    metadata={"reasoning": llm_result.reasoning},
                 )
             )
 
@@ -214,8 +216,7 @@ class HybridRecognizer:
         return results
 
     def _apply_processors(
-        self,
-        results: List[HybridRecognitionResult]
+        self, results: List[HybridRecognitionResult]
     ) -> List[HybridRecognitionResult]:
         """
         应用结果处理器
@@ -236,8 +237,7 @@ class HybridRecognizer:
         return processed
 
     def _resolve_conflicts(
-        self,
-        results: List[HybridRecognitionResult]
+        self, results: List[HybridRecognitionResult]
     ) -> Optional[HybridRecognitionResult]:
         """
         冲突处理和结果选择
@@ -264,8 +264,7 @@ class HybridRecognizer:
             return self._resolve_by_priority(results)
 
     def _resolve_by_priority(
-        self,
-        results: List[HybridRecognitionResult]
+        self, results: List[HybridRecognitionResult]
     ) -> Optional[HybridRecognitionResult]:
         """
         按识别器优先级解析冲突
@@ -277,16 +276,14 @@ class HybridRecognizer:
             最终结果
         """
         # 优先级：规则 > 代码 > LLM
-        priority_order = [
-            RecognizerType.RULE,
-            RecognizerType.CODE,
-            RecognizerType.LLM
-        ]
+        priority_order = [RecognizerType.RULE, RecognizerType.CODE, RecognizerType.LLM]
 
         for recognizer_type in priority_order:
             for result in results:
-                if (result.recognizer_type == recognizer_type and
-                        result.confidence >= self.fallback_config.min_confidence):
+                if (
+                    result.recognizer_type == recognizer_type
+                    and result.confidence >= self.fallback_config.min_confidence
+                ):
                     return result
 
         # 降级到任何有效结果
@@ -299,8 +296,7 @@ class HybridRecognizer:
         return None
 
     def _resolve_by_confidence(
-        self,
-        results: List[HybridRecognitionResult]
+        self, results: List[HybridRecognitionResult]
     ) -> Optional[HybridRecognitionResult]:
         """
         按置信度解析冲突
@@ -311,11 +307,7 @@ class HybridRecognizer:
         Returns:
             最终结果
         """
-        sorted_results = sorted(
-            results,
-            key=lambda x: x.confidence,
-            reverse=True
-        )
+        sorted_results = sorted(results, key=lambda x: x.confidence, reverse=True)
 
         best_result = sorted_results[0]
 
@@ -330,8 +322,7 @@ class HybridRecognizer:
         return None
 
     def _resolve_by_voting(
-        self,
-        results: List[HybridRecognitionResult]
+        self, results: List[HybridRecognitionResult]
     ) -> Optional[HybridRecognitionResult]:
         """
         按投票解析冲突
@@ -348,16 +339,16 @@ class HybridRecognizer:
             if result.confidence >= self.fallback_config.min_confidence:
                 if result.intent in intent_counts:
                     count, total_confidence = intent_counts[result.intent]
-                    intent_counts[result.intent] = (count + 1, total_confidence + result.confidence)
+                    intent_counts[result.intent] = (
+                        count + 1,
+                        total_confidence + result.confidence,
+                    )
                 else:
                     intent_counts[result.intent] = (1, result.confidence)
 
         if intent_counts:
             # 选择投票数最多的意图
-            best_intent = max(
-                intent_counts.items(),
-                key=lambda x: (x[1][0], x[1][1])
-            )
+            best_intent = max(intent_counts.items(), key=lambda x: (x[1][0], x[1][1]))
             # 找到对应的结果
             for result in results:
                 if result.intent == best_intent[0]:
@@ -366,9 +357,7 @@ class HybridRecognizer:
         return None
 
     def recognize_with_fallback(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> Optional[HybridRecognitionResult]:
         """
         使用降级策略识别文本意图
@@ -383,9 +372,7 @@ class HybridRecognizer:
         return self.recognize(text, context)
 
     def get_all_results(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> List[HybridRecognitionResult]:
         """
         获取所有识别器的结果（不进行冲突处理）
@@ -407,7 +394,7 @@ class HybridRecognizer:
         provider: LLMProvider,
         api_key: Optional[str] = None,
         model: Optional[str] = None,
-        base_url: Optional[str] = None
+        base_url: Optional[str] = None,
     ) -> None:
         """
         设置 LLM 配置
@@ -419,17 +406,14 @@ class HybridRecognizer:
             base_url: 底座地址
         """
         self.llm_recognizer = LLMRecognizer(
-            provider=provider,
-            api_key=api_key,
-            model=model,
-            base_url=base_url
+            provider=provider, api_key=api_key, model=model, base_url=base_url
         )
-        logger.debug(
-            f"LLM 配置已更新: provider={provider.value}, model={model}"
-        )
+        logger.debug(f"LLM 配置已更新: provider={provider.value}, model={model}")
 
     def __repr__(self):
-        return (f"HybridRecognizer("
-                f"rules={self.rule_recognizer.rule_count}, "
-                f"code_rules={self.code_recognizer.rule_count}, "
-                f"llm_samples={self.llm_recognizer.sample_count})")
+        return (
+            f"HybridRecognizer("
+            f"rules={self.rule_recognizer.rule_count}, "
+            f"code_rules={self.code_recognizer.rule_count}, "
+            f"llm_samples={self.llm_recognizer.sample_count})"
+        )

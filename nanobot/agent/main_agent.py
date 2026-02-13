@@ -4,12 +4,12 @@ MainAgent 主代理类 - 协调所有组件的核心入口
 集成提示词系统 V2，支持渐进式上下文披露。
 """
 
-import logging
 import asyncio
 import inspect
-from typing import Any, Dict, Optional, List
-from uuid import uuid4
+import logging
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 from pydantic import BaseModel
 
@@ -29,6 +29,7 @@ from nanobot.agent.workflow.workflow_manager import WorkflowManager
 # 新增：Prompt System V2
 try:
     from nanobot.agent.prompt_system import PromptSystemV2, get_prompt_system_v2
+
     PROMPT_SYSTEM_V2_AVAILABLE = True
 except ImportError:
     PROMPT_SYSTEM_V2_AVAILABLE = False
@@ -69,7 +70,7 @@ class MainAgent:
         config: Optional[Dict] = None,
         prompt_system_v2: Optional["PromptSystemV2"] = None,
         context_manager: Optional["ContextManager"] = None,
-        agent_loop: Optional["AgentLoop"] = None
+        agent_loop: Optional["AgentLoop"] = None,
     ):
         """
         初始化 MainAgent
@@ -89,17 +90,23 @@ class MainAgent:
 
         self.config = config or {}
         self.agent_loop = agent_loop  # 保存 agent_loop 引用
-        
+
         # 初始化提示词系统 V2
         if prompt_system_v2:
             self.prompt_system_v2 = prompt_system_v2
-            logger.info(f"MainAgent[{self.session_id}] Using provided PromptSystemV2 instance")
+            logger.info(
+                f"MainAgent[{self.session_id}] Using provided PromptSystemV2 instance"
+            )
         elif PROMPT_SYSTEM_V2_AVAILABLE:
             self.prompt_system_v2 = get_prompt_system_v2()
-            logger.info(f"MainAgent[{self.session_id}] Initialized PromptSystemV2 from default config")
+            logger.info(
+                f"MainAgent[{self.session_id}] Initialized PromptSystemV2 from default config"
+            )
         else:
             self.prompt_system_v2 = None
-            logger.warning(f"MainAgent[{self.session_id}] PromptSystemV2 not available, using legacy system")
+            logger.warning(
+                f"MainAgent[{self.session_id}] PromptSystemV2 not available, using legacy system"
+            )
 
         # 初始化上下文管理器
         self.context_manager = context_manager or ContextManager()
@@ -133,7 +140,9 @@ class MainAgent:
         Returns:
             最终响应给用户的文本
         """
-        logger.info(f"MainAgent[{self.session_id}] Processing message: {message[:50]}...")
+        logger.info(
+            f"MainAgent[{self.session_id}] Processing message: {message[:50]}..."
+        )
 
         # 触发消息接收钩子
         hook_result = await self.hooks.on_message_receive(message, self.session_id)
@@ -150,7 +159,7 @@ class MainAgent:
             try:
                 context, error = await self.context_manager.build_context(
                     message=message,
-                    conversation_history=self.context_manager.get_recent_messages(n=10)
+                    conversation_history=self.context_manager.get_recent_messages(n=10),
                 )
                 if error:
                     raise Exception(error)
@@ -163,9 +172,11 @@ class MainAgent:
                 system_prompt = self.prompt_system_v2.build_main_agent_prompt(
                     skills=self._get_skill_names(),
                     tools=self._get_tool_descriptions(),
-                    context=self._get_context()
+                    context=self._get_context(),
                 )
-                logger.debug(f"MainAgent[{self.session_id}] Built system prompt with PromptSystemV2")
+                logger.debug(
+                    f"MainAgent[{self.session_id}] Built system prompt with PromptSystemV2"
+                )
             else:
                 # 使用传统方式构建提示词
                 system_prompt = self._build_legacy_system_prompt()
@@ -198,7 +209,10 @@ class MainAgent:
             return response
 
         except Exception as e:
-            logger.error(f"MainAgent[{self.session_id}] Error processing message: {e}", exc_info=True)
+            logger.error(
+                f"MainAgent[{self.session_id}] Error processing message: {e}",
+                exc_info=True,
+            )
             await self._cleanup_task()
             return str(e)
 
@@ -209,7 +223,9 @@ class MainAgent:
 
     def _handle_task_create(self, message: str) -> str:
         """处理任务创建消息"""
-        logger.debug(f"MainAgent[{self.session_id}] Handling task create: {message[:50]}...")
+        logger.debug(
+            f"MainAgent[{self.session_id}] Handling task create: {message[:50]}..."
+        )
 
         # 使用任务规划器分析任务
         task_plan = self.task_planner.analyze_task(message)
@@ -224,7 +240,7 @@ class MainAgent:
             "plan": task_plan,
             "status": "created",
             "created_at": datetime.now().isoformat(),
-            "subtasks": []
+            "subtasks": [],
         }
 
         # 创建子任务
@@ -234,14 +250,16 @@ class MainAgent:
                 "id": subtask_id,
                 "description": step,
                 "status": "pending",
-                "parent_task": task_id
+                "parent_task": task_id,
             }
             self.state.subagent_tasks[task_id]["subtasks"].append(subtask)
 
         # 更新当前任务
         self.state.current_task = task_id
 
-        logger.info(f"MainAgent[{self.session_id}] Task created: {task_id} with {len(task_plan.steps)} steps")
+        logger.info(
+            f"MainAgent[{self.session_id}] Task created: {task_id} with {len(task_plan.steps)} steps"
+        )
 
         # 构建响应
         response_parts = [
@@ -259,17 +277,21 @@ class MainAgent:
         if len(task_plan.steps) > 5:
             response_parts.append(f"  ... 还有 {len(task_plan.steps) - 5} 个步骤")
 
-        response_parts.extend([
-            f"",
-            f"使用 '/status {task_id}' 查看任务状态",
-            f"使用 '/cancel {task_id}' 取消任务",
-        ])
+        response_parts.extend(
+            [
+                f"",
+                f"使用 '/status {task_id}' 查看任务状态",
+                f"使用 '/cancel {task_id}' 取消任务",
+            ]
+        )
 
         return "\n".join(response_parts)
 
     async def _handle_task_status(self, message: str) -> str:
         """处理任务状态查询"""
-        logger.debug(f"MainAgent[{self.session_id}] Handling task status query: {message[:50]}...")
+        logger.debug(
+            f"MainAgent[{self.session_id}] Handling task status query: {message[:50]}..."
+        )
 
         # 解析任务ID
         parts = message.split()
@@ -311,8 +333,14 @@ class MainAgent:
                 for i, subtask in enumerate(subtasks[:10], 1):  # 最多显示10个
                     st_status = subtask.get("status", "unknown")
                     st_desc = subtask.get("description", "无描述")[:50]
-                    status_icon = "✅" if st_status == "completed" else "⏳" if st_status == "in_progress" else "⏸️"
-                    response_parts.append(f"  {status_icon} {i}. [{st_status}] {st_desc}")
+                    status_icon = (
+                        "✅"
+                        if st_status == "completed"
+                        else "⏳" if st_status == "in_progress" else "⏸️"
+                    )
+                    response_parts.append(
+                        f"  {status_icon} {i}. [{st_status}] {st_desc}"
+                    )
 
                 if len(subtasks) > 10:
                     response_parts.append(f"  ... 还有 {len(subtasks) - 10} 个子任务")
@@ -326,15 +354,23 @@ class MainAgent:
             for tid, task in self.state.subagent_tasks.items():
                 status = task.get("status", "unknown")
                 desc = task.get("description", "无描述")[:40]
-                status_icon = "✅" if status == "completed" else "⏳" if status == "in_progress" else "⏸️"
+                status_icon = (
+                    "✅"
+                    if status == "completed"
+                    else "⏳" if status == "in_progress" else "⏸️"
+                )
                 current_marker = " 👈 当前" if tid == self.state.current_task else ""
-                response_parts.append(f"{status_icon} {tid}: [{status}] {desc}{current_marker}")
+                response_parts.append(
+                    f"{status_icon} {tid}: [{status}] {desc}{current_marker}"
+                )
 
-            response_parts.extend([
-                "",
-                f"共 {len(self.state.subagent_tasks)} 个任务",
-                "使用 '/status <task_id>' 查看详细信息",
-            ])
+            response_parts.extend(
+                [
+                    "",
+                    f"共 {len(self.state.subagent_tasks)} 个任务",
+                    "使用 '/status <task_id>' 查看详细信息",
+                ]
+            )
 
             return "\n".join(response_parts)
 
@@ -342,7 +378,9 @@ class MainAgent:
 
     async def _handle_task_cancel(self, message: str) -> str:
         """处理任务取消消息"""
-        logger.debug(f"MainAgent[{self.session_id}] Handling task cancel: {message[:50]}...")
+        logger.debug(
+            f"MainAgent[{self.session_id}] Handling task cancel: {message[:50]}..."
+        )
 
         if self.state.current_task:
             await self._cleanup_task()
@@ -357,14 +395,18 @@ class MainAgent:
 
     async def _handle_control(self, message: str) -> str:
         """处理控制命令"""
-        logger.debug(f"MainAgent[{self.session_id}] Handling control: {message[:50]}...")
-        
+        logger.debug(
+            f"MainAgent[{self.session_id}] Handling control: {message[:50]}..."
+        )
+
         # TODO: 实现控制逻辑
         return "控制功能开发中"
 
     async def _handle_chat_message(self, message: str) -> str:
         """处理普通对话消息"""
-        logger.debug(f"MainAgent[{self.session_id}] Handling chat message: {message[:50]}...")
+        logger.debug(
+            f"MainAgent[{self.session_id}] Handling chat message: {message[:50]}..."
+        )
 
         # 直接使用 LLM 处理消息（跳过决策器）
         try:
@@ -373,22 +415,21 @@ class MainAgent:
                 system_prompt = self.prompt_system_v2.build_main_agent_prompt(
                     skills=self._get_skill_names(),
                     tools=self._get_tool_descriptions(),
-                    context=self._get_context()
+                    context=self._get_context(),
                 )
             else:
                 system_prompt = self._build_legacy_system_prompt()
 
             # 构建消息列表
             messages = [{"role": "system", "content": system_prompt}]
-            
+
             # 添加历史消息
             history = self.context_manager.get_history()
             for msg in history[-10:]:  # 只取最近10条
-                messages.append({
-                    "role": msg.get("role", "user"),
-                    "content": msg.get("content", "")
-                })
-            
+                messages.append(
+                    {"role": msg.get("role", "user"), "content": msg.get("content", "")}
+                )
+
             # 添加当前消息
             messages.append({"role": "user", "content": message})
 
@@ -399,14 +440,17 @@ class MainAgent:
             else:
                 # Fallback for testing
                 from nanobot.providers.litellm_provider import LiteLLMProvider
+
                 provider = LiteLLMProvider()
                 model = "volcengine/glm-4.7"
-            
+
             response = await provider.chat(
                 messages=messages,
                 model=model,
                 temperature=0.7,
-                tools=self.agent_loop.tools.get_definitions() if self.agent_loop else None
+                tools=(
+                    self.agent_loop.tools.get_definitions() if self.agent_loop else None
+                ),
             )
 
             # 处理工具调用循环
@@ -419,7 +463,9 @@ class MainAgent:
             logger.error(f"Error in LLM call: {e}", exc_info=True)
             return f"LLM 调用出错：{str(e)}"
 
-    async def _handle_tool_calls(self, response: Any, messages: List[Dict[str, Any]]) -> str:
+    async def _handle_tool_calls(
+        self, response: Any, messages: List[Dict[str, Any]]
+    ) -> str:
         """
         处理工具调用的完整循环
 
@@ -430,7 +476,9 @@ class MainAgent:
         Returns:
             最终响应给用户的文本
         """
-        logger.info(f"MainAgent[{self.session_id}] 处理工具调用：{len(response.tool_calls)} 个")
+        logger.info(
+            f"MainAgent[{self.session_id}] 处理工具调用：{len(response.tool_calls)} 个"
+        )
 
         # 执行工具调用循环
         max_iterations = 10  # 防止无限循环
@@ -440,74 +488,96 @@ class MainAgent:
         for iteration in range(max_iterations):
             if not response.has_tool_calls:
                 # 没有工具调用，返回最终响应
-                logger.debug(f"MainAgent[{self.session_id}] 第 {iteration+1} 轮迭代：无工具调用")
+                logger.debug(
+                    f"MainAgent[{self.session_id}] 第 {iteration+1} 轮迭代：无工具调用"
+                )
                 break
 
-            logger.info(f"MainAgent[{self.session_id}] 第 {iteration+1} 轮迭代：执行工具")
+            logger.info(
+                f"MainAgent[{self.session_id}] 第 {iteration+1} 轮迭代：执行工具"
+            )
 
             # 处理每个工具调用
             tool_results = []
             for tool_call in response.tool_calls:
-                logger.debug(f"MainAgent[{self.session_id}]   调用工具：{tool_call.name}")
+                logger.debug(
+                    f"MainAgent[{self.session_id}]   调用工具：{tool_call.name}"
+                )
 
                 try:
                     # 查找工具
-                    if self.agent_loop and hasattr(self.agent_loop, 'tools'):
+                    if self.agent_loop and hasattr(self.agent_loop, "tools"):
                         tool = self.agent_loop.tools.get(tool_call.name)
                         if tool:
                             # 执行工具
-                            logger.info(f"MainAgent[{self.session_id}]   执行工具：{tool_call.name}")
-                            
+                            logger.info(
+                                f"MainAgent[{self.session_id}]   执行工具：{tool_call.name}"
+                            )
+
                             # 处理工具参数
                             args = tool_call.arguments
-                            logger.debug(f"MainAgent[{self.session_id}]     - 参数类型: {type(args).__name__}")
-                            logger.debug(f"MainAgent[{self.session_id}]     - 参数内容: {str(args)[:200]}")
-                            
+                            logger.debug(
+                                f"MainAgent[{self.session_id}]     - 参数类型: {type(args).__name__}"
+                            )
+                            logger.debug(
+                                f"MainAgent[{self.session_id}]     - 参数内容: {str(args)[:200]}"
+                            )
+
                             # 执行工具（检查是否是异步）
                             import inspect
-                            if hasattr(tool, 'execute') and inspect.iscoroutinefunction(tool.execute):
+
+                            if hasattr(tool, "execute") and inspect.iscoroutinefunction(
+                                tool.execute
+                            ):
                                 tool_result = await tool.execute(**args)
                             else:
                                 # 同步执行
                                 tool_result = tool.execute(**args)
-                            
-                            tool_results.append({
-                                "tool": tool_call.name,
-                                "result": tool_result
-                            })
-                            logger.debug(f"MainAgent[{self.session_id}]   工具结果：{str(tool_result)[:100]}")
+
+                            tool_results.append(
+                                {"tool": tool_call.name, "result": tool_result}
+                            )
+                            logger.debug(
+                                f"MainAgent[{self.session_id}]   工具结果：{str(tool_result)[:100]}"
+                            )
                         else:
-                            logger.warning(f"MainAgent[{self.session_id}]   工具未找到：{tool_call.name}")
-                            tool_results.append({
-                                "tool": tool_call.name,
-                                "result": f"工具未找到：{tool_call.name}"
-                            })
+                            logger.warning(
+                                f"MainAgent[{self.session_id}]   工具未找到：{tool_call.name}"
+                            )
+                            tool_results.append(
+                                {
+                                    "tool": tool_call.name,
+                                    "result": f"工具未找到：{tool_call.name}",
+                                }
+                            )
                     else:
                         logger.warning(f"MainAgent[{self.session_id}]   没有工具注册表")
-                        tool_results.append({
-                            "tool": tool_call.name,
-                            "result": "工具系统不可用"
-                        })
+                        tool_results.append(
+                            {"tool": tool_call.name, "result": "工具系统不可用"}
+                        )
                 except Exception as e:
-                    logger.error(f"MainAgent[{self.session_id}]   工具执行失败：{e}", exc_info=True)
-                    tool_results.append({
-                        "tool": tool_call.name,
-                        "result": f"执行失败：{str(e)}"
-                    })
+                    logger.error(
+                        f"MainAgent[{self.session_id}]   工具执行失败：{e}",
+                        exc_info=True,
+                    )
+                    tool_results.append(
+                        {"tool": tool_call.name, "result": f"执行失败：{str(e)}"}
+                    )
 
             # 构建工具结果消息
             if tool_results:
                 tool_result_messages = []
                 for result in tool_results:
-                    tool_result_messages.append(f"工具 {result['tool']}：{str(result['result'])}")
+                    tool_result_messages.append(
+                        f"工具 {result['tool']}：{str(result['result'])}"
+                    )
                 assistant_message = "\n".join(tool_result_messages)
-                logger.info(f"MainAgent[{self.session_id}]   工具执行结果：{assistant_message[:200]}")
+                logger.info(
+                    f"MainAgent[{self.session_id}]   工具执行结果：{assistant_message[:200]}"
+                )
 
             # 添加助手响应到消息历史
-            current_messages.append({
-                "role": "assistant",
-                "content": assistant_message
-            })
+            current_messages.append({"role": "assistant", "content": assistant_message})
 
             # 再次调用 LLM
             logger.info(f"MainAgent[{self.session_id}]   调用 LLM 处理工具结果")
@@ -518,16 +588,17 @@ class MainAgent:
                 else:
                     # Fallback for testing
                     from nanobot.providers.litellm_provider import LiteLLMProvider
+
                     provider = LiteLLMProvider()
                     model = "volcengine/glm-4.7"
 
                 response = await provider.chat(
-                    messages=current_messages,
-                    model=model,
-                    temperature=0.7
+                    messages=current_messages, model=model, temperature=0.7
                 )
             except Exception as e:
-                logger.error(f"MainAgent[{self.session_id}]   LLM 调用失败：{e}", exc_info=True)
+                logger.error(
+                    f"MainAgent[{self.session_id}]   LLM 调用失败：{e}", exc_info=True
+                )
                 assistant_message += f"\n\nLLM 调用出错：{str(e)}"
                 break
 
@@ -558,7 +629,7 @@ class MainAgent:
         return {
             "current_task": self.state.current_task,
             "subagent_tasks": list(self.state.subagent_tasks.keys()),
-            "context_stats": self.state.context_stats
+            "context_stats": self.state.context_stats,
         }
 
     def _get_skill_names(self) -> List[str]:
@@ -582,7 +653,7 @@ class MainAgent:
         return {
             "read_file": "读取文件内容",
             "write_file": "写入文件内容",
-            "exec": "执行命令"
+            "exec": "执行命令",
         }
 
     def _get_available_tools(self) -> List[str]:
@@ -606,7 +677,7 @@ class MainAgent:
         running_count = 0
         for task_id, state in self.state.subagent_states.items():
             try:
-                if hasattr(state, 'status') and state.status == 'RUNNING':
+                if hasattr(state, "status") and state.status == "RUNNING":
                     running_count += 1
             except Exception as e:
                 logger.warning(f"Error checking subagent state for {task_id}: {e}")
@@ -625,12 +696,12 @@ class MainAgent:
     async def _cleanup_task(self) -> None:
         """清理当前任务资源"""
         logger.debug(f"MainAgent[{self.session_id}] Cleaning up task resources")
-        
+
         # 清理子代理任务
         self.state.subagent_tasks.clear()
         self.state.subagent_results.clear()
         self.state.subagent_states.clear()
-        
+
         # 清理当前任务
         self.state.current_task = None
 
@@ -640,7 +711,7 @@ def create_main_agent(
     session_id: Optional[str] = None,
     config: Optional[Dict] = None,
     prompt_system_v2: Optional["PromptSystemV2"] = None,
-    context_manager: Optional["ContextManager"] = None
+    context_manager: Optional["ContextManager"] = None,
 ) -> MainAgent:
     """
     创建 MainAgent 实例的工厂函数
@@ -658,5 +729,5 @@ def create_main_agent(
         session_id=session_id,
         config=config,
         prompt_system_v2=prompt_system_v2,
-        context_manager=context_manager
+        context_manager=context_manager,
     )

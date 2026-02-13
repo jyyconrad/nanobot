@@ -34,7 +34,9 @@ class TestSkillLoader:
     @pytest.mark.asyncio
     async def test_load_skills_with_explicit_skills(self, skill_loader):
         """测试使用显式技能"""
-        skills = await skill_loader.load_skills_for_task("coding", explicit_skills=["security"])
+        skills = await skill_loader.load_skills_for_task(
+            "coding", explicit_skills=["security"]
+        )
 
         assert "security" in skills
         assert "coding" in skills

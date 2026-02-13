@@ -11,17 +11,19 @@ from loguru import logger
 
 class CircuitState(Enum):
     """Circuit breaker states."""
-    CLOSED = "closed"       # Normal operation
-    OPEN = "open"           # Circuit is open, requests fail fast
+
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"  # Circuit is open, requests fail fast
     HALF_OPEN = "half_open"  # Testing if service recovered
 
 
 @dataclass
 class CircuitBreakerConfig:
     """Circuit breaker configuration."""
-    failure_threshold: int = 5        # Failures before opening
-    timeout: float = 60.0            # Seconds to wait before half-open
-    success_threshold: int = 2        # Successes needed to close
+
+    failure_threshold: int = 5  # Failures before opening
+    timeout: float = 60.0  # Seconds to wait before half-open
+    success_threshold: int = 2  # Successes needed to close
 
 
 class CircuitBreaker:
@@ -32,11 +34,7 @@ class CircuitBreaker:
     Allows recovery testing with half-open state.
     """
 
-    def __init__(
-        self,
-        name: str,
-        config: Optional[CircuitBreakerConfig] = None
-    ):
+    def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
         """
         Initialize circuit breaker.
 
@@ -53,12 +51,7 @@ class CircuitBreaker:
         self._last_failure_time: Optional[float] = None
         self._lock = asyncio.Lock()
 
-    async def call(
-        self,
-        func: Callable,
-        *args,
-        **kwargs
-    ) -> Any:
+    async def call(self, func: Callable, *args, **kwargs) -> Any:
         """
         Execute function with circuit breaker protection.
 
@@ -141,7 +134,9 @@ class CircuitBreaker:
             if self._state == CircuitState.HALF_OPEN:
                 # Failure in half-open, go back to open
                 self._state = CircuitState.OPEN
-                logger.warning(f"Circuit breaker {self.name} transitioned to OPEN (half-open failure)")
+                logger.warning(
+                    f"Circuit breaker {self.name} transitioned to OPEN (half-open failure)"
+                )
 
             elif self._state == CircuitState.CLOSED:
                 if self._failure_count >= self.config.failure_threshold:
@@ -188,7 +183,7 @@ class RetryPolicy:
         base_delay: float = 1.0,
         max_delay: float = 60.0,
         backoff_factor: float = 2.0,
-        jitter: bool = True
+        jitter: bool = True,
     ):
         """
         Initialize retry policy.
@@ -207,11 +202,7 @@ class RetryPolicy:
         self.jitter = jitter
 
     async def execute(
-        self,
-        func: Callable,
-        *args,
-        retry_on: Optional[List[type]] = None,
-        **kwargs
+        self, func: Callable, *args, retry_on: Optional[List[type]] = None, **kwargs
     ) -> Any:
         """
         Execute function with retry logic.
@@ -251,7 +242,9 @@ class RetryPolicy:
                     raise
 
                 if retry_on and not isinstance(e, tuple(retry_on)):
-                    logger.error(f"Function {func.__name__} raised non-retryable exception: {e}")
+                    logger.error(
+                        f"Function {func.__name__} raised non-retryable exception: {e}"
+                    )
                     raise
 
                 # Calculate delay
@@ -270,12 +263,13 @@ class RetryPolicy:
 
     def _calculate_delay(self, attempt: int) -> float:
         """Calculate delay for retry attempt."""
-        delay = self.base_delay * (self.backoff_factor ** attempt)
+        delay = self.base_delay * (self.backoff_factor**attempt)
         delay = min(delay, self.max_delay)
 
         # Add jitter
         if self.jitter:
             import random
+
             delay = delay * (0.5 + random.random() * 0.5)
 
         return delay
@@ -303,7 +297,7 @@ class TimeoutHandler:
         *args,
         timeout: Optional[float] = None,
         on_timeout: Optional[Callable] = None,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """
         Execute function with timeout.
@@ -326,15 +320,11 @@ class TimeoutHandler:
 
         try:
             if asyncio.iscoroutinefunction(func):
-                result = await asyncio.wait_for(
-                    func(*args, **kwargs),
-                    timeout=timeout
-                )
+                result = await asyncio.wait_for(func(*args, **kwargs), timeout=timeout)
             else:
                 # Run in thread pool for sync functions
                 result = await asyncio.wait_for(
-                    asyncio.to_thread(func, *args, **kwargs),
-                    timeout=timeout
+                    asyncio.to_thread(func, *args, **kwargs), timeout=timeout
                 )
 
             return result
@@ -367,9 +357,7 @@ class ErrorRecoveryManager:
         self._timeout_handlers: Dict[str, TimeoutHandler] = {}
 
     def get_circuit_breaker(
-        self,
-        name: str,
-        config: Optional[CircuitBreakerConfig] = None
+        self, name: str, config: Optional[CircuitBreakerConfig] = None
     ) -> CircuitBreaker:
         """
         Get or create circuit breaker.
@@ -386,11 +374,7 @@ class ErrorRecoveryManager:
 
         return self._circuit_breakers[name]
 
-    def get_retry_policy(
-        self,
-        name: str,
-        **kwargs
-    ) -> RetryPolicy:
+    def get_retry_policy(self, name: str, **kwargs) -> RetryPolicy:
         """
         Get or create retry policy.
 
@@ -407,9 +391,7 @@ class ErrorRecoveryManager:
         return self._retry_policies[name]
 
     def get_timeout_handler(
-        self,
-        name: str,
-        timeout: Optional[float] = None
+        self, name: str, timeout: Optional[float] = None
     ) -> TimeoutHandler:
         """
         Get or create timeout handler.
@@ -433,7 +415,7 @@ class ErrorRecoveryManager:
         circuit_breaker: Optional[str] = None,
         retry_policy: Optional[str] = None,
         timeout_handler: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """
         Execute function with all protection mechanisms.

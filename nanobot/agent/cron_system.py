@@ -5,20 +5,21 @@ Cron 系统模块 - 负责定时任务调度和管理
 提供任务的添加、移除、启动和停止功能，确保线程安全。
 """
 
+import datetime
 import logging
 import threading
 import time
-import datetime
-import schedule
-from typing import Callable, Dict, Any, Optional, Union, List, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import schedule
 
 # 配置日志记录
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
@@ -28,6 +29,7 @@ class JobType(Enum):
     """
     任务类型枚举
     """
+
     INTERVAL = "interval"
     CRON = "cron"
     ONCE = "once"
@@ -38,6 +40,7 @@ class JobConfig:
     """
     任务配置数据类
     """
+
     name: str
     job_type: JobType
     schedule: Dict[str, Any]
@@ -53,6 +56,7 @@ class JobStatus:
     """
     任务状态数据类
     """
+
     job_id: str
     name: str
     job_type: JobType
@@ -92,10 +96,12 @@ class CronSystem:
         """
         线程安全装饰器
         """
+
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             with self._lock:
                 return func(self, *args, **kwargs)
+
         return wrapper
 
     @_thread_safe
@@ -112,9 +118,7 @@ class CronSystem:
         job_id = f"job_{int(time.time() * 1000)}_{len(self.jobs)}"
         self.jobs[job_id] = config
         self.status[job_id] = JobStatus(
-            job_id=job_id,
-            name=config.name,
-            job_type=config.job_type
+            job_id=job_id, name=config.name, job_type=config.job_type
         )
 
         # 创建调度任务
@@ -219,9 +223,7 @@ class CronSystem:
         self.running = True
         self._stop_event.clear()
         self.scheduler_thread = threading.Thread(
-            target=self._scheduler_loop,
-            name="CronSchedulerThread",
-            daemon=True
+            target=self._scheduler_loop, name="CronSchedulerThread", daemon=True
         )
         self.scheduler_thread.start()
         self.logger.info("Cron 系统启动")
@@ -265,9 +267,7 @@ class CronSystem:
             if config.job_type == JobType.INTERVAL:
                 # 间隔调度
                 interval = config.schedule.get("seconds", 60)
-                job = schedule.every(interval).seconds.do(
-                    self._job_wrapper, job_id
-                )
+                job = schedule.every(interval).seconds.do(self._job_wrapper, job_id)
 
             elif config.job_type == JobType.CRON:
                 # Cron 调度
@@ -317,7 +317,9 @@ class CronSystem:
 
         # 处理分钟
         if minute != "*":
-            job = job.at(f"{self._parse_time_field(hour)}:{self._parse_time_field(minute)}")
+            job = job.at(
+                f"{self._parse_time_field(hour)}:{self._parse_time_field(minute)}"
+            )
 
         # 处理小时
         if hour != "*" and minute == "*":
@@ -337,8 +339,13 @@ class CronSystem:
         if weekday != "*":
             # 简化实现，仅支持每周相同时间
             weekdays = {
-                "0": "monday", "1": "tuesday", "2": "wednesday",
-                "3": "thursday", "4": "friday", "5": "saturday", "6": "sunday"
+                "0": "monday",
+                "1": "tuesday",
+                "2": "wednesday",
+                "3": "thursday",
+                "4": "friday",
+                "5": "saturday",
+                "6": "sunday",
             }
             if weekday in weekdays:
                 job = getattr(job, weekdays[weekday])
@@ -405,7 +412,11 @@ class CronSystem:
                 # schedule 库不直接提供 next_run 属性，这里使用简单估算
                 if self.jobs[job_id].job_type == JobType.INTERVAL:
                     interval = self.jobs[job_id].schedule.get("seconds", 60)
-                    self.status[job_id].next_run = datetime.datetime.now() + datetime.timedelta(seconds=interval)
+                    self.status[
+                        job_id
+                    ].next_run = datetime.datetime.now() + datetime.timedelta(
+                        seconds=interval
+                    )
             except Exception as e:
                 self.logger.error(f"更新下次运行时间失败: {job_id}, 错误: {e}")
 
@@ -433,25 +444,57 @@ class CronSystem:
         jobs_info = []
         for job_id, config in self.jobs.items():
             status = self.status.get(job_id, {})
-            jobs_info.append({
-                "job_id": job_id,
-                "name": config.name,
-                "job_type": config.job_type.value,
-                "schedule": config.schedule,
-                "enabled": config.enabled,
-                "metadata": config.metadata,
-                "status": {
-                    "next_run": status.next_run.isoformat() if hasattr(status, 'next_run') and status.next_run else None,
-                    "last_run": status.last_run.isoformat() if hasattr(status, 'last_run') and status.last_run else None,
-                    "last_success": status.last_success.isoformat() if hasattr(status, 'last_success') and status.last_success else None,
-                    "last_failure": status.last_failure.isoformat() if hasattr(status, 'last_failure') and status.last_failure else None,
-                    "run_count": status.run_count if hasattr(status, 'run_count') else 0,
-                    "success_count": status.success_count if hasattr(status, 'success_count') else 0,
-                    "failure_count": status.failure_count if hasattr(status, 'failure_count') else 0,
-                    "is_running": status.is_running if hasattr(status, 'is_running') else False,
-                    "error": status.error if hasattr(status, 'error') else None
+            jobs_info.append(
+                {
+                    "job_id": job_id,
+                    "name": config.name,
+                    "job_type": config.job_type.value,
+                    "schedule": config.schedule,
+                    "enabled": config.enabled,
+                    "metadata": config.metadata,
+                    "status": {
+                        "next_run": (
+                            status.next_run.isoformat()
+                            if hasattr(status, "next_run") and status.next_run
+                            else None
+                        ),
+                        "last_run": (
+                            status.last_run.isoformat()
+                            if hasattr(status, "last_run") and status.last_run
+                            else None
+                        ),
+                        "last_success": (
+                            status.last_success.isoformat()
+                            if hasattr(status, "last_success") and status.last_success
+                            else None
+                        ),
+                        "last_failure": (
+                            status.last_failure.isoformat()
+                            if hasattr(status, "last_failure") and status.last_failure
+                            else None
+                        ),
+                        "run_count": (
+                            status.run_count if hasattr(status, "run_count") else 0
+                        ),
+                        "success_count": (
+                            status.success_count
+                            if hasattr(status, "success_count")
+                            else 0
+                        ),
+                        "failure_count": (
+                            status.failure_count
+                            if hasattr(status, "failure_count")
+                            else 0
+                        ),
+                        "is_running": (
+                            status.is_running
+                            if hasattr(status, "is_running")
+                            else False
+                        ),
+                        "error": status.error if hasattr(status, "error") else None,
+                    },
                 }
-            })
+            )
         return jobs_info
 
     @_thread_safe
@@ -533,7 +576,7 @@ def add_interval_job(
     args: Optional[List[Any]] = None,
     kwargs: Optional[Dict[str, Any]] = None,
     enabled: bool = True,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     便捷函数：添加间隔任务
@@ -559,7 +602,7 @@ def add_interval_job(
         args=args or [],
         kwargs=kwargs or {},
         enabled=enabled,
-        metadata=metadata or {}
+        metadata=metadata or {},
     )
     return cron.add_job(config)
 
@@ -572,7 +615,7 @@ def add_cron_job(
     args: Optional[List[Any]] = None,
     kwargs: Optional[Dict[str, Any]] = None,
     enabled: bool = True,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     便捷函数：添加 Cron 任务
@@ -598,7 +641,7 @@ def add_cron_job(
         args=args or [],
         kwargs=kwargs or {},
         enabled=enabled,
-        metadata=metadata or {}
+        metadata=metadata or {},
     )
     return cron.add_job(config)
 
@@ -611,7 +654,7 @@ def add_once_job(
     args: Optional[List[Any]] = None,
     kwargs: Optional[Dict[str, Any]] = None,
     enabled: bool = True,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     便捷函数：添加一次性任务
@@ -640,6 +683,6 @@ def add_once_job(
         args=args or [],
         kwargs=kwargs or {},
         enabled=enabled,
-        metadata=metadata or {}
+        metadata=metadata or {},
     )
     return cron.add_job(config)

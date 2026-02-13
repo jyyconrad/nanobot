@@ -56,7 +56,9 @@ class TestExecutionDecisionMaker:
     @pytest.mark.asyncio
     async def test_make_decision_with_unsupported_request_type(self, decision_maker):
         """测试使用不支持的请求类型的决策"""
-        request = DecisionRequest(request_type="unsupported_type", data={"test": "data"})
+        request = DecisionRequest(
+            request_type="unsupported_type", data={"test": "data"}
+        )
 
         result = await decision_maker.make_decision(request)
         assert not result.success
@@ -93,7 +95,9 @@ class TestExecutionDecisionMaker:
         new_handler = Mock()
         decision_maker.register_handler("new_type", new_handler)
         assert "new_type" in decision_maker.list_supported_request_types()
-        assert len(decision_maker.list_supported_request_types()) == len(initial_types) + 1
+        assert (
+            len(decision_maker.list_supported_request_types()) == len(initial_types) + 1
+        )
 
     @pytest.mark.asyncio
     async def test_decision_request_validation(self):
@@ -123,7 +127,9 @@ class TestDecisionResult:
         """测试包含数据和消息的决策结果"""
         data = {"key": "value"}
         message = "Test message"
-        result = DecisionResult(success=True, action="test_action", data=data, message=message)
+        result = DecisionResult(
+            success=True, action="test_action", data=data, message=message
+        )
         assert result.data == data
         assert result.message == message
 

@@ -3,15 +3,17 @@
 """
 
 import time
-import psutil
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
 from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+
+import psutil
 
 
 @dataclass
 class LLMCallMetrics:
     """LLM调用指标"""
+
     provider: str
     model: str
     call_count: int = 0
@@ -23,8 +25,14 @@ class LLMCallMetrics:
     success_count: int = 0
     error_count: int = 0
 
-    def record_call(self, latency: float, prompt_tokens: int,
-                   completion_tokens: int, cost: float = 0.0, success: bool = True):
+    def record_call(
+        self,
+        latency: float,
+        prompt_tokens: int,
+        completion_tokens: int,
+        cost: float = 0.0,
+        success: bool = True,
+    ):
         """记录LLM调用"""
         self.call_count += 1
         self.total_latency += latency
@@ -53,6 +61,7 @@ class LLMCallMetrics:
 @dataclass
 class ToolUseMetrics:
     """工具使用指标"""
+
     tool_name: str
     call_count: int = 0
     total_execution_time: float = 0.0
@@ -61,8 +70,13 @@ class ToolUseMetrics:
     input_size: int = 0
     output_size: int = 0
 
-    def record_use(self, execution_time: float, success: bool = True,
-                   input_size: int = 0, output_size: int = 0):
+    def record_use(
+        self,
+        execution_time: float,
+        success: bool = True,
+        input_size: int = 0,
+        output_size: int = 0,
+    ):
         """记录工具使用"""
         self.call_count += 1
         self.total_execution_time += execution_time
@@ -75,7 +89,9 @@ class ToolUseMetrics:
 
     def get_avg_execution_time(self) -> float:
         """获取平均执行时间"""
-        return self.total_execution_time / self.call_count if self.call_count > 0 else 0.0
+        return (
+            self.total_execution_time / self.call_count if self.call_count > 0 else 0.0
+        )
 
     def get_success_rate(self) -> float:
         """获取成功率"""
@@ -85,6 +101,7 @@ class ToolUseMetrics:
 @dataclass
 class ContextMetrics:
     """上下文使用指标"""
+
     total_tokens: int = 0
     compression_count: int = 0
     compression_ratio_sum: float = 0.0
@@ -107,7 +124,11 @@ class ContextMetrics:
 
     def get_avg_compression_ratio(self) -> float:
         """获取平均压缩率"""
-        return self.compression_ratio_sum / self.compression_count if self.compression_count > 0 else 0.0
+        return (
+            self.compression_ratio_sum / self.compression_count
+            if self.compression_count > 0
+            else 0.0
+        )
 
     def get_cache_hit_rate(self) -> float:
         """获取缓存命中率"""
@@ -119,19 +140,30 @@ class MetricsCollector:
     """性能指标收集器"""
 
     def __init__(self):
-        self._llm_metrics: Dict[str, LLMCallMetrics] = defaultdict(lambda: LLMCallMetrics("", ""))
-        self._tool_metrics: Dict[str, ToolUseMetrics] = defaultdict(lambda: ToolUseMetrics(""))
+        self._llm_metrics: Dict[str, LLMCallMetrics] = defaultdict(
+            lambda: LLMCallMetrics("", "")
+        )
+        self._tool_metrics: Dict[str, ToolUseMetrics] = defaultdict(
+            lambda: ToolUseMetrics("")
+        )
         self._context_metrics = ContextMetrics()
         self._system_metrics = {
             "cpu": {"usage": 0.0, "count": 0, "avg": 0.0},
             "memory": {"usage": 0.0, "count": 0, "avg": 0.0},
-            "disk": {"usage": 0.0, "count": 0, "avg": 0.0}
+            "disk": {"usage": 0.0, "count": 0, "avg": 0.0},
         }
         self._start_time = time.time()
 
-    def record_llm_call(self, provider: str, model: str, latency: float,
-                      prompt_tokens: int, completion_tokens: int,
-                      cost: float = 0.0, success: bool = True):
+    def record_llm_call(
+        self,
+        provider: str,
+        model: str,
+        latency: float,
+        prompt_tokens: int,
+        completion_tokens: int,
+        cost: float = 0.0,
+        success: bool = True,
+    ):
         """记录LLM调用"""
         key = f"{provider}:{model}"
         if key not in self._llm_metrics:
@@ -142,12 +174,17 @@ class MetricsCollector:
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             cost=cost,
-            success=success
+            success=success,
         )
 
-    def record_tool_use(self, tool_name: str, execution_time: float,
-                      success: bool = True, input_size: int = 0,
-                      output_size: int = 0):
+    def record_tool_use(
+        self,
+        tool_name: str,
+        execution_time: float,
+        success: bool = True,
+        input_size: int = 0,
+        output_size: int = 0,
+    ):
         """记录工具使用"""
         if tool_name not in self._tool_metrics:
             self._tool_metrics[tool_name] = ToolUseMetrics(tool_name)
@@ -156,7 +193,7 @@ class MetricsCollector:
             execution_time=execution_time,
             success=success,
             input_size=input_size,
-            output_size=output_size
+            output_size=output_size,
         )
 
     def record_context_compression(self, original_tokens: int, compressed_tokens: int):
@@ -175,31 +212,34 @@ class MetricsCollector:
         """更新系统资源指标"""
         cpu_usage = psutil.cpu_percent()
         memory_usage = psutil.virtual_memory().percent
-        disk_usage = psutil.disk_usage('/').percent
+        disk_usage = psutil.disk_usage("/").percent
 
         # 更新CPU指标
         self._system_metrics["cpu"]["usage"] = cpu_usage
         self._system_metrics["cpu"]["count"] += 1
         self._system_metrics["cpu"]["avg"] = (
-            (self._system_metrics["cpu"]["avg"] * (self._system_metrics["cpu"]["count"] - 1) + cpu_usage) /
-            self._system_metrics["cpu"]["count"]
-        )
+            self._system_metrics["cpu"]["avg"]
+            * (self._system_metrics["cpu"]["count"] - 1)
+            + cpu_usage
+        ) / self._system_metrics["cpu"]["count"]
 
         # 更新内存指标
         self._system_metrics["memory"]["usage"] = memory_usage
         self._system_metrics["memory"]["count"] += 1
         self._system_metrics["memory"]["avg"] = (
-            (self._system_metrics["memory"]["avg"] * (self._system_metrics["memory"]["count"] - 1) + memory_usage) /
-            self._system_metrics["memory"]["count"]
-        )
+            self._system_metrics["memory"]["avg"]
+            * (self._system_metrics["memory"]["count"] - 1)
+            + memory_usage
+        ) / self._system_metrics["memory"]["count"]
 
         # 更新磁盘指标
         self._system_metrics["disk"]["usage"] = disk_usage
         self._system_metrics["disk"]["count"] += 1
         self._system_metrics["disk"]["avg"] = (
-            (self._system_metrics["disk"]["avg"] * (self._system_metrics["disk"]["count"] - 1) + disk_usage) /
-            self._system_metrics["disk"]["count"]
-        )
+            self._system_metrics["disk"]["avg"]
+            * (self._system_metrics["disk"]["count"] - 1)
+            + disk_usage
+        ) / self._system_metrics["disk"]["count"]
 
     def get_llm_metrics(self) -> Dict[str, LLMCallMetrics]:
         """获取LLM调用指标"""
@@ -226,7 +266,7 @@ class MetricsCollector:
             "tool_usage": dict(self._tool_metrics),
             "context": self._context_metrics,
             "system": self._system_metrics,
-            "uptime": time.time() - self._start_time
+            "uptime": time.time() - self._start_time,
         }
 
     def reset(self):
@@ -237,6 +277,6 @@ class MetricsCollector:
         self._system_metrics = {
             "cpu": {"usage": 0.0, "count": 0, "avg": 0.0},
             "memory": {"usage": 0.0, "count": 0, "avg": 0.0},
-            "disk": {"usage": 0.0, "count": 0, "avg": 0.0}
+            "disk": {"usage": 0.0, "count": 0, "avg": 0.0},
         }
         self._start_time = time.time()

@@ -13,6 +13,7 @@ from nanobot.agent.context_monitor import ContextMonitor, ContextMonitorConfig
 from nanobot.agent.main_agent import MainAgent
 from nanobot.agent.subagent import SubagentManager
 from nanobot.agent.task import TaskStatus
+from nanobot.agent.tools.filesystem import ListDirTool, ReadFileTool, WriteFileTool
 from nanobot.agent.tools.message import MessageTool
 from nanobot.agent.tools.registry import ToolRegistry
 from nanobot.agent.tools.shell import ExecTool
@@ -20,7 +21,6 @@ from nanobot.agent.tools.spawn import SpawnTool
 from nanobot.agent.tools.web import WebFetchTool, WebSearchTool
 from nanobot.bus.events import InboundMessage, OutboundMessage
 from nanobot.bus.queue import MessageBus
-from nanobot.agent.tools.filesystem import ReadFileTool, WriteFileTool, ListDirTool
 from nanobot.commands.registry import CommandRegistry
 from nanobot.config.schema import ExecToolConfig
 from nanobot.providers.base import LLMProvider
@@ -71,12 +71,14 @@ class AgentLoop:
         )
 
         # 初始化 ContextMonitor 用于上下文管理
-        self.context_monitor = ContextMonitor(ContextMonitorConfig(
-            model=self.model,
-            threshold=0.8,  # 默认 80% 阈值
-            enable_auto_compression=True,
-            compression_strategy="intelligent",
-        ))
+        self.context_monitor = ContextMonitor(
+            ContextMonitorConfig(
+                model=self.model,
+                threshold=0.8,  # 默认 80% 阈值
+                enable_auto_compression=True,
+                compression_strategy="intelligent",
+            )
+        )
 
         # 添加命令系统
         self.commands = CommandRegistry()
@@ -193,7 +195,9 @@ class AgentLoop:
         # 获取或创建 MainAgent 实例
         if msg.session_key not in self.main_agents:
             logger.debug(f"Creating new MainAgent for session: {msg.session_key}")
-            self.main_agents[msg.session_key] = MainAgent(msg.session_key, agent_loop=self)
+            self.main_agents[msg.session_key] = MainAgent(
+                msg.session_key, agent_loop=self
+            )
 
         main_agent = self.main_agents[msg.session_key]
 
@@ -206,8 +210,12 @@ class AgentLoop:
             # 监控上下文大小并自动压缩
             if self.context_monitor.check_threshold(history):
                 logger.info("上下文大小接近阈值，将自动压缩")
-                compressed_history = await self.context_monitor.compress_context(history)
-                logger.debug(f"上下文压缩完成，原始消息数: {len(history)}, 压缩后: {len(compressed_history)}")
+                compressed_history = await self.context_monitor.compress_context(
+                    history
+                )
+                logger.debug(
+                    f"上下文压缩完成，原始消息数: {len(history)}, 压缩后: {len(compressed_history)}"
+                )
 
             # 处理消息
             response_content = await main_agent.process_message(msg.content)
@@ -224,10 +232,14 @@ class AgentLoop:
         except Exception as e:
             logger.error(f"MainAgent processing failed: {e}", exc_info=True)
             return OutboundMessage(
-                channel=msg.channel, chat_id=msg.chat_id, content=f"处理消息时发生错误: {str(e)}"
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=f"处理消息时发生错误: {str(e)}",
             )
 
-    async def _handle_command(self, msg: InboundMessage, command_name: str, args: dict[str, Any]) -> OutboundMessage:
+    async def _handle_command(
+        self, msg: InboundMessage, command_name: str, args: dict[str, Any]
+    ) -> OutboundMessage:
         """处理命令执行"""
         command = self.commands.get(command_name)
         if not command:
@@ -262,7 +274,9 @@ class AgentLoop:
                 content=f"Error: {str(e)}",
             )
 
-    async def _process_system_message(self, msg: InboundMessage) -> OutboundMessage | None:
+    async def _process_system_message(
+        self, msg: InboundMessage
+    ) -> OutboundMessage | None:
         """
         Process a system message (e.g., subagent announce).
 
@@ -299,7 +313,9 @@ class AgentLoop:
         if self.context_monitor.check_threshold(history):
             logger.info("系统消息处理时上下文大小接近阈值，将自动压缩")
             compressed_history = await self.context_monitor.compress_context(history)
-            logger.debug(f"上下文压缩完成，原始消息数: {len(history)}, 压缩后: {len(compressed_history)}")
+            logger.debug(
+                f"上下文压缩完成，原始消息数: {len(history)}, 压缩后: {len(compressed_history)}"
+            )
             history = compressed_history
 
         messages = self.context.build_messages(
@@ -322,7 +338,10 @@ class AgentLoop:
                     {
                         "id": tc.id,
                         "type": "function",
-                        "function": {"name": tc.name, "arguments": json.dumps(tc.arguments)},
+                        "function": {
+                            "name": tc.name,
+                            "arguments": json.dumps(tc.arguments),
+                        },
                     }
                     for tc in response.tool_calls
                 ]
@@ -332,8 +351,12 @@ class AgentLoop:
 
                 for tool_call in response.tool_calls:
                     args_str = json.dumps(tool_call.arguments)
-                    logger.debug(f"Executing tool: {tool_call.name} with arguments: {args_str}")
-                    result = await self.tools.execute(tool_call.name, tool_call.arguments)
+                    logger.debug(
+                        f"Executing tool: {tool_call.name} with arguments: {args_str}"
+                    )
+                    result = await self.tools.execute(
+                        tool_call.name, tool_call.arguments
+                    )
                     messages = self.context.add_tool_result(
                         messages, tool_call.id, tool_call.name, result
                     )
@@ -417,10 +440,14 @@ class AgentLoop:
         task.updated_at = datetime.datetime.now()
 
         return OutboundMessage(
-            channel=msg.channel, chat_id=msg.chat_id, content=f"任务 '{task.current_task}' 已取消"
+            channel=msg.channel,
+            chat_id=msg.chat_id,
+            content=f"任务 '{task.current_task}' 已取消",
         )
 
-    async def process_direct(self, content: str, session_key: str = "cli:direct") -> str:
+    async def process_direct(
+        self, content: str, session_key: str = "cli:direct"
+    ) -> str:
         """
         Process a message directly (for CLI usage).
 
@@ -431,7 +458,9 @@ class AgentLoop:
         Returns:
             The agent's response.
         """
-        msg = InboundMessage(channel="cli", sender_id="user", chat_id="direct", content=content)
+        msg = InboundMessage(
+            channel="cli", sender_id="user", chat_id="direct", content=content
+        )
 
         response = await self._process_message(msg)
         return response.content if response else ""

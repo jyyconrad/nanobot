@@ -95,14 +95,18 @@ class TestComplexityAnalyzer:
     async def test_get_complexity_category(self):
         """测试复杂度类别获取"""
         analyzer = ComplexityAnalyzer()
-        user_input = "实现一个高性能的图像识别系统，包含数据预处理、特征提取、模型训练和评估"
+        user_input = (
+            "实现一个高性能的图像识别系统，包含数据预处理、特征提取、模型训练和评估"
+        )
         task_type = TaskType.CODE_GENERATION
 
         category = await analyzer.get_complexity_category(user_input, task_type)
         assert category in ["非常复杂", "复杂", "中等", "简单", "非常简单"]
 
         simple_input = "计算两个数的和"
-        simple_category = await analyzer.get_complexity_category(simple_input, task_type)
+        simple_category = await analyzer.get_complexity_category(
+            simple_input, task_type
+        )
         assert simple_category in ["简单", "非常简单", "中等"]
 
     @pytest.mark.asyncio
@@ -123,7 +127,9 @@ class TestComplexityAnalyzer:
         )
 
         # 复杂任务
-        complex_input = "实现一个高性能的图像识别系统，包含数据预处理、特征提取、模型训练和评估"
+        complex_input = (
+            "实现一个高性能的图像识别系统，包含数据预处理、特征提取、模型训练和评估"
+        )
         complex_complexity = await analyzer.analyze_complexity(
             complex_input, TaskType.CODE_GENERATION
         )
@@ -137,8 +143,12 @@ class TestComplexityAnalyzer:
         short_input = "编写一个函数"
         long_input = "编写一个复杂的Python函数，实现数据分析功能，包括数据加载、预处理、特征工程、模型训练和评估，支持多种数据格式和模型算法，具有良好的错误处理和性能优化"
 
-        short_complexity = await analyzer.analyze_complexity(short_input, TaskType.CODE_GENERATION)
-        long_complexity = await analyzer.analyze_complexity(long_input, TaskType.CODE_GENERATION)
+        short_complexity = await analyzer.analyze_complexity(
+            short_input, TaskType.CODE_GENERATION
+        )
+        long_complexity = await analyzer.analyze_complexity(
+            long_input, TaskType.CODE_GENERATION
+        )
 
         assert short_complexity < long_complexity
 
@@ -147,9 +157,15 @@ class TestComplexityAnalyzer:
         """测试领域术语特征对复杂度的影响"""
         analyzer = ComplexityAnalyzer()
         basic_input = "编写一个函数"
-        domain_input = "实现一个机器学习模型，包含特征提取、模型训练、模型评估和结果可视化"
+        domain_input = (
+            "实现一个机器学习模型，包含特征提取、模型训练、模型评估和结果可视化"
+        )
 
-        basic_complexity = await analyzer.analyze_complexity(basic_input, TaskType.DATA_ANALYSIS)
-        domain_complexity = await analyzer.analyze_complexity(domain_input, TaskType.DATA_ANALYSIS)
+        basic_complexity = await analyzer.analyze_complexity(
+            basic_input, TaskType.DATA_ANALYSIS
+        )
+        domain_complexity = await analyzer.analyze_complexity(
+            domain_input, TaskType.DATA_ANALYSIS
+        )
 
         assert basic_complexity < domain_complexity

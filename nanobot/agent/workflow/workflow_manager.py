@@ -7,12 +7,7 @@ import uuid
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .models import (
-    MessageCategory,
-    TaskState,
-    WorkflowState,
-    WorkflowStep,
-)
+from .models import MessageCategory, TaskState, WorkflowState, WorkflowStep
 
 
 class WorkflowManager:
@@ -46,7 +41,9 @@ class WorkflowManager:
                     data = json.load(f)
                     self.workflows = data.get("workflows", {})
                     self.tasks = data.get("tasks", {})
-                    print(f"Loaded {len(self.workflows)} workflows and {len(self.tasks)} tasks from {config_file}")
+                    print(
+                        f"Loaded {len(self.workflows)} workflows and {len(self.tasks)} tasks from {config_file}"
+                    )
             except Exception as e:
                 print(f"Failed to load workflows from {config_file}: {e}")
 
@@ -60,7 +57,9 @@ class WorkflowManager:
             }
             with open(config_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-            print(f"Saved {len(self.workflows)} workflows and {len(self.tasks)} tasks to {config_file}")
+            print(
+                f"Saved {len(self.workflows)} workflows and {len(self.tasks)} tasks to {config_file}"
+            )
         except Exception as e:
             print(f"Failed to save workflows to {config_file}: {e}")
 
@@ -183,7 +182,10 @@ class WorkflowManager:
 
         # Resume all pending tasks in this workflow
         for task_id, task in self.tasks.items():
-            if task["workflow_id"] == workflow_id and task["status"] == TaskState.PAUSED.value:
+            if (
+                task["workflow_id"] == workflow_id
+                and task["status"] == TaskState.PAUSED.value
+            ):
                 self.tasks[task_id]["status"] = TaskState.PENDING.value
                 self.tasks[task_id]["updated_at"] = self._get_current_time()
 
@@ -276,7 +278,9 @@ class WorkflowManager:
             raise ValueError(f"Workflow {workflow_id} not found")
 
         return [
-            task_id for task_id, task in self.tasks.items() if task["workflow_id"] == workflow_id
+            task_id
+            for task_id, task in self.tasks.items()
+            if task["workflow_id"] == workflow_id
         ]
 
     def list_workflows(self) -> List[Dict]:

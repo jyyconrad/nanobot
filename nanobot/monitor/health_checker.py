@@ -14,12 +14,12 @@
 
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 from loguru import logger
 
-from nanobot.monitor.structured_logger import get_structured_logger
 from nanobot.monitor.performance_monitor import get_performance_monitor
+from nanobot.monitor.structured_logger import get_structured_logger
 
 
 class HealthCheck:

@@ -9,7 +9,13 @@ from typing import Any, Callable, Coroutine, Optional
 
 from loguru import logger
 
-from nanobot.cron.types import CronAction, CronJob, CronJobState, CronSchedule, CronStore
+from nanobot.cron.types import (
+    CronAction,
+    CronJob,
+    CronJobState,
+    CronSchedule,
+    CronStore,
+)
 
 
 def _now_ms() -> int:
@@ -202,7 +208,9 @@ class CronService:
         if not self._store:
             return None
         times = [
-            j.state.next_run_at_ms for j in self._store.jobs if j.enabled and j.state.next_run_at_ms
+            j.state.next_run_at_ms
+            for j in self._store.jobs
+            if j.enabled and j.state.next_run_at_ms
         ]
         return min(times) if times else None
 
@@ -369,7 +377,9 @@ class CronService:
         tags: Optional[list[str]] = None,
     ) -> CronJob:
         """Add a trigger_agent type job."""
-        action = CronAction(type="trigger_agent", target=target, method=method, params=params or {})
+        action = CronAction(
+            type="trigger_agent", target=target, method=method, params=params or {}
+        )
 
         return self.add_job(name, schedule, action, delete_after_run, description, tags)
 
@@ -385,7 +395,9 @@ class CronService:
     ) -> CronJob:
         """Add a monitor_status type job."""
         action = CronAction(
-            type="monitor_status", targets=targets or [], alertConditions=alert_conditions or {}
+            type="monitor_status",
+            targets=targets or [],
+            alertConditions=alert_conditions or {},
         )
 
         return self.add_job(name, schedule, action, delete_after_run, description, tags)
@@ -431,7 +443,9 @@ class CronService:
                 job.enabled = enabled
                 job.updated_at_ms = _now_ms()
                 if enabled:
-                    job.state.next_run_at_ms = _compute_next_run(job.schedule, _now_ms())
+                    job.state.next_run_at_ms = _compute_next_run(
+                        job.schedule, _now_ms()
+                    )
                 else:
                     job.state.next_run_at_ms = None
                 self._save_store()

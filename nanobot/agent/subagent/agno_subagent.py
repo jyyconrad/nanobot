@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from nanobot.agent.task import Task, TaskStatus
 from nanobot.agent.task_manager import TaskManager
@@ -28,8 +28,12 @@ class AgnoSubagentConfig(BaseModel):
         default=15, description="Maximum number of iterations per subagent task"
     )
     timeout: int = Field(default=300, description="Task timeout in seconds")
-    model: Optional[str] = Field(default=None, description="LLM model to use for subagent")
-    brave_api_key: Optional[str] = Field(default=None, description="Brave API key for web search")
+    model: Optional[str] = Field(
+        default=None, description="LLM model to use for subagent"
+    )
+    brave_api_key: Optional[str] = Field(
+        default=None, description="Brave API key for web search"
+    )
     restrict_to_workspace: bool = Field(
         default=True, description="Restrict shell commands to workspace"
     )
@@ -39,21 +43,27 @@ class AgnoSubagent(BaseModel):
     """Data model representing an Agno Subagent instance."""
 
     subagent_id: str = Field(
-        default_factory=lambda: str(uuid.uuid4())[:8], description="Unique subagent identifier"
+        default_factory=lambda: str(uuid.uuid4())[:8],
+        description="Unique subagent identifier",
     )
     task_id: str = Field(..., description="Associated task identifier")
     task: str = Field(..., description="Task description")
     label: str = Field(..., description="Human-readable task label")
-    status: TaskStatus = Field(default=TaskStatus.RUNNING, description="Current task status")
+    status: TaskStatus = Field(
+        default=TaskStatus.RUNNING, description="Current task status"
+    )
     progress: float = Field(default=0.0, description="Task progress percentage (0-100)")
     iteration: int = Field(default=0, description="Current iteration count")
-    created_at: datetime = Field(default_factory=datetime.now, description="Creation timestamp")
-    updated_at: datetime = Field(default_factory=datetime.now, description="Last update timestamp")
+    created_at: datetime = Field(
+        default_factory=datetime.now, description="Creation timestamp"
+    )
+    updated_at: datetime = Field(
+        default_factory=datetime.now, description="Last update timestamp"
+    )
 
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
 
 class AgnoSubagentManager:
@@ -128,10 +138,7 @@ class AgnoSubagentManager:
 
         # Create task record using TaskManager's create_task method
         task_obj = self._task_manager.create_task(
-            title=display_label,
-            description=task,
-            priority=3,
-            status="running"
+            title=display_label, description=task, priority=3, status="running"
         )
         task_id = task_obj.task_id
 
@@ -192,7 +199,9 @@ class AgnoSubagentManager:
             final_result: str | None = None
             for iteration in range(1, self.config.max_iterations + 1):
                 # Update progress
-                await self._update_subagent_progress(subagent_id, iteration, final_result)
+                await self._update_subagent_progress(
+                    subagent_id, iteration, final_result
+                )
 
                 # Check for interruptions
                 if await self._interrupt_handler.check_for_interrupt(subagent_id):
@@ -211,7 +220,9 @@ class AgnoSubagentManager:
                     if await self._risk_evaluator.evaluate_tool_calls(
                         subagent_id, response.tool_calls
                     ):
-                        logger.info(f"Agno Subagent [{subagent_id}] executing tool calls")
+                        logger.info(
+                            f"Agno Subagent [{subagent_id}] executing tool calls"
+                        )
                         await self._execute_tool_calls(
                             subagent_id, response.tool_calls, tools, messages
                         )
@@ -232,7 +243,9 @@ class AgnoSubagentManager:
             await self._complete_subagent(subagent_id, final_result, task_id)
 
             logger.info(f"Agno Subagent [{subagent_id}] completed successfully")
-            await self._announce_result(subagent_id, label, task, final_result, origin, "ok")
+            await self._announce_result(
+                subagent_id, label, task, final_result, origin, "ok"
+            )
 
         except asyncio.CancelledError:
             logger.info(f"Agno Subagent [{subagent_id}] was cancelled")
@@ -242,7 +255,9 @@ class AgnoSubagentManager:
             error_msg = f"Error: {str(e)}"
             logger.error(f"Agno Subagent [{subagent_id}] failed: {e}")
             await self._fail_subagent(subagent_id, error_msg, task_id)
-            await self._announce_result(subagent_id, label, task, error_msg, origin, "error")
+            await self._announce_result(
+                subagent_id, label, task, error_msg, origin, "error"
+            )
         finally:
             # Post-run hook
             await self._hooks.post_run(subagent_id)
@@ -331,7 +346,9 @@ class AgnoSubagentManager:
             f"Iteration {iteration}/{self.config.max_iterations}",
         )
 
-    async def _complete_subagent(self, subagent_id: str, final_result: str, task_id: str):
+    async def _complete_subagent(
+        self, subagent_id: str, final_result: str, task_id: str
+    ):
         """Complete a subagent task."""
         if subagent_id not in self._subagent_map:
             return
@@ -436,7 +453,9 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
 
     def get_running_count(self) -> int:
         """Get number of running subagents."""
-        return len([s for s in self._subagent_map.values() if s.status == TaskStatus.RUNNING])
+        return len(
+            [s for s in self._subagent_map.values() if s.status == TaskStatus.RUNNING]
+        )
 
     def get_all_subagents(self) -> List[AgnoSubagent]:
         """Get all subagent instances."""

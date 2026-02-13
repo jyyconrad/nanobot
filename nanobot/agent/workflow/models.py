@@ -70,7 +70,9 @@ class WorkflowStep:
             "name": self.name,
             "description": self.description,
             "dependencies": self.dependencies,
-            "status": self.status.value if isinstance(self.status, TaskState) else self.status,
+            "status": (
+                self.status.value if isinstance(self.status, TaskState) else self.status
+            ),
             "start_time": self.start_time,
             "end_time": self.end_time,
             "output": self.output,

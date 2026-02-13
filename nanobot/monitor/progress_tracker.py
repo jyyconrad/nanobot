@@ -45,7 +45,11 @@ class ProgressTracker:
             self._progress_history[task_id] = []
 
         self._progress_history[task_id].append(
-            {"timestamp": datetime.now().isoformat(), "progress": progress, "message": message}
+            {
+                "timestamp": datetime.now().isoformat(),
+                "progress": progress,
+                "message": message,
+            }
         )
 
         logger.debug(f"Task {task_id} progress: {progress:.1f}% - {message}")
@@ -149,9 +153,9 @@ class ProgressTracker:
 
         avg_progress = 0.0
         if active_progress:
-            avg_progress = sum(task["current_progress"] for task in active_progress) / len(
-                active_progress
-            )
+            avg_progress = sum(
+                task["current_progress"] for task in active_progress
+            ) / len(active_progress)
 
         return {
             "stats": stats,
@@ -257,7 +261,9 @@ class ProgressTracker:
 
         return report
 
-    def get_tasks_by_progress_range(self, min_progress: float, max_progress: float) -> List[Dict]:
+    def get_tasks_by_progress_range(
+        self, min_progress: float, max_progress: float
+    ) -> List[Dict]:
         """
         获取指定进度范围内的任务
 

@@ -8,7 +8,11 @@ import pytest
 from pydantic import ValidationError
 
 from nanobot.agent.decision.cancellation_handler import CancellationHandler
-from nanobot.agent.decision.models import CancellationRequest, DecisionRequest, DecisionResult
+from nanobot.agent.decision.models import (
+    CancellationRequest,
+    DecisionRequest,
+    DecisionResult,
+)
 from nanobot.agent.loop import AgentLoop
 from nanobot.agent.task import Task
 
@@ -46,7 +50,11 @@ class TestCancellationHandler:
         """测试处理有效取消请求"""
         request = DecisionRequest(
             request_type="cancellation",
-            data={"message_id": "msg123", "cancellation_reason": "用户取消", "task_id": "task123"},
+            data={
+                "message_id": "msg123",
+                "cancellation_reason": "用户取消",
+                "task_id": "task123",
+            },
             task=mock_task,
         )
 
@@ -245,7 +253,9 @@ class TestCancellationHandler:
             message_id="msg123", cancellation_reason="有效的取消原因"
         )
 
-        invalid_request = CancellationRequest(message_id="msg123", cancellation_reason="短")
+        invalid_request = CancellationRequest(
+            message_id="msg123", cancellation_reason="短"
+        )
 
         result1 = await handler._validate_cancellation_request(valid_request)
         result2 = await handler._validate_cancellation_request(invalid_request)

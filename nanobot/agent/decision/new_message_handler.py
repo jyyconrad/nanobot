@@ -3,9 +3,9 @@
 """
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
     from ..context_manager import ContextManager
@@ -88,28 +88,39 @@ class NewMessageHandler:
             if "message" in request.data and "message_id" not in request.data:
                 # CLI 格式：转换为 NewMessageRequest
                 import uuid
+
                 message_request = NewMessageRequest(
                     message_id=str(uuid.uuid4()),
                     content=request.data.get("message", ""),
                     sender_id=request.context.get("sender_id", "user"),
-                    timestamp=request.context.get("timestamp", 0.0) or datetime.now().timestamp(),
-                    conversation_id=request.context.get("conversation_id", "cli:default"),
+                    timestamp=request.context.get("timestamp", 0.0)
+                    or datetime.now().timestamp(),
+                    conversation_id=request.context.get(
+                        "conversation_id", "cli:default"
+                    ),
                 )
             else:
                 # 标准格式：直接解析
                 message_request = NewMessageRequest(**request.data)
 
             # 分析消息内容和上下文
-            action, action_data = await self._analyze_message(message_request, request.context)
+            action, action_data = await self._analyze_message(
+                message_request, request.context
+            )
 
             # 返回决策结果
             return DecisionResult(
-                success=True, action=action, data=action_data, message=f"新消息处理完成: {action}"
+                success=True,
+                action=action,
+                data=action_data,
+                message=f"新消息处理完成: {action}",
             )
         except Exception as e:
             logger.error(f"处理新消息请求时发生错误: {e}", exc_info=True)
             return DecisionResult(
-                success=False, action="error", message=f"处理新消息请求时发生错误: {str(e)}"
+                success=False,
+                action="error",
+                message=f"处理新消息请求时发生错误: {str(e)}",
             )
 
     async def _analyze_message(
@@ -133,7 +144,9 @@ class NewMessageHandler:
             return "cancel_task", {"message_id": message.message_id}
 
         # 检查是否是纠正指令
-        if any(keyword in content for keyword in ["不对", "错了", "修正", "correction"]):
+        if any(
+            keyword in content for keyword in ["不对", "错了", "修正", "correction"]
+        ):
             return "handle_correction", {
                 "message_id": message.message_id,
                 "content": message.content,
@@ -141,7 +154,10 @@ class NewMessageHandler:
 
         # 检查是否是简单查询
         if any(keyword in content for keyword in ["?", "？", "查询", "查一下"]):
-            return "simple_query", {"message_id": message.message_id, "content": message.content}
+            return "simple_query", {
+                "message_id": message.message_id,
+                "content": message.content,
+            }
 
         # 默认策略：创建新任务
         return "create_task", {

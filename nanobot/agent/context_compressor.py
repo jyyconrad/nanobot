@@ -12,7 +12,7 @@ ContextCompressor 使用 LLM 进行智能压缩，保留关键信息（任务、
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 
 try:
     import tiktoken
@@ -89,7 +89,9 @@ class ContextCompressor:
         # 降级：使用估算（1 token ≈ 1.6 字符）
         return int(len(text) / 1.6)
 
-    async def compress(self, content: str, max_tokens: int = 4000) -> Tuple[str, ContextStats]:
+    async def compress(
+        self, content: str, max_tokens: int = 4000
+    ) -> Tuple[str, ContextStats]:
         """
         压缩上下文内容到指定大小
 
@@ -128,10 +130,14 @@ class ContextCompressor:
         tail_tokens = int(max_tokens * tail_ratio)
 
         # 分割内容
-        head_content, tail_content = self._split_content(content, head_tokens, tail_tokens)
+        head_content, tail_content = self._split_content(
+            content, head_tokens, tail_tokens
+        )
 
         # 构建压缩内容
-        compressed = f"{head_content}\n\n... [中间内容已省略以节省上下文] ...\n\n{tail_content}"
+        compressed = (
+            f"{head_content}\n\n... [中间内容已省略以节省上下文] ...\n\n{tail_content}"
+        )
 
         compressed_tokens = self.count_tokens(compressed)
 
@@ -154,7 +160,9 @@ class ContextCompressor:
 
         return compressed, stats
 
-    def _split_content(self, content: str, head_tokens: int, tail_tokens: int) -> Tuple[str, str]:
+    def _split_content(
+        self, content: str, head_tokens: int, tail_tokens: int
+    ) -> Tuple[str, str]:
         """
         将内容分割为头部和尾部
 
@@ -298,7 +306,9 @@ class ContextCompressor:
         used_tokens = sum(count_msg_tokens(msg) for msg in system_messages)
 
         # 保留最近的用户消息（最新 3 条）
-        recent_user_messages = user_messages[-3:] if len(user_messages) > 3 else user_messages
+        recent_user_messages = (
+            user_messages[-3:] if len(user_messages) > 3 else user_messages
+        )
         for msg in recent_user_messages:
             msg_tokens = count_msg_tokens(msg)
             if used_tokens + msg_tokens > max_tokens:
@@ -307,7 +317,9 @@ class ContextCompressor:
             used_tokens += msg_tokens
 
         # 保留最近的工具调用（最新 5 条）
-        recent_tool_messages = tool_messages[-5:] if len(tool_messages) > 5 else tool_messages
+        recent_tool_messages = (
+            tool_messages[-5:] if len(tool_messages) > 5 else tool_messages
+        )
         for msg in recent_tool_messages:
             msg_tokens = count_msg_tokens(msg)
             if used_tokens + msg_tokens > max_tokens:
@@ -318,11 +330,15 @@ class ContextCompressor:
         # 对助手消息进行总结（如果还有空间）
         if assistant_messages and used_tokens < max_tokens * 0.8:
             summary = await self.summarize_messages(assistant_messages)
-            compressed_messages.append({"role": "system", "content": f"历史对话摘要:\n{summary}"})
+            compressed_messages.append(
+                {"role": "system", "content": f"历史对话摘要:\n{summary}"}
+            )
 
         # 计算统计信息
         original_length = sum(len(msg.get("content", "")) for msg in messages)
-        compressed_length = sum(len(msg.get("content", "")) for msg in compressed_messages)
+        compressed_length = sum(
+            len(msg.get("content", "")) for msg in compressed_messages
+        )
 
         # 估算原始 Token 数
         original_tokens = sum(count_msg_tokens(msg) for msg in messages)
@@ -330,7 +346,9 @@ class ContextCompressor:
         stats = ContextStats(
             original_length=original_length,
             compressed_length=compressed_length,
-            compression_ratio=compressed_length / original_length if original_length > 0 else 1.0,
+            compression_ratio=(
+                compressed_length / original_length if original_length > 0 else 1.0
+            ),
             original_tokens=original_tokens,
             compressed_tokens=used_tokens,
             messages_kept=len(compressed_messages),

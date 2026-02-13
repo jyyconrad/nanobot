@@ -46,7 +46,9 @@ class TestEnhancedMemoryStore:
             content="Python 编码技能", tags=["coding", "python"], task_id="coding_task"
         )
         await memory_store.add_memory(
-            content="JavaScript 编码技能", tags=["coding", "javascript"], task_id="coding_task"
+            content="JavaScript 编码技能",
+            tags=["coding", "javascript"],
+            task_id="coding_task",
         )
 
         results = await memory_store.search_memory(
@@ -59,9 +61,15 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_get_task_memories(self, memory_store):
         """测试获取任务相关记忆"""
-        await memory_store.add_memory(content="任务开始", tags=["task"], task_id="test_task_1")
-        await memory_store.add_memory(content="任务进行中", tags=["task"], task_id="test_task_1")
-        await memory_store.add_memory(content="无关记忆", tags=["general"], task_id="other_task")
+        await memory_store.add_memory(
+            content="任务开始", tags=["task"], task_id="test_task_1"
+        )
+        await memory_store.add_memory(
+            content="任务进行中", tags=["task"], task_id="test_task_1"
+        )
+        await memory_store.add_memory(
+            content="无关记忆", tags=["general"], task_id="other_task"
+        )
 
         task_memories = await memory_store.get_task_memories("test_task_1")
 
@@ -102,8 +110,12 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_search_with_empty_query(self, memory_store):
         """测试空查询搜索"""
-        await memory_store.add_memory(content="记忆1", tags=["tag1"], task_id="test_task")
-        await memory_store.add_memory(content="记忆2", tags=["tag2"], task_id="test_task")
+        await memory_store.add_memory(
+            content="记忆1", tags=["tag1"], task_id="test_task"
+        )
+        await memory_store.add_memory(
+            content="记忆2", tags=["tag2"], task_id="test_task"
+        )
 
         results = await memory_store.search_memory(query="")
 
@@ -112,8 +124,12 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_search_with_multiple_tags(self, memory_store):
         """测试多标签搜索"""
-        await memory_store.add_memory(content="记忆1", tags=["tag1", "tag2"], task_id="test_task")
-        await memory_store.add_memory(content="记忆2", tags=["tag2"], task_id="test_task")
+        await memory_store.add_memory(
+            content="记忆1", tags=["tag1", "tag2"], task_id="test_task"
+        )
+        await memory_store.add_memory(
+            content="记忆2", tags=["tag2"], task_id="test_task"
+        )
 
         results = await memory_store.search_memory(tags=["tag1"])
         assert len(results) == 1
@@ -173,8 +189,12 @@ class TestEnhancedMemoryStore:
     @pytest.mark.asyncio
     async def test_clear_task_memories(self, memory_store):
         """测试清除任务相关记忆"""
-        await memory_store.add_memory(content="任务记忆1", tags=["task"], task_id="test_task")
-        await memory_store.add_memory(content="任务记忆2", tags=["task"], task_id="test_task")
+        await memory_store.add_memory(
+            content="任务记忆1", tags=["task"], task_id="test_task"
+        )
+        await memory_store.add_memory(
+            content="任务记忆2", tags=["task"], task_id="test_task"
+        )
 
         deleted = await memory_store.clear_task_memories("test_task")
         assert deleted == 2
@@ -186,7 +206,9 @@ class TestEnhancedMemoryStore:
     async def test_search_with_limit(self, memory_store):
         """测试搜索结果限制"""
         for i in range(10):
-            await memory_store.add_memory(content=f"记忆{i}", tags=["test"], task_id="test_task")
+            await memory_store.add_memory(
+                content=f"记忆{i}", tags=["test"], task_id="test_task"
+            )
 
         results = await memory_store.search_memory(limit=5)
         assert len(results) == 5

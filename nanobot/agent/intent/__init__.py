@@ -18,34 +18,27 @@
     HybridRecognitionResult(intent='greeting', confidence=0.80, type='rule')
 """
 
-from .rule_based_recognizer import (
-    RuleBasedRecognizer,
-    MatchType,
-    Rule,
-    RecognitionResult
-)
-
-from .code_based_recognizer import (
-    CodeBasedRecognizer,
-    CodeRule,
-    CodeRecognitionResult
-)
-
-from .llm_recognizer import (
-    LLMRecognizer,
-    LLMProvider,
-    LLMSample,
-    LLMRecognitionResult,
-    LLMClient,
-    MockLLMClient
-)
-
+from .code_based_recognizer import CodeBasedRecognizer, CodeRecognitionResult, CodeRule
 from .hybrid_recognizer import (
+    ConflictResolutionConfig,
+    FallbackConfig,
+    HybridRecognitionResult,
     HybridRecognizer,
     RecognizerType,
-    HybridRecognitionResult,
-    FallbackConfig,
-    ConflictResolutionConfig
+)
+from .llm_recognizer import (
+    LLMClient,
+    LLMProvider,
+    LLMRecognitionResult,
+    LLMRecognizer,
+    LLMSample,
+    MockLLMClient,
+)
+from .rule_based_recognizer import (
+    MatchType,
+    RecognitionResult,
+    Rule,
+    RuleBasedRecognizer,
 )
 
 __all__ = [
@@ -54,12 +47,10 @@ __all__ = [
     "MatchType",
     "Rule",
     "RecognitionResult",
-
     # 代码识别器
     "CodeBasedRecognizer",
     "CodeRule",
     "CodeRecognitionResult",
-
     # LLM 识别器
     "LLMRecognizer",
     "LLMProvider",
@@ -67,11 +58,10 @@ __all__ = [
     "LLMRecognitionResult",
     "LLMClient",
     "MockLLMClient",
-
     # 综合识别器
     "HybridRecognizer",
     "RecognizerType",
     "HybridRecognitionResult",
     "FallbackConfig",
-    "ConflictResolutionConfig"
+    "ConflictResolutionConfig",
 ]

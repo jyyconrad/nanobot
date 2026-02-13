@@ -51,7 +51,9 @@ class SubagentResultHandler:
             result_request = SubagentResultRequest(**request.data)
 
             # 处理子代理结果
-            action, action_data = await self._handle_subagent_result(result_request, request.task)
+            action, action_data = await self._handle_subagent_result(
+                result_request, request.task
+            )
 
             # 返回决策结果
             return DecisionResult(
@@ -63,7 +65,9 @@ class SubagentResultHandler:
         except Exception as e:
             logger.error(f"处理子代理结果请求时发生错误: {e}", exc_info=True)
             return DecisionResult(
-                success=False, action="error", message=f"处理子代理结果请求时发生错误: {str(e)}"
+                success=False,
+                action="error",
+                message=f"处理子代理结果请求时发生错误: {str(e)}",
             )
 
     async def _handle_subagent_result(

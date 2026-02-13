@@ -2,8 +2,8 @@
 配置查询工具 - 供 MainAgent 查询系统配置
 """
 
-from typing import Any, Dict, List
 from pathlib import Path
+from typing import Any, Dict, List
 
 from nanobot.agent.tools.base import Tool
 

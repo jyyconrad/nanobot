@@ -12,10 +12,10 @@
 - 缓存命中统计
 """
 
-import time
 import pickle
 import threading
-from typing import Any, Dict, Optional, Callable, Type
+import time
+from typing import Any, Callable, Dict, Optional, Type
 
 from loguru import logger
 

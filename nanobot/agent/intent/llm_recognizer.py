@@ -4,18 +4,19 @@
 实现基于 LLM API 调用、Few-shot 示例和自定义提示词的意图识别功能。
 """
 
-import logging
 import json
-from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Dict, Any, Union
-from enum import Enum
+import logging
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
 
 class LLMProvider(Enum):
     """大模型提供商枚举"""
+
     GLM = "glm"
     GPT = "gpt"
     DOUBAO = "doubao"
@@ -26,6 +27,7 @@ class LLMProvider(Enum):
 @dataclass
 class LLMSample:
     """Few-shot 示例数据类"""
+
     text: str
     intent: str
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -34,14 +36,17 @@ class LLMSample:
 @dataclass
 class LLMRecognitionResult:
     """大模型识别结果数据类"""
+
     intent: str
     confidence: float
     reasoning: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
-        return (f"LLMRecognitionResult(intent='{self.intent}', "
-                f"confidence={self.confidence:.2f})")
+        return (
+            f"LLMRecognitionResult(intent='{self.intent}', "
+            f"confidence={self.confidence:.2f})"
+        )
 
 
 class LLMClient(ABC):
@@ -54,7 +59,7 @@ class LLMClient(ABC):
         model: Optional[str] = None,
         temperature: float = 0.0,
         max_tokens: int = 1024,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         聊天补全接口
@@ -81,15 +86,18 @@ class MockLLMClient(LLMClient):
         model: Optional[str] = None,
         temperature: float = 0.0,
         max_tokens: int = 1024,
-        **kwargs
+        **kwargs,
     ) -> str:
         """返回模拟响应"""
         logger.debug("使用 MockLLMClient 响应")
-        return json.dumps({
-            "intent": "general.query",
-            "confidence": 0.75,
-            "reasoning": "无法确定具体意图，默认归类为一般查询"
-        }, ensure_ascii=False)
+        return json.dumps(
+            {
+                "intent": "general.query",
+                "confidence": 0.75,
+                "reasoning": "无法确定具体意图，默认归类为一般查询",
+            },
+            ensure_ascii=False,
+        )
 
 
 class LLMRecognizer:
@@ -117,7 +125,7 @@ class LLMRecognizer:
         api_key: Optional[str] = None,
         model: Optional[str] = None,
         base_url: Optional[str] = None,
-        timeout: float = 30.0
+        timeout: float = 30.0,
     ):
         self.provider = provider
         self.api_key = api_key
@@ -184,7 +192,9 @@ class LLMRecognizer:
         self._client = MockLLMClient()
         return self._client
 
-    def add_sample(self, text: str, intent: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def add_sample(
+        self, text: str, intent: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
         """
         添加 Few-shot 示例
 
@@ -196,9 +206,7 @@ class LLMRecognizer:
         if metadata is None:
             metadata = {}
 
-        self.samples.append(
-            LLMSample(text=text, intent=intent, metadata=metadata)
-        )
+        self.samples.append(LLMSample(text=text, intent=intent, metadata=metadata))
         logger.debug(f"添加示例: {intent} -> {text}")
 
     def add_samples(self, samples: List[Dict[str, str]]) -> None:
@@ -236,9 +244,7 @@ class LLMRecognizer:
         return self._custom_prompt or self._default_prompt
 
     def recognize(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> Optional[LLMRecognitionResult]:
         """
         识别文本的意图
@@ -261,10 +267,10 @@ class LLMRecognizer:
             response = client.chat_completion(
                 messages=[
                     {"role": "system", "content": prompt},
-                    {"role": "user", "content": text}
+                    {"role": "user", "content": text},
                 ],
                 model=self.model,
-                temperature=0.0
+                temperature=0.0,
             )
 
             result = self._parse_response(response)
@@ -322,7 +328,7 @@ class LLMRecognizer:
                 intent=data.get("intent", "general.query"),
                 confidence=data.get("confidence", 0.7),
                 reasoning=data.get("reasoning"),
-                metadata={}
+                metadata={},
             )
 
         except json.JSONDecodeError as e:
@@ -333,9 +339,7 @@ class LLMRecognizer:
         return None
 
     def recognize_batch(
-        self,
-        texts: List[str],
-        contexts: Optional[List[Dict[str, Any]]] = None
+        self, texts: List[str], contexts: Optional[List[Dict[str, Any]]] = None
     ) -> List[Optional[LLMRecognitionResult]]:
         """
         批量识别文本的意图
@@ -363,6 +367,8 @@ class LLMRecognizer:
         return len(self.samples)
 
     def __repr__(self):
-        return (f"LLMRecognizer(provider={self.provider.value}, "
-                f"model={self.model}, "
-                f"samples={self.sample_count})")
+        return (
+            f"LLMRecognizer(provider={self.provider.value}, "
+            f"model={self.model}, "
+            f"samples={self.sample_count})"
+        )

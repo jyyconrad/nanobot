@@ -50,7 +50,9 @@ class ChannelManager:
             try:
                 from nanobot.channels.whatsapp import WhatsAppChannel
 
-                self.channels["whatsapp"] = WhatsAppChannel(self.config.channels.whatsapp, self.bus)
+                self.channels["whatsapp"] = WhatsAppChannel(
+                    self.config.channels.whatsapp, self.bus
+                )
                 logger.info("WhatsApp channel enabled")
             except ImportError as e:
                 logger.warning(f"WhatsApp channel not available: {e}")
@@ -60,7 +62,9 @@ class ChannelManager:
             try:
                 from nanobot.channels.feishu import FeishuChannel
 
-                self.channels["feishu"] = FeishuChannel(self.config.channels.feishu, self.bus)
+                self.channels["feishu"] = FeishuChannel(
+                    self.config.channels.feishu, self.bus
+                )
                 logger.info("Feishu channel enabled")
             except ImportError as e:
                 logger.warning(f"Feishu channel not available: {e}")

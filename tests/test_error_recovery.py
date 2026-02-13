@@ -1,14 +1,16 @@
 """Tests for error recovery mechanisms."""
 
 import asyncio
+
 import pytest
+
 from nanobot.agents.error_recovery import (
     CircuitBreaker,
     CircuitBreakerConfig,
     CircuitState,
+    ErrorRecoveryManager,
     RetryPolicy,
     TimeoutHandler,
-    ErrorRecoveryManager
 )
 
 
@@ -76,9 +78,7 @@ class TestCircuitBreaker:
     async def test_circuit_closes_after_timeout(self):
         """Test that circuit closes after successful calls."""
         config = CircuitBreakerConfig(
-            failure_threshold=2,
-            timeout=0.5,
-            success_threshold=1
+            failure_threshold=2, timeout=0.5, success_threshold=1
         )
         cb = CircuitBreaker("test-circuit", config)
 

@@ -83,7 +83,10 @@ class TestAgnoSubagent:
     def test_agno_subagent_creation(self):
         """Test AgnoSubagent initialization."""
         subagent = AgnoSubagent(
-            subagent_id="test-1234", task_id="task-5678", task="Test task", label="Test label"
+            subagent_id="test-1234",
+            task_id="task-5678",
+            task="Test task",
+            label="Test label",
         )
 
         assert subagent.subagent_id == "test-1234"
@@ -97,7 +100,10 @@ class TestAgnoSubagent:
     def test_agno_subagent_progress(self):
         """Test progress tracking."""
         subagent = AgnoSubagent(
-            subagent_id="test-1234", task_id="task-5678", task="Test task", label="Test label"
+            subagent_id="test-1234",
+            task_id="task-5678",
+            task="Test task",
+            label="Test label",
         )
 
         subagent.iteration = 5
@@ -109,7 +115,10 @@ class TestAgnoSubagent:
     def test_agno_subagent_status_transition(self):
         """Test status transition methods."""
         subagent = AgnoSubagent(
-            subagent_id="test-1234", task_id="task-5678", task="Test task", label="Test label"
+            subagent_id="test-1234",
+            task_id="task-5678",
+            task="Test task",
+            label="Test label",
         )
 
         # Initially running
@@ -128,10 +137,15 @@ class TestAgnoSubagentManager:
     """Tests for AgnoSubagentManager."""
 
     @pytest.mark.asyncio
-    async def test_manager_initialization(self, mock_provider, temp_workspace, mock_bus, config):
+    async def test_manager_initialization(
+        self, mock_provider, temp_workspace, mock_bus, config
+    ):
         """Test AgnoSubagentManager initialization."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         await manager.initialize()
@@ -147,10 +161,15 @@ class TestAgnoSubagentManager:
         assert len(manager._task_map) == 0
 
     @pytest.mark.asyncio
-    async def test_spawn_subagent(self, mock_provider, temp_workspace, mock_bus, config):
+    async def test_spawn_subagent(
+        self, mock_provider, temp_workspace, mock_bus, config
+    ):
         """Test spawning a subagent."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         await manager.initialize()
@@ -168,10 +187,15 @@ class TestAgnoSubagentManager:
         assert subagent.status == TaskStatus.RUNNING
 
     @pytest.mark.asyncio
-    async def test_spawn_with_long_task(self, mock_provider, temp_workspace, mock_bus, config):
+    async def test_spawn_with_long_task(
+        self, mock_provider, temp_workspace, mock_bus, config
+    ):
         """Test spawning with long task description."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         await manager.initialize()
@@ -183,10 +207,15 @@ class TestAgnoSubagentManager:
         assert "..." in subagent.label
 
     @pytest.mark.asyncio
-    async def test_cancel_subagent(self, mock_provider, temp_workspace, mock_bus, config):
+    async def test_cancel_subagent(
+        self, mock_provider, temp_workspace, mock_bus, config
+    ):
         """Test cancelling a subagent."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         await manager.initialize()
@@ -201,10 +230,15 @@ class TestAgnoSubagentManager:
         assert subagent.status == TaskStatus.CANCELLED
 
     @pytest.mark.asyncio
-    async def test_get_subagent_by_task_id(self, mock_provider, temp_workspace, mock_bus, config):
+    async def test_get_subagent_by_task_id(
+        self, mock_provider, temp_workspace, mock_bus, config
+    ):
         """Test getting subagent by task ID."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         await manager.initialize()
@@ -220,7 +254,10 @@ class TestAgnoSubagentManager:
     def test_running_count(self, mock_provider, temp_workspace, mock_bus, config):
         """Test getting running count."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         assert manager.get_running_count() == 0
@@ -228,16 +265,24 @@ class TestAgnoSubagentManager:
     def test_get_all_subagents(self, mock_provider, temp_workspace, mock_bus, config):
         """Test getting all subagents."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         assert len(manager.get_all_subagents()) == 0
 
     @pytest.mark.asyncio
-    async def test_get_task_manager(self, mock_provider, temp_workspace, mock_bus, config):
+    async def test_get_task_manager(
+        self, mock_provider, temp_workspace, mock_bus, config
+    ):
         """Test getting task manager."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         task_manager = manager.get_task_manager()
@@ -246,10 +291,15 @@ class TestAgnoSubagentManager:
         assert hasattr(task_manager, "get_task")
 
     @pytest.mark.asyncio
-    async def test_get_progress_tracker(self, mock_provider, temp_workspace, mock_bus, config):
+    async def test_get_progress_tracker(
+        self, mock_provider, temp_workspace, mock_bus, config
+    ):
         """Test getting progress tracker."""
         manager = AgnoSubagentManager(
-            provider=mock_provider, workspace=temp_workspace, bus=mock_bus, config=config
+            provider=mock_provider,
+            workspace=temp_workspace,
+            bus=mock_bus,
+            config=config,
         )
 
         progress_tracker = manager.get_progress_tracker()

@@ -63,7 +63,11 @@ class SkillsLoader:
                     skill_file = skill_dir / "SKILL.md"
                     if skill_file.exists():
                         skills.append(
-                            {"name": skill_dir.name, "path": str(skill_file), "source": "workspace"}
+                            {
+                                "name": skill_dir.name,
+                                "path": str(skill_file),
+                                "source": "workspace",
+                            }
                         )
 
         # Built-in skills
@@ -71,9 +75,15 @@ class SkillsLoader:
             for skill_dir in self.builtin_skills.iterdir():
                 if skill_dir.is_dir():
                     skill_file = skill_dir / "SKILL.md"
-                    if skill_file.exists() and not any(s["name"] == skill_dir.name for s in skills):
+                    if skill_file.exists() and not any(
+                        s["name"] == skill_dir.name for s in skills
+                    ):
                         skills.append(
-                            {"name": skill_dir.name, "path": str(skill_file), "source": "builtin"}
+                            {
+                                "name": skill_dir.name,
+                                "path": str(skill_file),
+                                "source": "builtin",
+                            }
                         )
 
         # Opencode skills (if enabled)
@@ -83,23 +93,39 @@ class SkillsLoader:
                 for skill_name in self.opencode_skills:
                     skill_dir = self.opencode_dir / skill_name
                     skill_file = skill_dir / "SKILL.md"
-                    if skill_file.exists() and not any(s["name"] == skill_name for s in skills):
+                    if skill_file.exists() and not any(
+                        s["name"] == skill_name for s in skills
+                    ):
                         skills.append(
-                            {"name": skill_name, "path": str(skill_file), "source": "opencode"}
+                            {
+                                "name": skill_name,
+                                "path": str(skill_file),
+                                "source": "opencode",
+                            }
                         )
             else:
                 # 否则加载所有 skills
                 for skill_dir in self.opencode_dir.iterdir():
                     if skill_dir.is_dir():
                         skill_file = skill_dir / "SKILL.md"
-                        if skill_file.exists() and not any(s["name"] == skill_dir.name for s in skills):
+                        if skill_file.exists() and not any(
+                            s["name"] == skill_dir.name for s in skills
+                        ):
                             skills.append(
-                                {"name": skill_dir.name, "path": str(skill_file), "source": "opencode"}
+                                {
+                                    "name": skill_dir.name,
+                                    "path": str(skill_file),
+                                    "source": "opencode",
+                                }
                             )
 
         # Filter by requirements
         if filter_unavailable:
-            return [s for s in skills if self._check_requirements(self._get_skill_meta(s["name"]))]
+            return [
+                s
+                for s in skills
+                if self._check_requirements(self._get_skill_meta(s["name"]))
+            ]
         return skills
 
     def load_skill(self, name: str) -> str | None:

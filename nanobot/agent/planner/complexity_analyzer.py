@@ -7,7 +7,7 @@
 import re
 from typing import Dict, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from nanobot.agent.planner.models import ComplexityAnalysis, ComplexityFeature, TaskType
 
@@ -63,16 +63,33 @@ class ComplexityAnalyzer(BaseModel):
                 "extract",
                 "key points",
             ],
-            TaskType.WEB_SEARCH: ["research", "latest", "comprehensive", "compare", "analyze"],
-            TaskType.FILE_OPERATION: ["batch", "recursive", "backup", "restore", "encrypt"],
-            TaskType.SYSTEM_COMMAND: ["install", "configure", "deploy", "monitor", "troubleshoot"],
+            TaskType.WEB_SEARCH: [
+                "research",
+                "latest",
+                "comprehensive",
+                "compare",
+                "analyze",
+            ],
+            TaskType.FILE_OPERATION: [
+                "batch",
+                "recursive",
+                "backup",
+                "restore",
+                "encrypt",
+            ],
+            TaskType.SYSTEM_COMMAND: [
+                "install",
+                "configure",
+                "deploy",
+                "monitor",
+                "troubleshoot",
+            ],
         }
     )
 
-    class Config:
-        """配置类"""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
     async def analyze_complexity(self, user_input: str, task_type: TaskType) -> float:
         """
@@ -117,7 +134,9 @@ class ComplexityAnalyzer(BaseModel):
         except Exception as e:
             raise Exception(f"复杂度分析失败: {str(e)}")
 
-    async def analyze_detailed(self, user_input: str, task_type: TaskType) -> ComplexityAnalysis:
+    async def analyze_detailed(
+        self, user_input: str, task_type: TaskType
+    ) -> ComplexityAnalysis:
         """
         详细分析任务复杂度
 
@@ -133,11 +152,14 @@ class ComplexityAnalyzer(BaseModel):
             base_complexity = self.type_weights.get(task_type, 0.3)
 
             # 文本复杂度特征得分
-            text_features = await self._analyze_text_features_detailed(user_input, task_type)
+            text_features = await self._analyze_text_features_detailed(
+                user_input, task_type
+            )
 
             # 综合得分
             total_score = (
-                base_complexity * 0.6 + sum(f.score * f.weight for f in text_features) * 0.4
+                base_complexity * 0.6
+                + sum(f.score * f.weight for f in text_features) * 0.4
             )
             total_score = max(0.0, min(1.0, total_score))
 
@@ -151,7 +173,9 @@ class ComplexityAnalyzer(BaseModel):
         except Exception as e:
             raise Exception(f"详细复杂度分析失败: {str(e)}")
 
-    async def _analyze_text_features(self, user_input: str, task_type: TaskType) -> float:
+    async def _analyze_text_features(
+        self, user_input: str, task_type: TaskType
+    ) -> float:
         """
         分析文本特征复杂度
 
@@ -183,33 +207,49 @@ class ComplexityAnalyzer(BaseModel):
         # 长度特征
         length = len(user_input)
         length_score = min(length / 300, 1.0)  # 300 字符以上为高复杂度
-        features.append(ComplexityFeature(name="length", weight=0.2, score=length_score))
+        features.append(
+            ComplexityFeature(name="length", weight=0.2, score=length_score)
+        )
 
         # 词汇复杂度
         words = user_input.split()
         unique_words = set(words)
-        vocabulary_score = min(len(unique_words) / 50, 1.0)  # 50 个不同词汇以上为高复杂度
-        features.append(ComplexityFeature(name="vocabulary", weight=0.15, score=vocabulary_score))
+        vocabulary_score = min(
+            len(unique_words) / 50, 1.0
+        )  # 50 个不同词汇以上为高复杂度
+        features.append(
+            ComplexityFeature(name="vocabulary", weight=0.15, score=vocabulary_score)
+        )
 
         # 句子结构复杂度（基于标点符号数量）
         punctuation_count = len(re.findall(r"[.,!?;()]", user_input))
         sentence_score = min(punctuation_count / 10, 1.0)  # 10 个以上标点为高复杂度
         features.append(
-            ComplexityFeature(name="sentence_structure", weight=0.15, score=sentence_score)
+            ComplexityFeature(
+                name="sentence_structure", weight=0.15, score=sentence_score
+            )
         )
 
         # 领域术语特征
         domain_terms = self.domain_terms.get(task_type, [])
-        term_count = sum(1 for term in domain_terms if term.lower() in user_input.lower())
+        term_count = sum(
+            1 for term in domain_terms if term.lower() in user_input.lower()
+        )
         domain_score = min(term_count / 3, 1.0)  # 3 个以上领域术语为高复杂度
-        features.append(ComplexityFeature(name="domain_terms", weight=0.2, score=domain_score))
+        features.append(
+            ComplexityFeature(name="domain_terms", weight=0.2, score=domain_score)
+        )
 
         # 歧义特征
         ambiguity_count = sum(
-            1 for word in ["可能", "大概", "或许", "应该", "可能需要"] if word in user_input
+            1
+            for word in ["可能", "大概", "或许", "应该", "可能需要"]
+            if word in user_input
         )
         ambiguity_score = min(ambiguity_count / 3, 1.0)  # 3 个以上模糊词汇为高复杂度
-        features.append(ComplexityFeature(name="ambiguity", weight=0.3, score=ambiguity_score))
+        features.append(
+            ComplexityFeature(name="ambiguity", weight=0.3, score=ambiguity_score)
+        )
 
         return features
 
@@ -235,7 +275,9 @@ class ComplexityAnalyzer(BaseModel):
         # 文本特征解释
         for feature in features:
             if feature.score > 0.5:
-                explanations.append(f"{feature.name}特征复杂度较高 ({feature.score:.2f})")
+                explanations.append(
+                    f"{feature.name}特征复杂度较高 ({feature.score:.2f})"
+                )
 
         return "; ".join(explanations)
 
@@ -256,7 +298,9 @@ class ComplexityAnalyzer(BaseModel):
         complexity = await self.analyze_complexity(user_input, task_type)
         return complexity > threshold
 
-    async def get_complexity_category(self, user_input: str, task_type: TaskType) -> str:
+    async def get_complexity_category(
+        self, user_input: str, task_type: TaskType
+    ) -> str:
         """
         获取复杂度类别
 

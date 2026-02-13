@@ -1,12 +1,13 @@
 """Tests for message routing strategies."""
 
 import pytest
+
 from nanobot.channels.route_strategy import (
-    RouteStrategy,
     FeishuRouteStrategy,
-    WebChatRouteStrategy,
+    RoutePriority,
+    RouteStrategy,
     TUIRouteStrategy,
-    RoutePriority
+    WebChatRouteStrategy,
 )
 
 
@@ -19,11 +20,7 @@ class TestFeishuRouteStrategy:
 
     def test_private_chat_routing(self):
         """Test private chat messages are routed correctly."""
-        message = {
-            "chat_type": "private",
-            "content": "Hello",
-            "bot_id": "ou_bot001"
-        }
+        message = {"chat_type": "private", "content": "Hello", "bot_id": "ou_bot001"}
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.private_chat_handler
@@ -34,7 +31,7 @@ class TestFeishuRouteStrategy:
             "chat_type": "group",
             "content": "Hello everyone",
             "bot_id": "ou_bot001",
-            "mentions": []
+            "mentions": [],
         }
 
         handler = self.strategy.route(message)
@@ -46,7 +43,7 @@ class TestFeishuRouteStrategy:
             "chat_type": "group",
             "content": "@openclaw help me",
             "bot_id": "ou_bot001",
-            "mentions": ["ou_bot001"]
+            "mentions": ["ou_bot001"],
         }
 
         handler = self.strategy.route(message)
@@ -54,22 +51,14 @@ class TestFeishuRouteStrategy:
 
     def test_command_routing(self):
         """Test command messages are routed correctly."""
-        message = {
-            "chat_type": "private",
-            "content": "/status",
-            "bot_id": "ou_bot001"
-        }
+        message = {"chat_type": "private", "content": "/status", "bot_id": "ou_bot001"}
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.command_handler
 
     def test_command_priority(self):
         """Test commands get high priority."""
-        message = {
-            "chat_type": "private",
-            "content": "/status",
-            "bot_id": "ou_bot001"
-        }
+        message = {"chat_type": "private", "content": "/status", "bot_id": "ou_bot001"}
 
         priority = self.strategy.get_priority(message)
         assert priority == RoutePriority.HIGH
@@ -80,7 +69,7 @@ class TestFeishuRouteStrategy:
             "chat_type": "group",
             "content": "@openclaw help",
             "bot_id": "ou_bot001",
-            "mentions": ["ou_bot001"]
+            "mentions": ["ou_bot001"],
         }
 
         priority = self.strategy.get_priority(message)
@@ -88,11 +77,7 @@ class TestFeishuRouteStrategy:
 
     def test_private_chat_priority(self):
         """Test private chats get medium priority."""
-        message = {
-            "chat_type": "private",
-            "content": "Hello",
-            "bot_id": "ou_bot001"
-        }
+        message = {"chat_type": "private", "content": "Hello", "bot_id": "ou_bot001"}
 
         priority = self.strategy.get_priority(message)
         assert priority == RoutePriority.MEDIUM
@@ -103,7 +88,7 @@ class TestFeishuRouteStrategy:
             "chat_type": "group",
             "content": "Hello everyone",
             "bot_id": "ou_bot001",
-            "mentions": []
+            "mentions": [],
         }
 
         priority = self.strategy.get_priority(message)
@@ -119,60 +104,42 @@ class TestWebChatRouteStrategy:
 
     def test_chat_routing(self):
         """Test chat messages are routed correctly."""
-        message = {
-            "type": "chat",
-            "content": "Hello"
-        }
+        message = {"type": "chat", "content": "Hello"}
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.chat_handler
 
     def test_command_routing(self):
         """Test command messages are routed correctly."""
-        message = {
-            "type": "chat",
-            "content": "/help"
-        }
+        message = {"type": "chat", "content": "/help"}
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.command_handler
 
     def test_feedback_routing(self):
         """Test feedback messages are routed correctly."""
-        message = {
-            "type": "feedback",
-            "content": "Great!"
-        }
+        message = {"type": "feedback", "content": "Great!"}
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.feedback_handler
 
     def test_command_priority(self):
         """Test commands get high priority."""
-        message = {
-            "type": "chat",
-            "content": "/help"
-        }
+        message = {"type": "chat", "content": "/help"}
 
         priority = self.strategy.get_priority(message)
         assert priority == RoutePriority.HIGH
 
     def test_feedback_priority(self):
         """Test feedback gets medium priority."""
-        message = {
-            "type": "feedback",
-            "content": "Great!"
-        }
+        message = {"type": "feedback", "content": "Great!"}
 
         priority = self.strategy.get_priority(message)
         assert priority == RoutePriority.MEDIUM
 
     def test_chat_priority(self):
         """Test regular chat gets low priority."""
-        message = {
-            "type": "chat",
-            "content": "Hello"
-        }
+        message = {"type": "chat", "content": "Hello"}
 
         priority = self.strategy.get_priority(message)
         assert priority == RoutePriority.LOW
@@ -187,18 +154,14 @@ class TestTUIRouteStrategy:
 
     def test_chat_routing(self):
         """Test chat messages are routed correctly."""
-        message = {
-            "content": "Hello"
-        }
+        message = {"content": "Hello"}
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.chat_handler
 
     def test_command_routing(self):
         """Test command messages are routed correctly."""
-        message = {
-            "content": "/help"
-        }
+        message = {"content": "/help"}
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.command_handler
@@ -212,9 +175,7 @@ class TestTUIRouteStrategy:
 
     def test_command_priority(self):
         """Test commands get high priority."""
-        message = {
-            "content": "/help"
-        }
+        message = {"content": "/help"}
 
         priority = self.strategy.get_priority(message)
         assert priority == RoutePriority.HIGH
@@ -228,18 +189,14 @@ class TestTUIRouteStrategy:
 
     def test_chat_priority(self):
         """Test regular chat gets low priority."""
-        message = {
-            "content": "Hello"
-        }
+        message = {"content": "Hello"}
 
         priority = self.strategy.get_priority(message)
         assert priority == RoutePriority.LOW
 
     def test_whitespace_handling(self):
         """Test whitespace in content is handled correctly."""
-        message = {
-            "content": "  /help  "  # Extra whitespace
-        }
+        message = {"content": "  /help  "}  # Extra whitespace
 
         handler = self.strategy.route(message)
         assert handler == self.strategy.command_handler

@@ -7,7 +7,11 @@ from unittest.mock import Mock
 import pytest
 from pydantic import ValidationError
 
-from nanobot.agent.decision.models import DecisionRequest, DecisionResult, SubagentResultRequest
+from nanobot.agent.decision.models import (
+    DecisionRequest,
+    DecisionResult,
+    SubagentResultRequest,
+)
 from nanobot.agent.decision.subagent_result_handler import SubagentResultHandler
 from nanobot.agent.loop import AgentLoop
 from nanobot.agent.task import Task

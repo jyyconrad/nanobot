@@ -2,18 +2,19 @@
 
 import asyncio
 import os
-import psutil
 import time
 import traceback
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
+import psutil
 from loguru import logger
 
 
 class SubagentStatus(Enum):
     """Subagent execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -24,6 +25,7 @@ class SubagentStatus(Enum):
 @dataclass
 class SubagentTask:
     """Represents a subagent task."""
+
     id: str
     name: str
     func: Callable
@@ -55,7 +57,7 @@ class SubagentManager:
         timeout: float = 600.0,
         max_memory_mb: Optional[float] = None,
         max_cpu_percent: float = 90.0,
-        cleanup_interval: float = 60.0
+        cleanup_interval: float = 60.0,
     ):
         """
         Initialize subagent manager.
@@ -131,7 +133,7 @@ class SubagentManager:
         func: Callable,
         *args,
         timeout: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Submit a task for execution.
@@ -153,7 +155,7 @@ class SubagentManager:
             func=func,
             args=args,
             kwargs=kwargs,
-            metadata={"timeout": timeout or self.default_timeout}
+            metadata={"timeout": timeout or self.default_timeout},
         )
 
         async with self._task_lock:
@@ -261,10 +263,7 @@ class SubagentManager:
             try:
                 # Get task from queue with timeout
                 try:
-                    task = await asyncio.wait_for(
-                        self._task_queue.get(),
-                        timeout=1.0
-                    )
+                    task = await asyncio.wait_for(self._task_queue.get(), timeout=1.0)
                 except asyncio.TimeoutError:
                     continue
 
@@ -281,8 +280,7 @@ class SubagentManager:
                     try:
                         timeout = task.metadata.get("timeout", self.default_timeout)
                         result = await asyncio.wait_for(
-                            task.func(*task.args, **task.kwargs),
-                            timeout=timeout
+                            task.func(*task.args, **task.kwargs), timeout=timeout
                         )
 
                         # Update task result
@@ -309,7 +307,9 @@ class SubagentManager:
                             self._tasks[task.id].error = error_msg
                             self._tasks[task.id].end_time = time.time()
 
-                        logger.error(f"{worker_name} task error: {task.id} - {error_msg}")
+                        logger.error(
+                            f"{worker_name} task error: {task.id} - {error_msg}"
+                        )
 
                     # Mark queue item as done
                     self._task_queue.task_done()
@@ -338,7 +338,11 @@ class SubagentManager:
         cancelled = sum(1 for t in tasks if t.status == SubagentStatus.CANCELLED)
 
         # Calculate average execution time
-        completed_tasks = [t for t in tasks if t.status == SubagentStatus.COMPLETED and t.start_time and t.end_time]
+        completed_tasks = [
+            t
+            for t in tasks
+            if t.status == SubagentStatus.COMPLETED and t.start_time and t.end_time
+        ]
         avg_time = 0.0
         if completed_tasks:
             total_time = sum(t.end_time - t.start_time for t in completed_tasks)
@@ -354,7 +358,7 @@ class SubagentManager:
             "queue_size": self._task_queue.qsize(),
             "available_workers": self._semaphore._value,
             "average_execution_time": avg_time,
-            "is_running": self._running
+            "is_running": self._running,
         }
 
     # ===== Resource Management =====
@@ -391,7 +395,7 @@ class SubagentManager:
             if memory_mb > self.max_memory_mb:
                 return (
                     False,
-                    f"Memory limit exceeded: {memory_mb:.2f}MB > {self.max_memory_mb}MB"
+                    f"Memory limit exceeded: {memory_mb:.2f}MB > {self.max_memory_mb}MB",
                 )
 
         # Check CPU
@@ -399,7 +403,7 @@ class SubagentManager:
         if cpu_percent > self.max_cpu_percent:
             return (
                 False,
-                f"CPU limit exceeded: {cpu_percent:.2f}% > {self.max_cpu_percent}%"
+                f"CPU limit exceeded: {cpu_percent:.2f}% > {self.max_cpu_percent}%",
             )
 
         return True, "Resources available"
@@ -425,8 +429,14 @@ class SubagentManager:
         async with self._task_lock:
             # Find completed tasks
             completed_tasks = [
-                (task_id, task) for task_id, task in self._tasks.items()
-                if task.status in (SubagentStatus.COMPLETED, SubagentStatus.FAILED, SubagentStatus.CANCELLED)
+                (task_id, task)
+                for task_id, task in self._tasks.items()
+                if task.status
+                in (
+                    SubagentStatus.COMPLETED,
+                    SubagentStatus.FAILED,
+                    SubagentStatus.CANCELLED,
+                )
             ]
 
             # If we have too many, remove the oldest ones
@@ -435,7 +445,7 @@ class SubagentManager:
                 completed_tasks.sort(key=lambda x: x[1].end_time or 0)
 
                 # Remove excess tasks
-                to_remove = completed_tasks[:-self._completed_task_retention]
+                to_remove = completed_tasks[: -self._completed_task_retention]
                 for task_id, task in to_remove:
                     del self._tasks[task_id]
                     logger.debug(f"Cleaned up task: {task_id}")
@@ -444,8 +454,14 @@ class SubagentManager:
         """Clean up all completed tasks."""
         async with self._task_lock:
             to_remove = [
-                task_id for task_id, task in self._tasks.items()
-                if task.status in (SubagentStatus.COMPLETED, SubagentStatus.FAILED, SubagentStatus.CANCELLED)
+                task_id
+                for task_id, task in self._tasks.items()
+                if task.status
+                in (
+                    SubagentStatus.COMPLETED,
+                    SubagentStatus.FAILED,
+                    SubagentStatus.CANCELLED,
+                )
             ]
 
             for task_id in to_remove:

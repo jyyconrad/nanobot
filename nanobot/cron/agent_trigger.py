@@ -21,7 +21,9 @@ class AgentTrigger:
     支持触发 mainAgent 或任意 subagent 的方法，用于实现定时任务的执行。
     """
 
-    def __init__(self, agent_loop: Optional[AgentLoop] = None, bus: Optional[MessageBus] = None):
+    def __init__(
+        self, agent_loop: Optional[AgentLoop] = None, bus: Optional[MessageBus] = None
+    ):
         self._agent_loop = agent_loop
         self._bus = bus
 
@@ -85,7 +87,9 @@ class AgentTrigger:
         else:
             raise ValueError(f"Unknown method for mainAgent: {method}")
 
-    async def _trigger_subagent(self, subagent_id: str, method: str, params: Dict[str, Any]) -> Any:
+    async def _trigger_subagent(
+        self, subagent_id: str, method: str, params: Dict[str, Any]
+    ) -> Any:
         """
         触发子代理的方法执行
 
@@ -97,13 +101,17 @@ class AgentTrigger:
         Returns:
             方法执行结果
         """
-        logger.warning(f"Subagent triggering not fully implemented yet: {subagent_id}.{method}")
+        logger.warning(
+            f"Subagent triggering not fully implemented yet: {subagent_id}.{method}"
+        )
         # 目前只支持基本的状态检查
         if method == "check_status":
             return {
-                "status": "running"
-                if subagent_id in self._agent_loop.subagents._running_tasks
-                else "stopped",
+                "status": (
+                    "running"
+                    if subagent_id in self._agent_loop.subagents._running_tasks
+                    else "stopped"
+                ),
                 "id": subagent_id,
             }
         else:
@@ -114,9 +122,15 @@ class AgentTrigger:
         return {
             "status": "running",
             "tasks": {
-                "active": len(self._agent_loop.bus.get_task_manager().get_active_tasks()),
-                "completed": len(self._agent_loop.bus.get_task_manager().get_completed_tasks()),
-                "failed": len(self._agent_loop.bus.get_task_manager().get_failed_tasks()),
+                "active": len(
+                    self._agent_loop.bus.get_task_manager().get_active_tasks()
+                ),
+                "completed": len(
+                    self._agent_loop.bus.get_task_manager().get_completed_tasks()
+                ),
+                "failed": len(
+                    self._agent_loop.bus.get_task_manager().get_failed_tasks()
+                ),
             },
             "subagents": self._agent_loop.subagents.get_running_count(),
             "message_bus": {

@@ -26,7 +26,9 @@ def version_callback(value: bool):
 
 @app.callback()
 def main(
-    version: bool = typer.Option(None, "--version", "-v", callback=version_callback, is_eager=True),
+    version: bool = typer.Option(
+        None, "--version", "-v", callback=version_callback, is_eager=True
+    ),
 ):
     """nanobot - Personal AI Assistant."""
     pass
@@ -185,7 +187,9 @@ def gateway(
 
     if not api_key and not is_bedrock:
         console.print("[red]Error: No API key configured.[/red]")
-        console.print("Set one in ~/.nanobot/config.json under providers.openrouter.apiKey")
+        console.print(
+            "Set one in ~/.nanobot/config.json under providers.openrouter.apiKey"
+        )
         raise typer.Exit(1)
 
     provider = LiteLLMProvider(
@@ -214,7 +218,9 @@ def gateway(
     # Create cron service
     async def on_cron_job(job: CronJob) -> str | None:
         """Execute a cron job through the agent."""
-        response = await agent.process_direct(job.payload.message, session_key=f"cron:{job.id}")
+        response = await agent.process_direct(
+            job.payload.message, session_key=f"cron:{job.id}"
+        )
         # Optionally deliver to channel
         if job.payload.deliver and job.payload.to:
             from nanobot.bus.events import OutboundMessage
@@ -247,7 +253,9 @@ def gateway(
     channels = ChannelManager(config, bus)
 
     if channels.enabled_channels:
-        console.print(f"[green]✓[/green] Channels enabled: {', '.join(channels.enabled_channels)}")
+        console.print(
+            f"[green]✓[/green] Channels enabled: {', '.join(channels.enabled_channels)}"
+        )
     else:
         console.print("[yellow]Warning: No channels enabled[/yellow]")
 
@@ -282,7 +290,9 @@ def gateway(
 
 @app.command()
 def agent(
-    message: str = typer.Option(None, "--message", "-m", help="Message to send to the agent"),
+    message: str = typer.Option(
+        None, "--message", "-m", help="Message to send to the agent"
+    ),
     session_id: str = typer.Option("cli:default", "--session", "-s", help="Session ID"),
 ):
     """Interact with the agent directly."""
@@ -369,7 +379,9 @@ def channels_status():
 
     # Telegram
     tg = config.channels.telegram
-    tg_config = f"token: {tg.token[:10]}..." if tg.token else "[dim]not configured[/dim]"
+    tg_config = (
+        f"token: {tg.token[:10]}..." if tg.token else "[dim]not configured[/dim]"
+    )
     table.add_row("Telegram", "✓" if tg.enabled else "✗", tg_config)
 
     console.print(table)
@@ -394,7 +406,9 @@ def _get_bridge_dir() -> Path:
 
     # Find source bridge: first check package data, then source dir
     pkg_bridge = Path(__file__).parent.parent / "bridge"  # nanobot/bridge (installed)
-    src_bridge = Path(__file__).parent.parent.parent / "bridge"  # repo root/bridge (dev)
+    src_bridge = (
+        Path(__file__).parent.parent.parent / "bridge"
+    )  # repo root/bridge (dev)
 
     source = None
     if (pkg_bridge / "package.json").exists():
@@ -413,15 +427,21 @@ def _get_bridge_dir() -> Path:
     user_bridge.parent.mkdir(parents=True, exist_ok=True)
     if user_bridge.exists():
         shutil.rmtree(user_bridge)
-    shutil.copytree(source, user_bridge, ignore=shutil.ignore_patterns("node_modules", "dist"))
+    shutil.copytree(
+        source, user_bridge, ignore=shutil.ignore_patterns("node_modules", "dist")
+    )
 
     # Install and build
     try:
         console.print("  Installing dependencies...")
-        subprocess.run(["npm", "install"], cwd=user_bridge, check=True, capture_output=True)
+        subprocess.run(
+            ["npm", "install"], cwd=user_bridge, check=True, capture_output=True
+        )
 
         console.print("  Building...")
-        subprocess.run(["npm", "run", "build"], cwd=user_bridge, check=True, capture_output=True)
+        subprocess.run(
+            ["npm", "run", "build"], cwd=user_bridge, check=True, capture_output=True
+        )
 
         console.print("[green]✓[/green] Bridge ready\n")
     except subprocess.CalledProcessError as e:
@@ -514,9 +534,13 @@ def cron_add(
     name: str = typer.Option(..., "--name", "-n", help="Job name"),
     message: str = typer.Option(..., "--message", "-m", help="Message for agent"),
     every: int = typer.Option(None, "--every", "-e", help="Run every N seconds"),
-    cron_expr: str = typer.Option(None, "--cron", "-c", help="Cron expression (e.g. '0 9 * * *')"),
+    cron_expr: str = typer.Option(
+        None, "--cron", "-c", help="Cron expression (e.g. '0 9 * * *')"
+    ),
     at: str = typer.Option(None, "--at", help="Run once at time (ISO format)"),
-    deliver: bool = typer.Option(False, "--deliver", "-d", help="Deliver response to channel"),
+    deliver: bool = typer.Option(
+        False, "--deliver", "-d", help="Deliver response to channel"
+    ),
     to: str = typer.Option(None, "--to", help="Recipient for delivery"),
     channel: str = typer.Option(
         None, "--channel", help="Channel for delivery (e.g. 'telegram', 'whatsapp')"
@@ -681,7 +705,9 @@ def workflow_list():
     import time
 
     for workflow in workflows:
-        created_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(workflow["created_at"]))
+        created_at = time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.localtime(workflow["created_at"])
+        )
         table.add_row(
             workflow["workflow_id"],
             workflow["name"],
@@ -701,7 +727,9 @@ def workflow_status(
     from nanobot.agent.workflow.workflow_manager import WorkflowManager
 
     manager = WorkflowManager()
-    workflow = next((w for w in manager.list_workflows() if w["workflow_id"] == workflow_id), None)
+    workflow = next(
+        (w for w in manager.list_workflows() if w["workflow_id"] == workflow_id), None
+    )
 
     if not workflow:
         console.print(f"[red]Workflow {workflow_id} not found[/red]")
@@ -847,8 +875,12 @@ def status():
         console.print(
             f"Anthropic API: {'[green]✓[/green]' if has_anthropic else '[dim]not set[/dim]'}"
         )
-        console.print(f"OpenAI API: {'[green]✓[/green]' if has_openai else '[dim]not set[/dim]'}")
-        console.print(f"Gemini API: {'[green]✓[/green]' if has_gemini else '[dim]not set[/dim]'}")
+        console.print(
+            f"OpenAI API: {'[green]✓[/green]' if has_openai else '[dim]not set[/dim]'}"
+        )
+        console.print(
+            f"Gemini API: {'[green]✓[/green]' if has_gemini else '[dim]not set[/dim]'}"
+        )
         vllm_status = (
             f"[green]✓ {config.providers.vllm.api_base}[/green]"
             if has_vllm

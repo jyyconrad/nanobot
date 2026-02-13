@@ -186,7 +186,9 @@ async def test_enhanced_main_agent():
 
     # 检查 SkillDecisionHandler
     print("4.3 检查 SkillDecisionHandler")
-    print(f"  SkillDecisionHandler 已初始化: {main_agent.skill_decision_handler is not None}")
+    print(
+        f"  SkillDecisionHandler 已初始化: {main_agent.skill_decision_handler is not None}"
+    )
     print()
 
     # 模拟处理消息（不实际调用 LLM）
@@ -195,8 +197,9 @@ async def test_enhanced_main_agent():
 
     # 创建决策请求
     import time
-    from nanobot.agent.decision.models import DecisionRequest
     from uuid import uuid4
+
+    from nanobot.agent.decision.models import DecisionRequest
 
     request = DecisionRequest(
         request_type="skill_decision",
@@ -255,7 +258,9 @@ async def test_task_type_analysis():
     for task, expected_type in test_cases:
         task_type = await decision_handler._analyze_task_type(task)
         status = "✅" if task_type == expected_type else "❌"
-        print(f"  {status} 任务: {task[:30]:30s} → 识别为: {task_type:12s} (期望: {expected_type})")
+        print(
+            f"  {status} 任务: {task[:30]:30s} → 识别为: {task_type:12s} (期望: {expected_type})"
+        )
     print()
 
     print("✅ 任务类型分析测试完成")
@@ -268,9 +273,9 @@ async def test_skills_loading_flow():
     print("测试 6: 完整的技能加载流程")
     print("=" * 60)
 
+    from nanobot.agent.decision.models import DecisionResult
     from nanobot.agent.enhanced_main_agent import EnhancedMainAgent
     from nanobot.agent.subagent.models import SubagentTask
-    from nanobot.agent.decision.models import DecisionResult
 
     # 创建 EnhancedMainAgent
     print("\n6.1 创建 EnhancedMainAgent")
@@ -326,7 +331,11 @@ async def test_skills_loading_flow():
 
         # 展示系统提示构建
         print("6.5 模拟构建系统提示")
-        system_prompt_parts = ["# Enhanced Agno Subagent\n", f"## Your Task\n{task.description}\n", "## Available Skills\n"]
+        system_prompt_parts = [
+            "# Enhanced Agno Subagent\n",
+            f"## Your Task\n{task.description}\n",
+            "## Available Skills\n",
+        ]
 
         for skill_name, content in loaded_skills.items():
             system_prompt_parts.append(f"\n### {skill_name}\n{content}\n")

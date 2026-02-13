@@ -5,7 +5,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from nanobot.agent.subagent.agno_subagent import AgnoSubagentManager
-from nanobot.agent.subagent.risk_evaluator import RiskAssessment, RiskEvaluator, RiskLevel
+from nanobot.agent.subagent.risk_evaluator import (
+    RiskAssessment,
+    RiskEvaluator,
+    RiskLevel,
+)
 
 
 @pytest.fixture
@@ -23,7 +27,10 @@ class TestRiskLevel:
     def test_risk_level_creation(self):
         """Test RiskLevel initialization."""
         risk_level = RiskLevel(
-            level="high", score=85, description="High risk operation", requires_approval=True
+            level="high",
+            score=85,
+            description="High risk operation",
+            requires_approval=True,
         )
 
         assert risk_level.level == "high"
@@ -33,7 +40,9 @@ class TestRiskLevel:
 
     def test_risk_level_comparison(self):
         """Test risk level comparison based on score."""
-        low_risk = RiskLevel(level="low", score=20, description="Low risk", requires_approval=False)
+        low_risk = RiskLevel(
+            level="low", score=20, description="Low risk", requires_approval=False
+        )
         high_risk = RiskLevel(
             level="high", score=80, description="High risk", requires_approval=True
         )
@@ -48,7 +57,10 @@ class TestRiskAssessment:
     def test_risk_assessment_creation(self):
         """Test RiskAssessment initialization."""
         risk_level = RiskLevel(
-            level="medium", score=55, description="Medium risk operation", requires_approval=False
+            level="medium",
+            score=55,
+            description="Medium risk operation",
+            requires_approval=False,
         )
 
         assessment = RiskAssessment(
@@ -217,7 +229,9 @@ class TestRiskEvaluator:
         assert result.tool_name == "read_file"
         assert result.risk_level.level == "low"
 
-        result = await evaluator.evaluate_custom_tool("exec", {"command": "rm -rf temp"})
+        result = await evaluator.evaluate_custom_tool(
+            "exec", {"command": "rm -rf temp"}
+        )
         assert result.tool_name == "exec"
         assert result.risk_level.requires_approval is True
 
@@ -234,7 +248,9 @@ class TestRiskEvaluator:
         tool_call2.name = "write_file"
         tool_call2.arguments = {"path": "output.txt", "content": "test"}
 
-        result = await evaluator.evaluate_tool_calls("test-1234", [tool_call1, tool_call2])
+        result = await evaluator.evaluate_tool_calls(
+            "test-1234", [tool_call1, tool_call2]
+        )
         assert result is True
 
     @pytest.mark.asyncio
@@ -251,7 +267,9 @@ class TestRiskEvaluator:
         tool_call2.arguments = {"command": "sudo rm -rf /"}
 
         with patch.object(evaluator, "_request_approval") as mock_request:
-            result = await evaluator.evaluate_tool_calls("test-1234", [tool_call1, tool_call2])
+            result = await evaluator.evaluate_tool_calls(
+                "test-1234", [tool_call1, tool_call2]
+            )
             assert result is False
             assert mock_request.called
 
@@ -264,7 +282,10 @@ class TestRiskEvaluator:
             tool_name="exec",
             arguments={"command": "sudo rm -rf /"},
             risk_level=RiskLevel(
-                level="critical", score=95, description="Critical risk", requires_approval=True
+                level="critical",
+                score=95,
+                description="Critical risk",
+                requires_approval=True,
             ),
             rationale="Dangerous command pattern detected",
             mitigation="Avoid this command",

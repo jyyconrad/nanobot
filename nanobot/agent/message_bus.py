@@ -10,19 +10,19 @@ import logging
 import time
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Set, Awaitable
 from datetime import datetime
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
 from nanobot.agent.message_schemas import (
-    MessageType,
-    TaskResultMessage,
-    StatusUpdateMessage,
     ControlMessage,
-    HeartbeatMessage,
     ErrorMessage,
+    HeartbeatMessage,
     LogMessage,
+    MessageType,
     RequestMessage,
     ResponseMessage,
+    StatusUpdateMessage,
+    TaskResultMessage,
     parse_message,
 )
 
@@ -39,9 +39,7 @@ class MessageBackend(ABC):
 
     @abstractmethod
     async def subscribe(
-        self,
-        topic: str,
-        callback: Callable[[dict], Awaitable[None]]
+        self, topic: str, callback: Callable[[dict], Awaitable[None]]
     ) -> str:
         """订阅主题，返回订阅ID"""
         pass
@@ -53,10 +51,7 @@ class MessageBackend(ABC):
 
     @abstractmethod
     async def request(
-        self,
-        topic: str,
-        message: dict,
-        timeout: float = 30.0
+        self, topic: str, message: dict, timeout: float = 30.0
     ) -> Optional[dict]:
         """发送请求并等待响应"""
         pass
@@ -113,12 +108,7 @@ class MemoryBackend(MessageBackend):
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def _safe_callback(
-        self,
-        callback: Callable,
-        message: dict,
-        sub_id: str
-    ):
+    async def _safe_callback(self, callback: Callable, message: dict, sub_id: str):
         """安全地调用回调"""
         try:
             if asyncio.iscoroutinefunction(callback):
@@ -129,9 +119,7 @@ class MemoryBackend(MessageBackend):
             logger.error(f"订阅者回调失败 [{sub_id}]: {e}")
 
     async def subscribe(
-        self,
-        topic: str,
-        callback: Callable[[dict], Awaitable[None]]
+        self, topic: str, callback: Callable[[dict], Awaitable[None]]
     ) -> str:
         """订阅主题"""
         sub_id = f"{topic}:{uuid.uuid4().hex[:8]}"
@@ -171,10 +159,7 @@ class MemoryBackend(MessageBackend):
             return False
 
     async def request(
-        self,
-        topic: str,
-        message: dict,
-        timeout: float = 30.0
+        self, topic: str, message: dict, timeout: float = 30.0
     ) -> Optional[dict]:
         """发送请求并等待响应"""
         # 生成请求ID
@@ -193,10 +178,7 @@ class MemoryBackend(MessageBackend):
 
             # 等待响应
             try:
-                response = await asyncio.wait_for(
-                    response_queue.get(),
-                    timeout=timeout
-                )
+                response = await asyncio.wait_for(response_queue.get(), timeout=timeout)
                 return response
             except asyncio.TimeoutError:
                 logger.warning(f"请求超时: {request_id}")
@@ -247,10 +229,7 @@ class RedisBackend(MessageBackend):
         try:
             import redis.asyncio as aioredis
 
-            self._redis = await aioredis.from_url(
-                self.redis_url,
-                decode_responses=True
-            )
+            self._redis = await aioredis.from_url(self.redis_url, decode_responses=True)
             self._pubsub = self._redis.pubsub()
 
             logger.info(f"已连接到Redis: {self.redis_url}")
@@ -279,9 +258,7 @@ class RedisBackend(MessageBackend):
             return False
 
     async def subscribe(
-        self,
-        topic: str,
-        callback: Callable[[dict], Awaitable[None]]
+        self, topic: str, callback: Callable[[dict], Awaitable[None]]
     ) -> str:
         """订阅主题"""
         try:
@@ -296,10 +273,7 @@ class RedisBackend(MessageBackend):
 
             # 存储回调
             async with self._lock:
-                self._subscriptions[sub_id] = {
-                    "topic": topic,
-                    "callback": callback
-                }
+                self._subscriptions[sub_id] = {"topic": topic, "callback": callback}
 
             # 启动消息监听
             asyncio.create_task(self._listen_for_messages())
@@ -329,7 +303,8 @@ class RedisBackend(MessageBackend):
                         # 找到对应的回调
                         async with self._lock:
                             matching_subs = [
-                                sub_info for sub_id, sub_info in self._subscriptions.items()
+                                sub_info
+                                for sub_id, sub_info in self._subscriptions.items()
                                 if sub_info["topic"] == channel
                             ]
 
@@ -367,8 +342,7 @@ class RedisBackend(MessageBackend):
             # 检查是否还有其他订阅使用此主题
             async with self._lock:
                 other_subs = [
-                    s for s in self._subscriptions.values()
-                    if s["topic"] == topic
+                    s for s in self._subscriptions.values() if s["topic"] == topic
                 ]
 
             # 如果没有其他订阅，取消订阅Redis频道
@@ -383,10 +357,7 @@ class RedisBackend(MessageBackend):
             return False
 
     async def request(
-        self,
-        topic: str,
-        message: dict,
-        timeout: float = 30.0
+        self, topic: str, message: dict, timeout: float = 30.0
     ) -> Optional[dict]:
         """发送请求并等待响应"""
         # Redis实现使用临时响应主题
@@ -408,10 +379,7 @@ class RedisBackend(MessageBackend):
 
             # 等待响应
             try:
-                response = await asyncio.wait_for(
-                    response_queue.get(),
-                    timeout=timeout
-                )
+                response = await asyncio.wait_for(response_queue.get(), timeout=timeout)
                 return response
             except asyncio.TimeoutError:
                 logger.warning(f"请求超时: {request_id}")
@@ -451,7 +419,7 @@ class MessageBus:
         backend_type: str = "memory",
         backend_config: Optional[dict] = None,
         enable_ack: bool = True,
-        retry_policy: Optional[dict] = None
+        retry_policy: Optional[dict] = None,
     ):
         self.backend_type = backend_type
         self.backend_config = backend_config or {}
@@ -459,7 +427,7 @@ class MessageBus:
         self.retry_policy = retry_policy or {
             "max_retries": 3,
             "backoff_factor": 2,
-            "max_delay": 60
+            "max_delay": 60,
         }
 
         self._backend: Optional[MessageBackend] = None
@@ -508,7 +476,7 @@ class MessageBus:
         status: str,
         result: dict,
         logs: List[str],
-        execution_time: float
+        execution_time: float,
     ) -> bool:
         """汇报子任务结果"""
         message = TaskResultMessage(
@@ -518,7 +486,7 @@ class MessageBus:
             status=status,
             result=result,
             logs=logs,
-            execution_time=execution_time
+            execution_time=execution_time,
         )
 
         topic = f"agent.{parent_agent_id}.results"
@@ -534,7 +502,7 @@ class MessageBus:
         status: str,
         progress: float,
         current_task: Optional[str] = None,
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ) -> bool:
         """更新代理状态"""
         message = StatusUpdateMessage(
@@ -542,7 +510,7 @@ class MessageBus:
             status=status,
             progress=progress,
             current_task=current_task,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         topic = f"agent.{agent_id}.status"
@@ -557,14 +525,14 @@ class MessageBus:
         command: str,
         target_agent_id: str,
         source_agent_id: str,
-        parameters: Optional[dict] = None
+        parameters: Optional[dict] = None,
     ) -> bool:
         """发送控制命令"""
         message = ControlMessage(
             command=command,
             target_agent_id=target_agent_id,
             source_agent_id=source_agent_id,
-            parameters=parameters or {}
+            parameters=parameters or {},
         )
 
         topic = f"agent.{target_agent_id}.control"
@@ -588,9 +556,7 @@ class MessageBus:
             return False
 
     async def subscribe(
-        self,
-        topic: str,
-        callback: Callable[[dict], Awaitable[None]]
+        self, topic: str, callback: Callable[[dict], Awaitable[None]]
     ) -> str:
         """订阅主题"""
         if not self._backend:
@@ -616,10 +582,7 @@ class MessageBus:
             return False
 
     async def request(
-        self,
-        topic: str,
-        message: dict,
-        timeout: float = 30.0
+        self, topic: str, message: dict, timeout: float = 30.0
     ) -> Optional[dict]:
         """发送请求并等待响应"""
         if not self._backend:
@@ -634,10 +597,7 @@ class MessageBus:
     # ===== 可靠传输功能 =====
 
     async def publish_with_ack(
-        self,
-        topic: str,
-        message: dict,
-        timeout: float = 30.0
+        self, topic: str, message: dict, timeout: float = 30.0
     ) -> bool:
         """发布消息并等待确认"""
         message_id = str(uuid.uuid4())
@@ -681,10 +641,7 @@ class MessageBus:
                     future.set_result(True)
 
     async def publish_with_retry(
-        self,
-        topic: str,
-        message: dict,
-        max_retries: int = 3
+        self, topic: str, message: dict, max_retries: int = 3
     ) -> bool:
         """带重试的消息发布"""
         for attempt in range(max_retries):

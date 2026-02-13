@@ -7,7 +7,7 @@
 import re
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from nanobot.agent.planner.models import TaskDetectionResult, TaskPattern, TaskType
 
@@ -41,7 +41,14 @@ class TaskDetector(BaseModel):
             ),
             TaskPattern(
                 task_type=TaskType.TEXT_SUMMARIZATION,
-                patterns=["总结.*", "概括.*", "摘要.*", "简述.*", "整理.*要点", "提取.*要点"],
+                patterns=[
+                    "总结.*",
+                    "概括.*",
+                    "摘要.*",
+                    "简述.*",
+                    "整理.*要点",
+                    "提取.*要点",
+                ],
                 weight=0.9,
             ),
             TaskPattern(
@@ -63,7 +70,13 @@ class TaskDetector(BaseModel):
             ),
             TaskPattern(
                 task_type=TaskType.FILE_OPERATION,
-                patterns=["创建.*文件", "删除.*文件", "修改.*文件", "读取.*文件", "写入.*文件"],
+                patterns=[
+                    "创建.*文件",
+                    "删除.*文件",
+                    "修改.*文件",
+                    "读取.*文件",
+                    "写入.*文件",
+                ],
                 weight=0.75,
             ),
             TaskPattern(
@@ -81,10 +94,9 @@ class TaskDetector(BaseModel):
         ]
     )
 
-    class Config:
-        """配置类"""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
     async def detect_task_type(self, user_input: str) -> TaskType:
         """
@@ -153,7 +165,9 @@ class TaskDetector(BaseModel):
             confidence = min(best_score / total_score, 1.0)
 
             return TaskDetectionResult(
-                task_type=best_type, confidence=confidence, matched_patterns=matched_patterns
+                task_type=best_type,
+                confidence=confidence,
+                matched_patterns=matched_patterns,
             )
 
         except Exception as e:
@@ -230,7 +244,9 @@ class TaskDetector(BaseModel):
         # 如果有多个任务类型得分 > 0
         return len([score for score in scores.values() if score > 0]) > 1
 
-    async def get_top_task_types(self, user_input: str, top_n: int = 3) -> List[Dict[str, Any]]:
+    async def get_top_task_types(
+        self, user_input: str, top_n: int = 3
+    ) -> List[Dict[str, Any]]:
         """
         获取排名前 N 的任务类型
 
@@ -279,6 +295,8 @@ class TaskDetector(BaseModel):
 
         # 如果没有匹配，添加默认类型
         if not results:
-            results.append({"task_type": TaskType.OTHER, "confidence": 0.5, "matched_patterns": []})
+            results.append(
+                {"task_type": TaskType.OTHER, "confidence": 0.5, "matched_patterns": []}
+            )
 
         return results

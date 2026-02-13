@@ -120,7 +120,9 @@ class AgentStatusMonitor:
     async def _check_high_failure_rate(self, status: Dict[str, Any]) -> Dict[str, Any]:
         """检查任务失败率是否过高"""
         tasks = status.get("tasks", {})
-        total_tasks = tasks.get("active", 0) + tasks.get("completed", 0) + tasks.get("failed", 0)
+        total_tasks = (
+            tasks.get("active", 0) + tasks.get("completed", 0) + tasks.get("failed", 0)
+        )
 
         if total_tasks > 0:
             failure_rate = tasks.get("failed", 0) / total_tasks
@@ -147,7 +149,9 @@ class AgentStatusMonitor:
         active_tasks = self._task_manager.get_active_tasks()
 
         for task in active_tasks:
-            time_since_update = asyncio.get_event_loop().time() - task.updated_at.timestamp()
+            time_since_update = (
+                asyncio.get_event_loop().time() - task.updated_at.timestamp()
+            )
             if time_since_update > 300:  # 5分钟
                 stalled_tasks.append(task.id)
 
@@ -166,7 +170,9 @@ class AgentStatusMonitor:
 
         return {"success": True, "stalled_tasks": 0}
 
-    async def _check_high_subagent_count(self, status: Dict[str, Any]) -> Dict[str, Any]:
+    async def _check_high_subagent_count(
+        self, status: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """检查子代理数量是否过多"""
         subagent_count = status.get("subagents", 0)
 
@@ -184,7 +190,9 @@ class AgentStatusMonitor:
 
         return {"success": True, "subagent_count": subagent_count}
 
-    async def _check_message_bus_backlog(self, status: Dict[str, Any]) -> Dict[str, Any]:
+    async def _check_message_bus_backlog(
+        self, status: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """检查消息总线是否有积压"""
         bus_status = status.get("message_bus", {})
 
@@ -302,7 +310,9 @@ class AgentStatusMonitor:
 
         for condition_name, condition_config in conditions.items():
             if condition_config.get("enabled", True):
-                alert = await self._check_condition(condition_name, condition_config, status)
+                alert = await self._check_condition(
+                    condition_name, condition_config, status
+                )
                 if alert:
                     alerts.append(alert)
 
@@ -363,7 +373,9 @@ class AgentStatusMonitor:
                     "type": "threshold_breached",
                     "name": name,
                     "severity": config.get("severity", "medium"),
-                    "message": config.get("message", f"{field} falls below {threshold}"),
+                    "message": config.get(
+                        "message", f"{field} falls below {threshold}"
+                    ),
                     "field": field,
                     "value": value,
                     "threshold": threshold,

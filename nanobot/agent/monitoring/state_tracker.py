@@ -5,13 +5,14 @@ Agent状态跟踪和任务进度管理模块
 import enum
 import time
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 from loguru import logger
 
 
 class AgentState(enum.Enum):
     """Agent执行状态枚举"""
+
     INITIALIZING = "initializing"  # 初始化中
     RUNNING = "running"  # 运行中
     PAUSED = "paused"  # 暂停
@@ -22,6 +23,7 @@ class AgentState(enum.Enum):
 @dataclass
 class TaskProgress:
     """任务执行进度数据"""
+
     task_id: str
     task_name: str
     percentage: float = 0.0
@@ -33,9 +35,14 @@ class TaskProgress:
     status: AgentState = AgentState.RUNNING
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def update(self, percentage: float = None, current_step: int = None,
-               total_steps: int = None, status: AgentState = None,
-               metadata: Dict[str, Any] = None):
+    def update(
+        self,
+        percentage: float = None,
+        current_step: int = None,
+        total_steps: int = None,
+        status: AgentState = None,
+        metadata: Dict[str, Any] = None,
+    ):
         """更新进度数据"""
         if percentage is not None:
             self.percentage = max(0.0, min(100.0, percentage))
@@ -82,13 +89,17 @@ class StateTracker:
     def set_state(self, state: AgentState, metadata: Dict[str, Any] = None):
         """设置Agent状态"""
         if self._state != state:
-            logger.info(f"Agent {self.agent_id} 状态变更: {self._state.value} -> {state.value}")
+            logger.info(
+                f"Agent {self.agent_id} 状态变更: {self._state.value} -> {state.value}"
+            )
             self._state = state
-            self._state_history.append({
-                "timestamp": time.time(),
-                "state": state.value,
-                "metadata": metadata or {}
-            })
+            self._state_history.append(
+                {
+                    "timestamp": time.time(),
+                    "state": state.value,
+                    "metadata": metadata or {},
+                }
+            )
 
     def get_state(self) -> AgentState:
         """获取当前Agent状态"""
@@ -98,13 +109,12 @@ class StateTracker:
         """获取状态变更历史"""
         return self._state_history.copy()
 
-    def create_task_progress(self, task_id: str, task_name: str,
-                            total_steps: int = 100) -> TaskProgress:
+    def create_task_progress(
+        self, task_id: str, task_name: str, total_steps: int = 100
+    ) -> TaskProgress:
         """创建任务进度追踪"""
         progress = TaskProgress(
-            task_id=task_id,
-            task_name=task_name,
-            total_steps=total_steps
+            task_id=task_id, task_name=task_name, total_steps=total_steps
         )
         self._progress[task_id] = progress
         logger.debug(f"任务进度追踪创建: {task_name} ({task_id})")
@@ -128,7 +138,9 @@ class StateTracker:
     def complete_task(self, task_id: str):
         """标记任务完成"""
         if task_id in self._progress:
-            self._progress[task_id].update(percentage=100.0, status=AgentState.COMPLETED)
+            self._progress[task_id].update(
+                percentage=100.0, status=AgentState.COMPLETED
+            )
             logger.debug(f"任务完成: {task_id}")
 
     def get_uptime(self) -> float:

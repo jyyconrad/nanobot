@@ -95,8 +95,8 @@ class WebChatChannel:
                 "from": "bot",
                 "to": msg.chat_id,
                 "content": msg.content,
-                "timestamp": msg.timestamp or asyncio.get_event_loop().time(),
-                "metadata": msg.metadata
+                "timestamp": asyncio.get_event_loop().time(),
+                "metadata": msg.metadata,
             }
 
             await self._ws_connection.send(json.dumps(webchat_msg))
@@ -113,17 +113,18 @@ class WebChatChannel:
             True if connection successful, False otherwise
         """
         try:
-            from websockets import connect
+            from websockets import connect as websocket_connect
 
-            self._ws_connection = await connect(
-                self.ws_url,
-                close_timeout=self.timeout
+            self._ws_connection = await websocket_connect(
+                self.ws_url, close_timeout=self.timeout
             )
             logger.info(f"WebChat connected to {self.ws_url}")
             return True
 
         except ImportError:
-            logger.error("websockets library not installed. Run: pip install websockets")
+            logger.error(
+                "websockets library not installed. Run: pip install websockets"
+            )
             return False
         except Exception as e:
             logger.error(f"Failed to connect to WebChat: {e}")
@@ -168,7 +169,7 @@ class WebChatChannel:
             content = webchat_msg.get("content", "")
             metadata = {
                 "message_id": webchat_msg.get("id"),
-                "message_type": webchat_msg.get("type", "text")
+                "message_type": webchat_msg.get("type", "text"),
             }
 
             # Check permissions
@@ -183,7 +184,7 @@ class WebChatChannel:
                 chat_id=sender_id,  # WebChat uses same ID for user and chat
                 content=content,
                 media=[],
-                metadata=metadata
+                metadata=metadata,
             )
 
             # Publish to message bus

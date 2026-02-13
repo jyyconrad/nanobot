@@ -91,7 +91,9 @@ class MessageAnalyzer:
                 best_score = score
                 best_match = task
 
-        logger.debug(f"Best matching task: {best_match.id} with score: {best_score:.2f}")
+        logger.debug(
+            f"Best matching task: {best_match.id} with score: {best_score:.2f}"
+        )
 
         # 根据相似度分数决定动作
         if best_score > 0.6:
@@ -114,7 +116,9 @@ class MessageAnalyzer:
                     reason="Contains correction keywords",
                 )
             else:
-                logger.debug("Medium similarity but no correction keywords, suggesting create_task")
+                logger.debug(
+                    "Medium similarity but no correction keywords, suggesting create_task"
+                )
                 return AnalysisResult(
                     action=AnalysisAction.CREATE_TASK,
                     target_task_id=None,
@@ -197,7 +201,9 @@ class MessageAnalyzer:
             关联度分数（0-1）
         """
         # 综合考虑多个因素的关联度
-        content_similarity = self._calculate_similarity(message.content, task.original_message)
+        content_similarity = self._calculate_similarity(
+            message.content, task.original_message
+        )
 
         channel_match = 1.0 if message.channel == task.channel else 0.3
         chat_id_match = 1.0 if message.chat_id == task.chat_id else 0.5
@@ -207,7 +213,9 @@ class MessageAnalyzer:
 
         return min(1.0, max(0.0, score))
 
-    def find_correlated_tasks(self, message: InboundMessage, min_score: float = 0.5) -> List[dict]:
+    def find_correlated_tasks(
+        self, message: InboundMessage, min_score: float = 0.5
+    ) -> List[dict]:
         """
         找到与消息相关的任务（分数大于等于min_score）
 
@@ -224,7 +232,9 @@ class MessageAnalyzer:
         for task in active_tasks:
             score = self.analyze_task_correlation(message, task)
             if score >= min_score:
-                correlated.append({"task_id": task.id, "score": score, "task": task.to_dict()})
+                correlated.append(
+                    {"task_id": task.id, "score": score, "task": task.to_dict()}
+                )
 
         # 按关联度降序排序
         return sorted(correlated, key=lambda x: x["score"], reverse=True)

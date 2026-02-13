@@ -15,7 +15,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel
 
-from nanobot.agent.context_manager import ContextManager, ContextStats
+from nanobot.agent.context_manager import ContextManagerV2 as ContextManager
+from nanobot.agent.context_manager import ContextStats
 from nanobot.agent.decision.decision_maker import ExecutionDecisionMaker
 from nanobot.agent.decision.models import DecisionRequest, DecisionResult
 from nanobot.agent.decision.skill_decision_handler import SkillDecisionHandler
@@ -88,7 +89,9 @@ class EnhancedMainAgent:
 
         # 🔥 新增：技能决策处理器
         self.skill_decision_handler = SkillDecisionHandler(
-            agent_loop=None, tool_registry=self.tool_registry, skill_loader=self.skill_loader
+            agent_loop=None,
+            tool_registry=self.tool_registry,
+            skill_loader=self.skill_loader,
         )
         logger.info(f"EnhancedMainAgent[{session_id}] SkillDecisionHandler 已初始化")
 
@@ -138,7 +141,9 @@ class EnhancedMainAgent:
             return response
 
         except Exception as e:
-            logger.error(f"EnhancedMainAgent[{self.session_id}] 处理消息失败: {e}", exc_info=True)
+            logger.error(
+                f"EnhancedMainAgent[{self.session_id}] 处理消息失败: {e}", exc_info=True
+            )
             await self._cleanup_task()
             return f"处理消息时发生错误: {str(e)}"
         finally:
@@ -224,12 +229,16 @@ class EnhancedMainAgent:
         # 调用技能决策处理器
         decision = await self.skill_decision_handler.handle_request(request)
 
-        logger.info(f"EnhancedMainAgent[{self.session_id}] 智能决策完成: {decision.action}")
+        logger.info(
+            f"EnhancedMainAgent[{self.session_id}] 智能决策完成: {decision.action}"
+        )
         return decision
 
     async def _execute_decision(self, decision: DecisionResult) -> str:
         """执行决策"""
-        logger.debug(f"EnhancedMainAgent[{self.session_id}] 执行决策: {decision.action}")
+        logger.debug(
+            f"EnhancedMainAgent[{self.session_id}] 执行决策: {decision.action}"
+        )
 
         if decision.action == "reply":
             return await self._handle_reply_decision(decision)
@@ -240,7 +249,9 @@ class EnhancedMainAgent:
         if decision.action == "error":
             return decision.message or "决策执行失败"
 
-        logger.warning(f"EnhancedMainAgent[{self.session_id}] 未知决策类型: {decision.action}")
+        logger.warning(
+            f"EnhancedMainAgent[{self.session_id}] 未知决策类型: {decision.action}"
+        )
         return "无法理解的决策类型"
 
     async def _handle_spawn_subagent_decision(self, decision: DecisionResult) -> str:
@@ -250,7 +261,9 @@ class EnhancedMainAgent:
         重点：确保 skills 信息被正确传递
         """
         if not decision.data.get("subagent_task"):
-            logger.error(f"EnhancedMainAgent[{self.session_id}] 生成 Subagent 决策缺少任务描述")
+            logger.error(
+                f"EnhancedMainAgent[{self.session_id}] 生成 Subagent 决策缺少任务描述"
+            )
             return "无法执行任务：缺少任务描述"
 
         subagent_config = decision.data.get("subagent_config", {})
@@ -284,7 +297,9 @@ class EnhancedMainAgent:
             task_id=task.task_id, status="ASSIGNED", progress=0.0
         )
 
-        logger.info(f"EnhancedMainAgent[{self.session_id}] 已生成 Subagent: {task.task_id}")
+        logger.info(
+            f"EnhancedMainAgent[{self.session_id}] 已生成 Subagent: {task.task_id}"
+        )
 
         return f"正在执行任务：{task.description}（使用技能: {', '.join(task.skills or [])}）"
 
@@ -296,7 +311,9 @@ class EnhancedMainAgent:
         return response
 
     # 以下方法保持原样（从 MainAgent 复制）
-    async def _handle_task_message(self, category: MessageCategory, message: str) -> str:
+    async def _handle_task_message(
+        self, category: MessageCategory, message: str
+    ) -> str:
         """处理任务相关消息"""
         logger.debug(f"EnhancedMainAgent[{self.session_id}] 处理任务消息: {category}")
         return self.workflow_manager.handle_task_message(category, message)
@@ -369,7 +386,9 @@ class EnhancedMainAgent:
         if isinstance(planning_result, TaskPlan):
             self.state.current_task = planning_result.task_type
 
-        logger.debug(f"EnhancedMainAgent[{self.session_id}] 任务规划结果: {planning_result}")
+        logger.debug(
+            f"EnhancedMainAgent[{self.session_id}] 任务规划结果: {planning_result}"
+        )
         return planning_result
 
     async def _handle_task_cancellation(self) -> str:
@@ -418,7 +437,9 @@ class EnhancedMainAgent:
                     if state.status in ["ASSIGNED", "RUNNING"]
                 ]
             ),
-            "context_stats": self.state.context_stats.dict() if self.state.context_stats else None,
+            "context_stats": (
+                self.state.context_stats.dict() if self.state.context_stats else None
+            ),
         }
 
     def get_tool_registry(self) -> ToolRegistry:

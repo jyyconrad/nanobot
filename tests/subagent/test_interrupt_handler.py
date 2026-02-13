@@ -216,7 +216,9 @@ class TestInterruptHandler:
             mock_add.side_effect = mock_add_func
             result = await handler.handle_message_interrupt(message)
             assert result is True
-            mock_add.assert_called_once_with("abcd1234", "cancel", "Cancel subagent [abcd1234]")
+            mock_add.assert_called_once_with(
+                "abcd1234", "cancel", "Cancel subagent [abcd1234]"
+            )
 
     @pytest.mark.asyncio
     async def test_handle_message_interrupt_pause(self, mock_manager):
@@ -238,7 +240,9 @@ class TestInterruptHandler:
             mock_add.side_effect = mock_add_func
             result = await handler.handle_message_interrupt(message)
             assert result is True
-            mock_add.assert_called_once_with("abcd1234", "pause", "Pause subagent [abcd1234]")
+            mock_add.assert_called_once_with(
+                "abcd1234", "pause", "Pause subagent [abcd1234]"
+            )
 
     @pytest.mark.asyncio
     async def test_handle_message_interrupt_correct(self, mock_manager):
@@ -260,7 +264,9 @@ class TestInterruptHandler:
             mock_add.side_effect = mock_add_func
             result = await handler.handle_message_interrupt(message)
             assert result is True
-            mock_add.assert_called_once_with("abcd1234", "correct", "to do something else")
+            mock_add.assert_called_once_with(
+                "abcd1234", "correct", "to do something else"
+            )
 
     @pytest.mark.asyncio
     async def test_handle_unknown_message(self, mock_manager):
@@ -268,7 +274,10 @@ class TestInterruptHandler:
         handler = InterruptHandler(mock_manager)
 
         message = InboundMessage(
-            channel="system", sender_id="user", chat_id="direct", content="Unknown command"
+            channel="system",
+            sender_id="user",
+            chat_id="direct",
+            content="Unknown command",
         )
 
         result = await handler.handle_message_interrupt(message)
@@ -298,7 +307,10 @@ class TestInterruptHandler:
         mock_subagent2 = MagicMock()
         mock_subagent2.status = "running"
 
-        handler.manager._subagent_map = {"test-1234": mock_subagent1, "test-5678": mock_subagent2}
+        handler.manager._subagent_map = {
+            "test-1234": mock_subagent1,
+            "test-5678": mock_subagent2,
+        }
 
         await handler.pause_all_subagents()
         assert len(handler._paused_subagents) == 2

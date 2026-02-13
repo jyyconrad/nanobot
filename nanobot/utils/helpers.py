@@ -119,7 +119,9 @@ def get_project_context() -> str:
             try:
                 content = file_path.read_text(encoding="utf-8")
                 # 简单的 Markdown 处理，移除标题（避免重复）
-                content = "\n".join(line for line in content.splitlines() if not line.startswith("#"))
+                content = "\n".join(
+                    line for line in content.splitlines() if not line.startswith("#")
+                )
                 context_parts.append(f"### {title}")
                 context_parts.append(content.strip())
             except Exception as e:

@@ -4,26 +4,29 @@
 定义了 Agent 间通信的消息结构和类型。
 """
 
-from enum import Enum
-from typing import Dict, List, Optional, Any, Union
-from pydantic import BaseModel, Field
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field
 
 
 class MessageType(str, Enum):
     """消息类型枚举"""
-    TASK_RESULT = "task_result"           # 子任务结果汇报
-    STATUS_UPDATE = "status_update"       # 状态更新
-    HEARTBEAT = "heartbeat"             # 心跳
-    CONTROL = "control"                 # 控制命令
-    ERROR = "error"                     # 错误报告
-    LOG = "log"                         # 日志消息
-    REQUEST = "request"                 # 请求消息
-    RESPONSE = "response"               # 响应消息
+
+    TASK_RESULT = "task_result"  # 子任务结果汇报
+    STATUS_UPDATE = "status_update"  # 状态更新
+    HEARTBEAT = "heartbeat"  # 心跳
+    CONTROL = "control"  # 控制命令
+    ERROR = "error"  # 错误报告
+    LOG = "log"  # 日志消息
+    REQUEST = "request"  # 请求消息
+    RESPONSE = "response"  # 响应消息
 
 
 class TaskResultMessage(BaseModel):
     """子任务结果消息"""
+
     message_type: MessageType = MessageType.TASK_RESULT
     task_id: str = Field(..., description="任务ID")
     subagent_id: str = Field(..., description="子代理ID")
@@ -37,6 +40,7 @@ class TaskResultMessage(BaseModel):
 
 class StatusUpdateMessage(BaseModel):
     """状态更新消息"""
+
     message_type: MessageType = MessageType.STATUS_UPDATE
     agent_id: str = Field(..., description="代理ID")
     parent_agent_id: Optional[str] = Field(None, description="父代理ID")
@@ -49,6 +53,7 @@ class StatusUpdateMessage(BaseModel):
 
 class ControlMessage(BaseModel):
     """控制命令消息"""
+
     message_type: MessageType = MessageType.CONTROL
     command: str = Field(..., description="命令: pause, resume, cancel, interrupt")
     target_agent_id: str = Field(..., description="目标代理ID")
@@ -59,6 +64,7 @@ class ControlMessage(BaseModel):
 
 class HeartbeatMessage(BaseModel):
     """心跳消息"""
+
     message_type: MessageType = MessageType.HEARTBEAT
     agent_id: str = Field(..., description="代理ID")
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -67,6 +73,7 @@ class HeartbeatMessage(BaseModel):
 
 class ErrorMessage(BaseModel):
     """错误报告消息"""
+
     message_type: MessageType = MessageType.ERROR
     agent_id: str = Field(..., description="代理ID")
     error_type: str = Field(..., description="错误类型")
@@ -78,6 +85,7 @@ class ErrorMessage(BaseModel):
 
 class LogMessage(BaseModel):
     """日志消息"""
+
     message_type: MessageType = MessageType.LOG
     agent_id: str = Field(..., description="代理ID")
     level: str = Field(..., description="日志级别: debug, info, warning, error")
@@ -88,6 +96,7 @@ class LogMessage(BaseModel):
 
 class RequestMessage(BaseModel):
     """请求消息"""
+
     message_type: MessageType = MessageType.REQUEST
     request_id: str = Field(..., description="请求ID")
     request_type: str = Field(..., description="请求类型")
@@ -100,6 +109,7 @@ class RequestMessage(BaseModel):
 
 class ResponseMessage(BaseModel):
     """响应消息"""
+
     message_type: MessageType = MessageType.RESPONSE
     response_id: str = Field(..., description="响应ID")
     request_id: str = Field(..., description="对应的请求ID")

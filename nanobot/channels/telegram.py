@@ -167,18 +167,24 @@ class TelegramChannel(BaseChannel):
             chat_id = int(msg.chat_id)
             # Convert markdown to Telegram HTML
             html_content = _markdown_to_telegram_html(msg.content)
-            await self._app.bot.send_message(chat_id=chat_id, text=html_content, parse_mode="HTML")
+            await self._app.bot.send_message(
+                chat_id=chat_id, text=html_content, parse_mode="HTML"
+            )
         except ValueError:
             logger.error(f"Invalid chat_id: {msg.chat_id}")
         except Exception as e:
             # Fallback to plain text if HTML parsing fails
             logger.warning(f"HTML parse failed, falling back to plain text: {e}")
             try:
-                await self._app.bot.send_message(chat_id=int(msg.chat_id), text=msg.content)
+                await self._app.bot.send_message(
+                    chat_id=int(msg.chat_id), text=msg.content
+                )
             except Exception as e2:
                 logger.error(f"Error sending Telegram message: {e2}")
 
-    async def _on_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _on_start(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
         """Handle /start command."""
         if not update.message or not update.effective_user:
             return
@@ -188,7 +194,9 @@ class TelegramChannel(BaseChannel):
             f"👋 Hi {user.first_name}! I'm nanobot.\n\nSend me a message and I'll respond!"
         )
 
-    async def _on_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _on_message(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
         """Handle incoming messages (text, photos, voice, documents)."""
         if not update.message or not update.effective_user:
             return
@@ -236,7 +244,9 @@ class TelegramChannel(BaseChannel):
         if media_file and self._app:
             try:
                 file = await self._app.bot.get_file(media_file.file_id)
-                ext = self._get_extension(media_type, getattr(media_file, "mime_type", None))
+                ext = self._get_extension(
+                    media_type, getattr(media_file, "mime_type", None)
+                )
 
                 # Save to workspace/media/
                 from pathlib import Path
@@ -251,12 +261,16 @@ class TelegramChannel(BaseChannel):
 
                 # Handle voice transcription
                 if media_type == "voice" or media_type == "audio":
-                    from nanobot.providers.transcription import GroqTranscriptionProvider
+                    from nanobot.providers.transcription import (
+                        GroqTranscriptionProvider,
+                    )
 
                     transcriber = GroqTranscriptionProvider(api_key=self.groq_api_key)
                     transcription = await transcriber.transcribe(file_path)
                     if transcription:
-                        logger.info(f"Transcribed {media_type}: {transcription[:50]}...")
+                        logger.info(
+                            f"Transcribed {media_type}: {transcription[:50]}..."
+                        )
                         content_parts.append(f"[transcription: {transcription}]")
                     else:
                         content_parts.append(f"[{media_type}: {file_path}]")

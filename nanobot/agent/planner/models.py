@@ -38,24 +38,36 @@ class TaskStep(BaseModel):
     description: str = Field(..., description="步骤描述")
     expected_output: str = Field(..., description="预期输出")
     validation_criteria: str = Field(..., description="验证标准")
-    dependencies: List[str] = Field(default_factory=list, description="依赖的步骤ID列表")
+    dependencies: List[str] = Field(
+        default_factory=list, description="依赖的步骤ID列表"
+    )
     parallel: bool = Field(default=False, description="是否可以与其他步骤并行执行")
-    condition: Optional[str] = Field(None, description="执行条件（如：if 条件成立则执行）")
-    priority: TaskPriority = Field(default=TaskPriority.MEDIUM, description="步骤优先级")
+    condition: Optional[str] = Field(
+        None, description="执行条件（如：if 条件成立则执行）"
+    )
+    priority: TaskPriority = Field(
+        default=TaskPriority.MEDIUM, description="步骤优先级"
+    )
 
 
 class TaskPlan(BaseModel):
     """任务执行计划"""
 
     task_type: TaskType = Field(..., description="任务类型")
-    priority: TaskPriority = Field(default=TaskPriority.MEDIUM, description="任务优先级")
+    priority: TaskPriority = Field(
+        default=TaskPriority.MEDIUM, description="任务优先级"
+    )
     complexity: float = Field(..., description="任务复杂度评分 (0-1)")
     steps: List[TaskStep] = Field(..., description="执行步骤")
     estimated_time: int = Field(..., description="估计执行时间（秒）")
     requires_approval: bool = Field(default=False, description="是否需要用户批准")
     clarification_needed: bool = Field(default=False, description="是否需要澄清需求")
-    clarification_questions: List[str] = Field(default_factory=list, description="澄清问题列表")
-    dependencies: List[str] = Field(default_factory=list, description="任务依赖的外部资源或条件")
+    clarification_questions: List[str] = Field(
+        default_factory=list, description="澄清问题列表"
+    )
+    dependencies: List[str] = Field(
+        default_factory=list, description="任务依赖的外部资源或条件"
+    )
 
 
 class ComplexityFeature(BaseModel):

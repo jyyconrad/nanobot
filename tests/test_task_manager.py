@@ -7,11 +7,12 @@ TaskManager 单元测试
 - 持久化功能
 """
 
-import os
 import json
+import os
 import unittest
 from datetime import datetime, timedelta
-from nanobot.agent.task_manager import TaskManager, Task
+
+from nanobot.agent.task_manager import Task, TaskManager
 
 
 class TestTaskManager(unittest.TestCase):
@@ -31,9 +32,7 @@ class TestTaskManager(unittest.TestCase):
     def test_create_task(self):
         """测试创建任务"""
         task = self.manager.create_task(
-            title="测试任务",
-            description="这是一个测试任务",
-            priority=2
+            title="测试任务", description="这是一个测试任务", priority=2
         )
 
         self.assertIsInstance(task, Task)
@@ -51,8 +50,7 @@ class TestTaskManager(unittest.TestCase):
     def test_get_task(self):
         """测试获取任务"""
         task = self.manager.create_task(
-            title="测试任务",
-            description="这是一个测试任务"
+            title="测试任务", description="这是一个测试任务"
         )
 
         retrieved_task = self.manager.get_task(task.task_id)
@@ -67,13 +65,12 @@ class TestTaskManager(unittest.TestCase):
     def test_update_task(self):
         """测试更新任务"""
         task = self.manager.create_task(
-            title="原始任务",
-            description="原始描述",
-            priority=3
+            title="原始任务", description="原始描述", priority=3
         )
 
         # 增加时间间隔以确保 updated_at 不同
         import time
+
         time.sleep(0.01)
 
         updated_task = self.manager.update_task(
@@ -81,7 +78,7 @@ class TestTaskManager(unittest.TestCase):
             title="更新后的任务",
             description="更新后的描述",
             priority=4,
-            status="running"
+            status="running",
         )
 
         self.assertIsNotNone(updated_task)
@@ -95,8 +92,7 @@ class TestTaskManager(unittest.TestCase):
     def test_task_status_transition(self):
         """测试任务状态转换"""
         task = self.manager.create_task(
-            title="状态转换测试任务",
-            description="测试任务状态转换"
+            title="状态转换测试任务", description="测试任务状态转换"
         )
 
         # pending → running
@@ -105,7 +101,9 @@ class TestTaskManager(unittest.TestCase):
         self.assertIsNone(task.completed_at)
 
         # running → completed
-        task = self.manager.update_task(task.task_id, status="completed", result={"success": True})
+        task = self.manager.update_task(
+            task.task_id, status="completed", result={"success": True}
+        )
         self.assertEqual(task.status, "completed")
         self.assertIsNotNone(task.completed_at)
         self.assertEqual(task.result, {"success": True})
@@ -117,8 +115,7 @@ class TestTaskManager(unittest.TestCase):
     def test_task_status_transition_with_error(self):
         """测试任务失败状态转换"""
         task = self.manager.create_task(
-            title="失败状态测试任务",
-            description="测试任务失败状态"
+            title="失败状态测试任务", description="测试任务失败状态"
         )
 
         # pending → running
@@ -127,9 +124,7 @@ class TestTaskManager(unittest.TestCase):
 
         # running → failed
         task = self.manager.update_task(
-            task.task_id,
-            status="failed",
-            error="执行过程中发生错误"
+            task.task_id, status="failed", error="执行过程中发生错误"
         )
         self.assertEqual(task.status, "failed")
         self.assertIsNotNone(task.completed_at)
@@ -139,22 +134,13 @@ class TestTaskManager(unittest.TestCase):
         """测试列出任务"""
         # 创建多个任务
         task1 = self.manager.create_task(
-            title="任务1",
-            description="描述1",
-            priority=1,
-            status="pending"
+            title="任务1", description="描述1", priority=1, status="pending"
         )
         task2 = self.manager.create_task(
-            title="任务2",
-            description="描述2",
-            priority=3,
-            status="running"
+            title="任务2", description="描述2", priority=3, status="running"
         )
         task3 = self.manager.create_task(
-            title="任务3",
-            description="描述3",
-            priority=5,
-            status="completed"
+            title="任务3", description="描述3", priority=5, status="completed"
         )
 
         # 测试列出所有任务
@@ -182,8 +168,7 @@ class TestTaskManager(unittest.TestCase):
     def test_delete_task(self):
         """测试删除任务"""
         task = self.manager.create_task(
-            title="待删除任务",
-            description="这是一个要删除的任务"
+            title="待删除任务", description="这是一个要删除的任务"
         )
 
         self.assertEqual(self.manager.get_task_count(), 1)
@@ -201,9 +186,7 @@ class TestTaskManager(unittest.TestCase):
         """测试任务持久化"""
         # 创建任务
         task = self.manager.create_task(
-            title="持久化测试任务",
-            description="测试任务持久化功能",
-            priority=4
+            title="持久化测试任务", description="测试任务持久化功能", priority=4
         )
 
         # 创建新的任务管理器实例，加载相同的存储文件
@@ -246,23 +229,19 @@ class TestTaskManager(unittest.TestCase):
             self.manager.create_task(
                 title="无效状态任务",
                 description="测试无效状态",
-                status="invalid_status"
+                status="invalid_status",
             )
 
     def test_invalid_priority(self):
         """测试无效优先级"""
         with self.assertRaises(ValueError):
             self.manager.create_task(
-                title="无效优先级任务",
-                description="测试无效优先级",
-                priority=6
+                title="无效优先级任务", description="测试无效优先级", priority=6
             )
 
         with self.assertRaises(ValueError):
             self.manager.create_task(
-                title="无效优先级任务",
-                description="测试无效优先级",
-                priority=0
+                title="无效优先级任务", description="测试无效优先级", priority=0
             )
 
 

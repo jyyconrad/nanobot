@@ -48,7 +48,9 @@ DARK_THEME = ColorTheme(
 class ColorFormatter:
     """彩色格式化器."""
 
-    def __init__(self, theme: Optional[ColorTheme] = None, console: Optional[Console] = None):
+    def __init__(
+        self, theme: Optional[ColorTheme] = None, console: Optional[Console] = None
+    ):
         """初始化格式化器.
 
         Args:
@@ -58,7 +60,9 @@ class ColorFormatter:
         self.theme = theme or DEFAULT_THEME
         self.console = console or Console()
 
-    def text(self, content: str, color: Optional[str] = None, bold: bool = False) -> Text:
+    def text(
+        self, content: str, color: Optional[str] = None, bold: bool = False
+    ) -> Text:
         """创建彩色文本.
 
         Args:
@@ -233,7 +237,11 @@ class TableFormatter:
         # 找到最佳值
         best_value = None
         if highlight_best and data:
-            values = [d.get(highlight_best) for d in data if isinstance(d.get(highlight_best), (int, float))]
+            values = [
+                d.get(highlight_best)
+                for d in data
+                if isinstance(d.get(highlight_best), (int, float))
+            ]
             if values:
                 best_value = max(values)
 
@@ -258,7 +266,9 @@ class TableFormatter:
 class TreeFormatter:
     """树形结构格式化器."""
 
-    def __init__(self, theme: Optional[ColorTheme] = None, console: Optional[Console] = None):
+    def __init__(
+        self, theme: Optional[ColorTheme] = None, console: Optional[Console] = None
+    ):
         """初始化树形格式化器.
 
         Args:

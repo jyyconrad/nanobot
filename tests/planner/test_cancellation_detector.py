@@ -31,7 +31,12 @@ class TestCancellationDetector:
     async def test_is_cancellation_confirmation(self):
         """测试取消确认检测"""
         detector = CancellationDetector()
-        test_cases = ["确定取消任务", "确认取消操作", "是否取消当前任务", "真的要取消吗"]
+        test_cases = [
+            "确定取消任务",
+            "确认取消操作",
+            "是否取消当前任务",
+            "真的要取消吗",
+        ]
 
         for input_text in test_cases:
             assert await detector.is_cancellation(input_text) is True

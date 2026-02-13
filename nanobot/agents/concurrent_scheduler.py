@@ -12,6 +12,7 @@ from loguru import logger
 
 class TaskPriority(Enum):
     """Task priority levels."""
+
     CRITICAL = 0
     HIGH = 1
     NORMAL = 2
@@ -22,6 +23,7 @@ class TaskPriority(Enum):
 @dataclass
 class ScheduledTask:
     """Represents a scheduled task with priority."""
+
     priority: TaskPriority
     task_id: str
     name: str
@@ -57,7 +59,7 @@ class TaskScheduler:
         max_workers: int = 10,
         max_retries: int = 3,
         backoff_factor: float = 2.0,
-        timeout: float = 300.0
+        timeout: float = 300.0,
     ):
         """
         Initialize task scheduler.
@@ -125,7 +127,7 @@ class TaskScheduler:
         priority: TaskPriority = TaskPriority.NORMAL,
         timeout: Optional[float] = None,
         max_retries: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Schedule a task for execution.
@@ -148,7 +150,7 @@ class TaskScheduler:
             args=args,
             kwargs=kwargs,
             timeout=timeout or self.default_timeout,
-            max_retries=max_retries or self.default_max_retries
+            max_retries=max_retries or self.default_max_retries,
         )
 
         async with self._queue_lock:
@@ -210,8 +212,7 @@ class TaskScheduler:
                 try:
                     start_time = time.time()
                     result = await asyncio.wait_for(
-                        task.func(*task.args, **task.kwargs),
-                        timeout=task.timeout
+                        task.func(*task.args, **task.kwargs), timeout=task.timeout
                     )
                     execution_time = time.time() - start_time
 
@@ -219,7 +220,9 @@ class TaskScheduler:
                     self._results[task.task_id] = result
                     self._record_success(task.task_id, execution_time)
 
-                    logger.info(f"{worker_name} completed: {task.task_id} in {execution_time:.2f}s")
+                    logger.info(
+                        f"{worker_name} completed: {task.task_id} in {execution_time:.2f}s"
+                    )
 
                 except asyncio.TimeoutError:
                     error_msg = f"Task timeout after {task.timeout}s"
@@ -227,16 +230,22 @@ class TaskScheduler:
                     # Check if we should retry
                     task.retry_count += 1
                     if task.retry_count < task.max_retries:
-                        delay = self.backoff_factor ** task.retry_count
-                        logger.info(f"Retrying {task.task_id} (attempt {task.retry_count + 1}/{task.max_retries}) after {delay}s")
+                        delay = self.backoff_factor**task.retry_count
+                        logger.info(
+                            f"Retrying {task.task_id} (attempt {task.retry_count + 1}/{task.max_retries}) after {delay}s"
+                        )
                         await asyncio.sleep(delay)
                         async with self._queue_lock:
-                            heapq.heappush(self._priority_queue, (task.priority.value, task))
+                            heapq.heappush(
+                                self._priority_queue, (task.priority.value, task)
+                            )
                     else:
                         # Final failure
                         self._errors[task.task_id] = error_msg
                         self._record_failure(task.task_id, error_msg)
-                        logger.error(f"{worker_name} task timeout (final): {task.task_id}")
+                        logger.error(
+                            f"{worker_name} task timeout (final): {task.task_id}"
+                        )
 
                 except Exception as e:
                     error_msg = str(e)
@@ -244,16 +253,22 @@ class TaskScheduler:
                     # Check if we should retry
                     task.retry_count += 1
                     if task.retry_count < task.max_retries:
-                        delay = self.backoff_factor ** task.retry_count
-                        logger.info(f"Retrying {task.task_id} (attempt {task.retry_count + 1}/{task.max_retries}) after {delay}s")
+                        delay = self.backoff_factor**task.retry_count
+                        logger.info(
+                            f"Retrying {task.task_id} (attempt {task.retry_count + 1}/{task.max_retries}) after {delay}s"
+                        )
                         await asyncio.sleep(delay)
                         async with self._queue_lock:
-                            heapq.heappush(self._priority_queue, (task.priority.value, task))
+                            heapq.heappush(
+                                self._priority_queue, (task.priority.value, task)
+                            )
                     else:
                         # Final failure
                         self._errors[task.task_id] = error_msg
                         self._record_failure(task.task_id, error_msg)
-                        logger.error(f"{worker_name} task error (final): {task.task_id} - {error_msg}")
+                        logger.error(
+                            f"{worker_name} task error (final): {task.task_id} - {error_msg}"
+                        )
 
                 finally:
                     # Signal completion
@@ -291,7 +306,7 @@ class TaskScheduler:
                 "attempts": 0,
                 "successes": 0,
                 "failures": 0,
-                "total_time": 0.0
+                "total_time": 0.0,
             }
 
         self._task_stats[task_id]["attempts"] += 1
@@ -306,7 +321,7 @@ class TaskScheduler:
                 "successes": 0,
                 "failures": 0,
                 "total_time": 0.0,
-                "errors": []
+                "errors": [],
             }
 
         self._task_stats[task_id]["attempts"] += 1
@@ -378,14 +393,15 @@ class ResourcePool:
         """Acquire a resource from the pool."""
         try:
             resource = await asyncio.wait_for(
-                self._pool.get(),
-                timeout=self.acquire_timeout
+                self._pool.get(), timeout=self.acquire_timeout
             )
             async with self._lock:
                 self._acquired += 1
             return resource
         except asyncio.TimeoutError:
-            raise TimeoutError(f"Failed to acquire resource within {self.acquire_timeout}s")
+            raise TimeoutError(
+                f"Failed to acquire resource within {self.acquire_timeout}s"
+            )
 
     async def release(self, resource: Any):
         """Release a resource back to the pool."""
@@ -399,5 +415,5 @@ class ResourcePool:
             "max_size": self.max_size,
             "created": self._created,
             "acquired": self._acquired,
-            "available": self._pool.qsize()
+            "available": self._pool.qsize(),
         }

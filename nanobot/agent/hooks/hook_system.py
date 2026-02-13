@@ -57,7 +57,9 @@ class HookSystem:
                 self._hooks[hook_name].remove(callback)
                 logger.debug(f"钩子 '{hook_name}' 注销成功: {callback.__name__}")
             except ValueError:
-                logger.debug(f"钩子 '{hook_name}' 中未找到回调函数: {callback.__name__}")
+                logger.debug(
+                    f"钩子 '{hook_name}' 中未找到回调函数: {callback.__name__}"
+                )
 
     def trigger(self, hook_name: str, **kwargs) -> None:
         """
@@ -79,7 +81,7 @@ class HookSystem:
             except Exception as e:
                 logger.error(
                     f"钩子 '{hook_name}' 的回调函数 '{callback.__name__}' 执行失败: {str(e)}",
-                    exc_info=True
+                    exc_info=True,
                 )
 
     def get_hooks(self, hook_name: str) -> List[Callable]:

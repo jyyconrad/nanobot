@@ -28,7 +28,12 @@ def _is_heartbeat_empty(content: str | None) -> bool:
 
     for line in content.split("\n"):
         line = line.strip()
-        if not line or line.startswith("#") or line.startswith("<!--") or line in skip_patterns:
+        if (
+            not line
+            or line.startswith("#")
+            or line.startswith("<!--")
+            or line in skip_patterns
+        ):
             continue
         return False  # Found actionable content
 
@@ -115,7 +120,9 @@ class HeartbeatService:
                 response = await self.on_heartbeat(HEARTBEAT_PROMPT)
 
                 # Check if agent said "nothing to do"
-                if HEARTBEAT_OK_TOKEN.replace("_", "") in response.upper().replace("_", ""):
+                if HEARTBEAT_OK_TOKEN.replace("_", "") in response.upper().replace(
+                    "_", ""
+                ):
                     logger.info("Heartbeat: OK (no action needed)")
                 else:
                     logger.info("Heartbeat: completed task")

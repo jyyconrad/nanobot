@@ -6,7 +6,7 @@
 
 import logging
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Dict, Any, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CodeRule:
     """代码规则数据类"""
+
     name: str
     intent: str
     predicate: Callable[[str, Dict[str, Any]], bool]
@@ -25,15 +26,18 @@ class CodeRule:
 @dataclass
 class CodeRecognitionResult:
     """代码识别结果数据类"""
+
     intent: str
     confidence: float
     rule_name: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
-        return (f"CodeRecognitionResult(intent='{self.intent}', "
-                f"confidence={self.confidence:.2f}, "
-                f"rule_name={self.rule_name})")
+        return (
+            f"CodeRecognitionResult(intent='{self.intent}', "
+            f"confidence={self.confidence:.2f}, "
+            f"rule_name={self.rule_name})"
+        )
 
 
 class CodeBasedRecognizer:
@@ -70,7 +74,7 @@ class CodeBasedRecognizer:
         predicate: Callable[[str, Dict[str, Any]], bool],
         confidence: float = 0.9,
         priority: int = 0,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         添加代码规则
@@ -92,7 +96,7 @@ class CodeBasedRecognizer:
             predicate=predicate,
             confidence=confidence,
             priority=priority,
-            metadata=metadata
+            metadata=metadata,
         )
 
         self.rules.append(rule)
@@ -114,9 +118,7 @@ class CodeBasedRecognizer:
         logger.debug("所有代码规则已清除")
 
     def recognize(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> Optional[CodeRecognitionResult]:
         """
         识别文本的意图
@@ -134,11 +136,7 @@ class CodeBasedRecognizer:
         logger.debug(f"开始识别文本: {text}")
 
         # 按优先级降序排序
-        sorted_rules = sorted(
-            self.rules,
-            key=lambda x: x.priority,
-            reverse=True
-        )
+        sorted_rules = sorted(self.rules, key=lambda x: x.priority, reverse=True)
 
         for rule in sorted_rules:
             try:
@@ -148,21 +146,16 @@ class CodeBasedRecognizer:
                         intent=rule.intent,
                         confidence=rule.confidence,
                         rule_name=rule.name,
-                        metadata=rule.metadata
+                        metadata=rule.metadata,
                     )
             except Exception as e:
-                logger.error(
-                    f"规则 {rule.name} 执行失败: {e}",
-                    exc_info=True
-                )
+                logger.error(f"规则 {rule.name} 执行失败: {e}", exc_info=True)
 
         logger.debug("未匹配到任何代码规则")
         return None
 
     def recognize_all(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> List[CodeRecognitionResult]:
         """
         识别文本的所有匹配意图 (按优先级排序)
@@ -186,23 +179,24 @@ class CodeBasedRecognizer:
                             intent=rule.intent,
                             confidence=rule.confidence,
                             rule_name=rule.name,
-                            metadata=rule.metadata
+                            metadata=rule.metadata,
                         )
                     )
             except Exception as e:
-                logger.error(
-                    f"规则 {rule.name} 执行失败: {e}",
-                    exc_info=True
-                )
+                logger.error(f"规则 {rule.name} 执行失败: {e}", exc_info=True)
 
         # 按优先级降序排序
         results.sort(
-            key=lambda x: x.metadata.get("priority", 0)
-            if "priority" in x.metadata
-            else [r for r in self.rules if r.name == x.rule_name][0].priority
-            if x.rule_name
-            else 0,
-            reverse=True
+            key=lambda x: (
+                x.metadata.get("priority", 0)
+                if "priority" in x.metadata
+                else (
+                    [r for r in self.rules if r.name == x.rule_name][0].priority
+                    if x.rule_name
+                    else 0
+                )
+            ),
+            reverse=True,
         )
 
         logger.debug(f"匹配到 {len(results)} 个代码规则结果")
@@ -216,7 +210,7 @@ class CodeBasedRecognizer:
         operator: Callable[[List[bool]], bool] = all,
         confidence: float = 0.85,
         priority: int = 0,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         添加条件组合规则
@@ -230,6 +224,7 @@ class CodeBasedRecognizer:
             priority: 优先级
             metadata: 元数据
         """
+
         def predicate(text: str, context: Dict[str, Any]) -> bool:
             return operator(cond(text, context) for cond in conditions)
 
@@ -239,7 +234,7 @@ class CodeBasedRecognizer:
             predicate=predicate,
             confidence=confidence,
             priority=priority,
-            metadata=metadata
+            metadata=metadata,
         )
 
     def add_keyword_condition_rule(
@@ -250,7 +245,7 @@ class CodeBasedRecognizer:
         operator: Callable[[List[bool]], bool] = any,
         confidence: float = 0.85,
         priority: int = 0,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         添加关键词条件规则
@@ -264,6 +259,7 @@ class CodeBasedRecognizer:
             priority: 优先级
             metadata: 元数据
         """
+
         def predicate(text: str, context: Dict[str, Any]) -> bool:
             return operator(keyword in text.lower() for keyword in keywords)
 
@@ -273,7 +269,7 @@ class CodeBasedRecognizer:
             predicate=predicate,
             confidence=confidence,
             priority=priority,
-            metadata=metadata
+            metadata=metadata,
         )
 
     def add_length_rule(
@@ -284,7 +280,7 @@ class CodeBasedRecognizer:
         max_length: Optional[int] = None,
         confidence: float = 0.8,
         priority: int = 0,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         添加文本长度规则
@@ -298,6 +294,7 @@ class CodeBasedRecognizer:
             priority: 优先级
             metadata: 元数据
         """
+
         def predicate(text: str, context: Dict[str, Any]) -> bool:
             length = len(text)
             if min_length is not None and length < min_length:
@@ -312,7 +309,7 @@ class CodeBasedRecognizer:
             predicate=predicate,
             confidence=confidence,
             priority=priority,
-            metadata=metadata
+            metadata=metadata,
         )
 
     def add_context_rule(
@@ -323,7 +320,7 @@ class CodeBasedRecognizer:
         context_value: Any,
         confidence: float = 0.85,
         priority: int = 0,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         添加上下文规则
@@ -337,6 +334,7 @@ class CodeBasedRecognizer:
             priority: 优先级
             metadata: 元数据
         """
+
         def predicate(text: str, context: Dict[str, Any]) -> bool:
             return context.get(context_key) == context_value
 
@@ -346,7 +344,7 @@ class CodeBasedRecognizer:
             predicate=predicate,
             confidence=confidence,
             priority=priority,
-            metadata=metadata
+            metadata=metadata,
         )
 
     @property
@@ -355,4 +353,4 @@ class CodeBasedRecognizer:
         return len(self.rules)
 
     def __repr__(self):
-        return (f"CodeBasedRecognizer(rules={self.rule_count})")
+        return f"CodeBasedRecognizer(rules={self.rule_count})"

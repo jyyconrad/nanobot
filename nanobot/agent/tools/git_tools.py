@@ -3,6 +3,7 @@ Git 工具 - 执行 Git 操作
 """
 
 from typing import Any, Dict
+
 from nanobot.agent.tools.base import Tool
 
 
@@ -30,7 +31,9 @@ class GitCloneTool(Tool):
         },
     }
 
-    async def execute(self, repo_url: str, target_dir: str = None, branch: str = None) -> str:
+    async def execute(
+        self, repo_url: str, target_dir: str = None, branch: str = None
+    ) -> str:
         """执行 Git 克隆"""
         try:
             import subprocess

@@ -79,14 +79,30 @@ class ContextMonitor:
 
     # 模型默认token限制
     MODEL_TOKEN_LIMITS: Dict[str, TokenLimits] = {
-        ModelType.GPT_3_5_TURBO.value: TokenLimits(context_window=4096, max_completion_tokens=1024),
-        ModelType.GPT_4.value: TokenLimits(context_window=8192, max_completion_tokens=2048),
-        ModelType.GPT_4_TURBO.value: TokenLimits(context_window=128000, max_completion_tokens=4096),
-        ModelType.CLAUDE_3_OPUS.value: TokenLimits(context_window=200000, max_completion_tokens=4096),
-        ModelType.CLAUDE_3_SONNET.value: TokenLimits(context_window=200000, max_completion_tokens=4096),
-        ModelType.CLAUDE_3_HAIKU.value: TokenLimits(context_window=200000, max_completion_tokens=4096),
-        ModelType.GLM_4.value: TokenLimits(context_window=8192, max_completion_tokens=2048),
-        ModelType.DOUBAO.value: TokenLimits(context_window=8192, max_completion_tokens=2048),
+        ModelType.GPT_3_5_TURBO.value: TokenLimits(
+            context_window=4096, max_completion_tokens=1024
+        ),
+        ModelType.GPT_4.value: TokenLimits(
+            context_window=8192, max_completion_tokens=2048
+        ),
+        ModelType.GPT_4_TURBO.value: TokenLimits(
+            context_window=128000, max_completion_tokens=4096
+        ),
+        ModelType.CLAUDE_3_OPUS.value: TokenLimits(
+            context_window=200000, max_completion_tokens=4096
+        ),
+        ModelType.CLAUDE_3_SONNET.value: TokenLimits(
+            context_window=200000, max_completion_tokens=4096
+        ),
+        ModelType.CLAUDE_3_HAIKU.value: TokenLimits(
+            context_window=200000, max_completion_tokens=4096
+        ),
+        ModelType.GLM_4.value: TokenLimits(
+            context_window=8192, max_completion_tokens=2048
+        ),
+        ModelType.DOUBAO.value: TokenLimits(
+            context_window=8192, max_completion_tokens=2048
+        ),
     }
 
     def __init__(self, config: Optional[ContextMonitorConfig] = None):
@@ -209,7 +225,9 @@ class ContextMonitor:
 
         return is_over_threshold
 
-    async def compress_context(self, messages: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
+    async def compress_context(
+        self, messages: Optional[List[Dict[str, Any]]] = None
+    ) -> List[Dict[str, Any]]:
         """
         压缩上下文，使token数量不超过阈值
 
@@ -259,7 +277,9 @@ class ContextMonitor:
 
         return compressed
 
-    async def _truncate_context(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def _truncate_context(
+        self, messages: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         截断策略：保留系统消息和最后几条用户/助手消息
 
@@ -300,7 +320,9 @@ class ContextMonitor:
 
         return compressed
 
-    async def _intelligent_compression(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def _intelligent_compression(
+        self, messages: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         智能压缩：使用 LLM 进行总结压缩（需要集成 ContextCompressor）
 
@@ -316,10 +338,18 @@ class ContextMonitor:
             compressor = ContextCompressor()
             # 转换为适合压缩器的格式
             content_to_compress = "\n".join(
-                [f"{msg.get('role')}: {str(msg.get('content'))}" for msg in messages if msg.get('role') != 'system']
+                [
+                    f"{msg.get('role')}: {str(msg.get('content'))}"
+                    for msg in messages
+                    if msg.get("role") != "system"
+                ]
             )
 
-            max_content_tokens = self.threshold_tokens - sum(self.token_count([msg]) for msg in messages if msg.get('role') == 'system')
+            max_content_tokens = self.threshold_tokens - sum(
+                self.token_count([msg])
+                for msg in messages
+                if msg.get("role") == "system"
+            )
 
             # 使用 ContextCompressor 压缩
             compressed_content, stats = await compressor.compress(
@@ -328,14 +358,16 @@ class ContextMonitor:
 
             # 重新构建消息结构
             compressed = []
-            system_messages = [msg for msg in messages if msg.get('role') == 'system']
+            system_messages = [msg for msg in messages if msg.get("role") == "system"]
             compressed.extend(system_messages)
 
             if compressed_content:
-                compressed.append({
-                    "role": "system",
-                    "content": f"对话历史摘要：\n{compressed_content}"
-                })
+                compressed.append(
+                    {
+                        "role": "system",
+                        "content": f"对话历史摘要：\n{compressed_content}",
+                    }
+                )
 
             return compressed
 
@@ -380,9 +412,9 @@ class ContextMonitor:
         """
         if 0 <= index < len(self.messages):
             removed_msg = self.messages.pop(index)
-            logger.debug(f"移除消息"
-                         f" - 索引: {index}"
-                         f" - 角色: {removed_msg.get('role')}")
+            logger.debug(
+                f"移除消息" f" - 索引: {index}" f" - 角色: {removed_msg.get('role')}"
+            )
         else:
             logger.warning(f"无效的消息索引: {index}")
 

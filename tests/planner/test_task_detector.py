@@ -110,9 +110,14 @@ class TestTaskDetector:
         detector = TaskDetector()
 
         assert await detector.is_task_type("编写代码", TaskType.CODE_GENERATION) is True
-        assert await detector.is_task_type("总结文章", TaskType.TEXT_SUMMARIZATION) is True
+        assert (
+            await detector.is_task_type("总结文章", TaskType.TEXT_SUMMARIZATION) is True
+        )
         assert await detector.is_task_type("搜索信息", TaskType.WEB_SEARCH) is True
-        assert await detector.is_task_type("编写代码", TaskType.TEXT_SUMMARIZATION) is False
+        assert (
+            await detector.is_task_type("编写代码", TaskType.TEXT_SUMMARIZATION)
+            is False
+        )
 
     @pytest.mark.asyncio
     async def test_get_confidence(self):
@@ -155,8 +160,14 @@ class TestTaskDetector:
         top_types = await detector.get_top_task_types(input_text, 2)
 
         assert len(top_types) == 2
-        assert top_types[0]["task_type"] in [TaskType.CODE_GENERATION, TaskType.DATA_ANALYSIS]
-        assert top_types[1]["task_type"] in [TaskType.CODE_GENERATION, TaskType.DATA_ANALYSIS]
+        assert top_types[0]["task_type"] in [
+            TaskType.CODE_GENERATION,
+            TaskType.DATA_ANALYSIS,
+        ]
+        assert top_types[1]["task_type"] in [
+            TaskType.CODE_GENERATION,
+            TaskType.DATA_ANALYSIS,
+        ]
         assert top_types[0]["confidence"] > top_types[1]["confidence"]
 
     @pytest.mark.asyncio

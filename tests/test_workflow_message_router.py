@@ -4,11 +4,11 @@
 包含 MessageRouter 和 MessageAnalyzer 的测试用例
 """
 
-import unittest
 import logging
-from nanobot.agent.message_router import MessageRouter, RouteMatchType, RouteRule
-from nanobot.agent.message_analyzer import MessageAnalyzer, AnalysisResult
+import unittest
 
+from nanobot.agent.message_analyzer import AnalysisResult, MessageAnalyzer
+from nanobot.agent.message_router import MessageRouter, RouteMatchType, RouteRule
 
 # 配置日志记录
 logging.basicConfig(level=logging.DEBUG)
@@ -137,6 +137,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试注册处理器
         """
+
         def test_handler(data):
             self.test_counter += 1
             return f"处理: {data['message']['text']}"
@@ -148,6 +149,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试注销处理器
         """
+
         def test_handler(data):
             pass
 
@@ -160,6 +162,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试添加和移除路由规则
         """
+
         def test_handler(data):
             pass
 
@@ -168,7 +171,7 @@ class TestMessageRouter(unittest.TestCase):
             match_type=RouteMatchType.EXACT,
             match_value="test",
             handler=test_handler,
-            priority=1
+            priority=1,
         )
 
         self.router.add_route(rule)
@@ -182,6 +185,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试精确匹配路由
         """
+
         def greeting_handler(data):
             return "问候处理"
 
@@ -196,7 +200,7 @@ class TestMessageRouter(unittest.TestCase):
             match_type=RouteMatchType.EXACT,
             match_value="你好",
             handler="greeting",
-            priority=1
+            priority=1,
         )
 
         result = self.router.route_message({"text": "你好"})
@@ -207,6 +211,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试意图匹配路由
         """
+
         def query_handler(data):
             return "查询处理"
 
@@ -217,7 +222,7 @@ class TestMessageRouter(unittest.TestCase):
             match_type=RouteMatchType.INTENT,
             match_value="query",
             handler="query",
-            priority=1
+            priority=1,
         )
 
         result = self.router.route_message({"text": "请问现在几点了？"})
@@ -228,6 +233,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试关键词匹配路由
         """
+
         def weather_handler(data):
             return "天气处理"
 
@@ -238,7 +244,7 @@ class TestMessageRouter(unittest.TestCase):
             match_type=RouteMatchType.KEYWORD,
             match_value="天气",
             handler="weather",
-            priority=1
+            priority=1,
         )
 
         result = self.router.route_message({"text": "今天天气怎么样？"})
@@ -249,6 +255,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试路由优先级
         """
+
         def high_priority_handler(data):
             return "高优先级处理"
 
@@ -263,7 +270,7 @@ class TestMessageRouter(unittest.TestCase):
             match_type=RouteMatchType.CONTAINS,
             match_value="测试",
             handler="high",
-            priority=10
+            priority=10,
         )
 
         self.router.create_route(
@@ -271,7 +278,7 @@ class TestMessageRouter(unittest.TestCase):
             match_type=RouteMatchType.CONTAINS,
             match_value="测试",
             handler="low",
-            priority=1
+            priority=1,
         )
 
         result = self.router.route_message({"text": "这是一个测试消息"})
@@ -282,6 +289,7 @@ class TestMessageRouter(unittest.TestCase):
         """
         测试默认处理器
         """
+
         def default_handler(data):
             return "默认处理"
 
@@ -292,6 +300,6 @@ class TestMessageRouter(unittest.TestCase):
         self.assertEqual(result, "默认处理")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger.info("开始运行消息路由器测试")
     unittest.main()

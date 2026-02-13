@@ -59,7 +59,9 @@ class FeishuChannel(BaseChannel):
         self._client: Any = None
         self._ws_client: Any = None
         self._ws_thread: threading.Thread | None = None
-        self._processed_message_ids: OrderedDict[str, None] = OrderedDict()  # Ordered dedup cache
+        self._processed_message_ids: OrderedDict[str, None] = (
+            OrderedDict()
+        )  # Ordered dedup cache
         self._loop: asyncio.AbstractEventLoop | None = None
 
     async def start(self) -> None:
@@ -146,13 +148,17 @@ class FeishuChannel(BaseChannel):
             response = self._client.im.v1.message_reaction.create(request)
 
             if not response.success():
-                logger.warning(f"Failed to add reaction: code={response.code}, msg={response.msg}")
+                logger.warning(
+                    f"Failed to add reaction: code={response.code}, msg={response.msg}"
+                )
             else:
                 logger.debug(f"Added {emoji_type} reaction to message {message_id}")
         except Exception as e:
             logger.warning(f"Error adding reaction: {e}")
 
-    async def _add_reaction(self, message_id: str, emoji_type: str = "THUMBSUP") -> None:
+    async def _add_reaction(
+        self, message_id: str, emoji_type: str = "THUMBSUP"
+    ) -> None:
         """
         Add a reaction emoji to a message (non-blocking).
 
@@ -162,7 +168,9 @@ class FeishuChannel(BaseChannel):
             return
 
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, self._add_reaction_sync, message_id, emoji_type)
+        await loop.run_in_executor(
+            None, self._add_reaction_sync, message_id, emoji_type
+        )
 
     async def send(self, msg: OutboundMessage) -> None:
         """Send a message through Feishu."""

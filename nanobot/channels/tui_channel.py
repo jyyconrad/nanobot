@@ -43,6 +43,7 @@ class TUIChannel:
         try:
             from rich.console import Console
             from rich.panel import Panel
+
             self.Console = Console
             self.Panel = Panel
             self._rich_console = Console()
@@ -54,7 +55,7 @@ class TUIChannel:
         if self._running:
             return
 
-        self._running = False
+        self._running = True
         self._session_active = True
 
         # Display welcome message
@@ -104,8 +105,7 @@ class TUIChannel:
                 try:
                     # Get user input (with timeout to allow cancellation)
                     user_input = await asyncio.wait_for(
-                        self._get_input_async(),
-                        timeout=0.5
+                        self._get_input_async(), timeout=0.5
                     )
 
                     if user_input is None:
@@ -123,7 +123,7 @@ class TUIChannel:
                         chat_id="tui",
                         content=user_input,
                         media=[],
-                        metadata={}
+                        metadata={},
                     )
 
                     # Publish to message bus
@@ -147,6 +147,7 @@ class TUIChannel:
         try:
             # Check if stdin has data available
             import select
+
             if select.select([sys.stdin], [], [], 0.0)[0]:
                 line = await loop.run_in_executor(None, input, self.prompt)
                 return line.strip()
@@ -158,7 +159,9 @@ class TUIChannel:
             logger.error(f"Error reading input: {e}")
             return None
 
-    def _display_message(self, sender: str, content: str, msg_type: str = "text") -> None:
+    def _display_message(
+        self, sender: str, content: str, msg_type: str = "text"
+    ) -> None:
         """Display message with appropriate formatting."""
         if self._rich_console:
             self._display_rich_message(sender, content, msg_type)
@@ -171,7 +174,9 @@ class TUIChannel:
             if sender == "System":
                 self._rich_console.print(f"[dim cyan][{sender}][/dim cyan] {content}")
             elif sender == "Bot":
-                self._rich_console.print(f"[bold green][{sender}][/bold green] {content}")
+                self._rich_console.print(
+                    f"[bold green][{sender}][/bold green] {content}"
+                )
             else:
                 self._rich_console.print(f"[bold blue][{sender}][/bold blue] {content}")
         else:
@@ -202,6 +207,7 @@ class TUIChannel:
     def clear_screen(self) -> None:
         """Clear the terminal screen."""
         import os
+
         os.system("cls" if os.name == "nt" else "clear")
 
     @property

@@ -1,11 +1,13 @@
 """Tests for concurrent task scheduler."""
 
 import asyncio
+
 import pytest
+
 from nanobot.agents.concurrent_scheduler import (
-    TaskScheduler,
+    ResourcePool,
     TaskPriority,
-    ResourcePool
+    TaskScheduler,
 )
 
 
@@ -38,12 +40,7 @@ class TestTaskScheduler:
         async def sample_task(x, y):
             return x + y
 
-        await scheduler.schedule(
-            "task-1",
-            "Add Task",
-            sample_task,
-            10, 20
-        )
+        await scheduler.schedule("task-1", "Add Task", sample_task, 10, 20)
 
         result = await scheduler.wait_for_task("task-1")
         assert result == 30
@@ -64,10 +61,18 @@ class TestTaskScheduler:
             return value
 
         # Schedule tasks with different priorities
-        await scheduler.schedule("low", "Low", priority_task, 1, priority=TaskPriority.LOW)
-        await scheduler.schedule("high", "High", priority_task, 2, priority=TaskPriority.HIGH)
-        await scheduler.schedule("critical", "Critical", priority_task, 3, priority=TaskPriority.CRITICAL)
-        await scheduler.schedule("normal", "Normal", priority_task, 4, priority=TaskPriority.NORMAL)
+        await scheduler.schedule(
+            "low", "Low", priority_task, 1, priority=TaskPriority.LOW
+        )
+        await scheduler.schedule(
+            "high", "High", priority_task, 2, priority=TaskPriority.HIGH
+        )
+        await scheduler.schedule(
+            "critical", "Critical", priority_task, 3, priority=TaskPriority.CRITICAL
+        )
+        await scheduler.schedule(
+            "normal", "Normal", priority_task, 4, priority=TaskPriority.NORMAL
+        )
 
         # Wait for all tasks
         for task_id in ["low", "high", "critical", "normal"]:
@@ -92,12 +97,7 @@ class TestTaskScheduler:
                 raise ValueError("Not ready yet")
             return "success"
 
-        await scheduler.schedule(
-            "flaky",
-            "Flaky Task",
-            flaky_task,
-            max_retries=3
-        )
+        await scheduler.schedule("flaky", "Flaky Task", flaky_task, max_retries=3)
 
         result = await scheduler.wait_for_task("flaky")
         assert result == "success"

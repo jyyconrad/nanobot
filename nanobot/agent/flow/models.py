@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
 
 from pydantic import BaseModel, Field
+from pydantic import ConfigDict
 
 
 class FlowState(str, Enum):
@@ -39,7 +40,9 @@ class FlowStep(BaseModel):
     requires_input: bool = Field(default=False, description="是否需要用户输入")
 
     # 依赖关系
-    dependencies: List[str] = Field(default_factory=list, description="依赖的步骤ID列表")
+    dependencies: List[str] = Field(
+        default_factory=list, description="依赖的步骤ID列表"
+    )
     next_steps: List[str] = Field(default_factory=list, description="后续步骤ID列表")
 
     # 时间记录
@@ -50,8 +53,7 @@ class FlowStep(BaseModel):
     output: Any = None
     error: Optional[str] = None
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class FlowProgress(BaseModel):
@@ -96,8 +98,7 @@ class FlowResult(BaseModel):
     # 步骤结果
     step_results: Dict[str, Any] = Field(default_factory=dict, description="各步骤结果")
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class WizardStep(BaseModel):
@@ -107,7 +108,9 @@ class WizardStep(BaseModel):
     title: str = Field(..., description="步骤标题")
     description: str = Field(..., description="步骤描述")
     prompt: str = Field(..., description="给用户的提示")
-    input_type: str = Field(default="text", description="输入类型：text, select, confirm, multiline")
+    input_type: str = Field(
+        default="text", description="输入类型：text, select, confirm, multiline"
+    )
 
     # 输入选项（用于 select 类型）
     options: List[Dict[str, str]] = Field(default_factory=list, description="选项列表")
@@ -115,7 +118,9 @@ class WizardStep(BaseModel):
     # 验证
     required: bool = Field(default=True, description="是否必填")
     validation_pattern: Optional[str] = Field(None, description="验证正则表达式")
-    validation_message: str = Field(default="输入无效，请重新输入", description="验证失败提示")
+    validation_message: str = Field(
+        default="输入无效，请重新输入", description="验证失败提示"
+    )
 
     # 条件显示
     condition: Optional[str] = Field(None, description="显示条件")
@@ -158,7 +163,9 @@ class FlowContext(BaseModel):
 
     # 数据存储
     data: Dict[str, Any] = Field(default_factory=dict, description="流程数据")
-    step_data: Dict[str, Dict[str, Any]] = Field(default_factory=dict, description="各步骤数据")
+    step_data: Dict[str, Dict[str, Any]] = Field(
+        default_factory=dict, description="各步骤数据"
+    )
 
     # 历史记录
     step_history: List[str] = Field(default_factory=list, description="步骤历史")
@@ -168,8 +175,7 @@ class FlowContext(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def set_data(self, key: str, value: Any) -> None:
         """设置流程数据"""

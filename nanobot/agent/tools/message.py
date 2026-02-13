@@ -24,7 +24,9 @@ class MessageTool(Tool):
         self._default_channel = channel
         self._default_chat_id = chat_id
 
-    def set_send_callback(self, callback: Callable[[OutboundMessage], Awaitable[None]]) -> None:
+    def set_send_callback(
+        self, callback: Callable[[OutboundMessage], Awaitable[None]]
+    ) -> None:
         """Set the callback for sending messages."""
         self._send_callback = callback
 
@@ -41,18 +43,28 @@ class MessageTool(Tool):
         return {
             "type": "object",
             "properties": {
-                "content": {"type": "string", "description": "The message content to send"},
+                "content": {
+                    "type": "string",
+                    "description": "The message content to send",
+                },
                 "channel": {
                     "type": "string",
                     "description": "Optional: target channel (telegram, discord, etc.)",
                 },
-                "chat_id": {"type": "string", "description": "Optional: target chat/user ID"},
+                "chat_id": {
+                    "type": "string",
+                    "description": "Optional: target chat/user ID",
+                },
             },
             "required": ["content"],
         }
 
     async def execute(
-        self, content: str, channel: str | None = None, chat_id: str | None = None, **kwargs: Any
+        self,
+        content: str,
+        channel: str | None = None,
+        chat_id: str | None = None,
+        **kwargs: Any,
     ) -> str:
         channel = channel or self._default_channel
         chat_id = chat_id or self._default_chat_id

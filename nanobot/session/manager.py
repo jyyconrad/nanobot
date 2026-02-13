@@ -27,7 +27,12 @@ class Session:
 
     def add_message(self, role: str, content: str, **kwargs: Any) -> None:
         """Add a message to the session."""
-        msg = {"role": role, "content": content, "timestamp": datetime.now().isoformat(), **kwargs}
+        msg = {
+            "role": role,
+            "content": content,
+            "timestamp": datetime.now().isoformat(),
+            **kwargs,
+        }
         self.messages.append(msg)
         self.updated_at = datetime.now()
 
@@ -43,7 +48,9 @@ class Session:
         """
         # Get recent messages
         recent = (
-            self.messages[-max_messages:] if len(self.messages) > max_messages else self.messages
+            self.messages[-max_messages:]
+            if len(self.messages) > max_messages
+            else self.messages
         )
 
         # Convert to LLM format (just role and content)

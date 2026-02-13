@@ -12,10 +12,11 @@ ContextManager 是核心上下文管理类，提供智能的上下文处理功�
 """
 
 import logging
-import tiktoken
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+import tiktoken
 
 from nanobot.agent.context_compressor import ContextCompressor
 from nanobot.agent.context_expander import ContextExpander
@@ -55,7 +56,7 @@ class ContextManagerV2:
         self,
         max_system_tokens: int = 4000,
         max_history_tokens: int = 6000,
-        encoding: str = "cl100k_base"
+        encoding: str = "cl100k_base",
     ):
         self.max_system_tokens = max_system_tokens
         self.max_history_tokens = max_history_tokens
@@ -118,7 +119,7 @@ class ContextManagerV2:
         self,
         session_id: str,
         task_type: Optional[str] = None,
-        include_history: bool = True
+        include_history: bool = True,
     ) -> Tuple[str, ContextStats]:
         """
         构建完整的上下文
@@ -142,7 +143,7 @@ class ContextManagerV2:
             "开始构建上下文，会话: %s, 任务类型: %s, 包含历史: %s",
             session_id,
             task_type,
-            include_history
+            include_history,
         )
 
         parts = []
@@ -180,10 +181,12 @@ class ContextManagerV2:
             )
 
             # 将历史转换为文本
-            history_text = "\n\n".join([
-                f"{msg.get('role', 'unknown')}: {msg.get('content', '')}"
-                for msg in compressed_history
-            ])
+            history_text = "\n\n".join(
+                [
+                    f"{msg.get('role', 'unknown')}: {msg.get('content', '')}"
+                    for msg in compressed_history
+                ]
+            )
         else:
             history_text = ""
             history_stats = ContextStats(0, 0, 1.0, 0, 0, 0, 0, 0)
@@ -203,9 +206,15 @@ class ContextManagerV2:
         stats = ContextStats(
             original_length=total_original_length,
             compressed_length=compressed_length,
-            compression_ratio=compressed_length / total_original_length if total_original_length > 0 else 1.0,
-            original_tokens=system_stats.original_tokens + history_stats.original_tokens,
-            compressed_tokens=system_stats.compressed_tokens + history_stats.compressed_tokens,
+            compression_ratio=(
+                compressed_length / total_original_length
+                if total_original_length > 0
+                else 1.0
+            ),
+            original_tokens=system_stats.original_tokens
+            + history_stats.original_tokens,
+            compressed_tokens=system_stats.compressed_tokens
+            + history_stats.compressed_tokens,
             messages_count=len(self.history),
             messages_kept=history_stats.messages_kept,
             messages_summarized=history_stats.messages_summarized,
@@ -240,7 +249,9 @@ class ContextManagerV2:
         """
         return await self.compressor.compress_messages(messages, max_tokens)
 
-    async def expand_context(self, base_context: str, task_type: Optional[str] = None) -> str:
+    async def expand_context(
+        self, base_context: str, task_type: Optional[str] = None
+    ) -> str:
         """
         智能扩展上下文（加载任务相关技能） Args:
             base_context: 基础上下文
@@ -302,7 +313,9 @@ class ContextManagerV2:
 
         # 2. 如果没有找到用户自定义配置，使用默认配置
         if not context_parts:
-            default_config_path = Path(__file__).parent.parent / "config" / "agent_prompts.yaml"
+            default_config_path = (
+                Path(__file__).parent.parent / "config" / "agent_prompts.yaml"
+            )
             if default_config_path.exists():
                 try:
                     with open(default_config_path, "r", encoding="utf-8") as f:
@@ -343,9 +356,7 @@ class ContextManagerV2:
         从增强记忆系统中加载相关记忆
         """
         memories = await self.memory_store.search_memory(
-            query="",
-            tags=["session", session_id],
-            limit=10  # 限制记忆数量
+            query="", tags=["session", session_id], limit=10  # 限制记忆数量
         )
 
         if not memories:

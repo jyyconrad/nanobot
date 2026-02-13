@@ -4,17 +4,18 @@
 实现基于关键词匹配、正则表达式和优先级规则的意图识别功能。
 """
 
-import re
 import logging
+import re
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Dict, Any, Union
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
 
 class MatchType(Enum):
     """匹配类型枚举"""
+
     KEYWORD = "keyword"
     REGEX = "regex"
 
@@ -22,6 +23,7 @@ class MatchType(Enum):
 @dataclass
 class Rule:
     """规则数据类"""
+
     name: str
     intent: str
     pattern: str
@@ -34,6 +36,7 @@ class Rule:
 @dataclass
 class RecognitionResult:
     """识别结果数据类"""
+
     intent: str
     confidence: float
     rule_name: Optional[str] = None
@@ -41,9 +44,11 @@ class RecognitionResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
-        return (f"RecognitionResult(intent='{self.intent}', "
-                f"confidence={self.confidence:.2f}, "
-                f"rule_name={self.rule_name})")
+        return (
+            f"RecognitionResult(intent='{self.intent}', "
+            f"confidence={self.confidence:.2f}, "
+            f"rule_name={self.rule_name})"
+        )
 
 
 class RuleBasedRecognizer:
@@ -79,7 +84,7 @@ class RuleBasedRecognizer:
         match_type: MatchType = MatchType.KEYWORD,
         priority: int = 0,
         conditions: Optional[List[Callable[[Dict[str, Any]], bool]]] = None,
-        confidence: float = 0.8
+        confidence: float = 0.8,
     ) -> None:
         """
         添加识别规则
@@ -103,7 +108,7 @@ class RuleBasedRecognizer:
             match_type=match_type,
             priority=priority,
             conditions=conditions,
-            confidence=confidence
+            confidence=confidence,
         )
 
         # 编译正则表达式
@@ -124,7 +129,7 @@ class RuleBasedRecognizer:
         keywords: Union[str, List[str]],
         priority: int = 0,
         conditions: Optional[List[Callable[[Dict[str, Any]], bool]]] = None,
-        confidence: float = 0.8
+        confidence: float = 0.8,
     ) -> None:
         """
         添加关键词匹配规则
@@ -148,7 +153,7 @@ class RuleBasedRecognizer:
             match_type=MatchType.KEYWORD,
             priority=priority,
             conditions=conditions,
-            confidence=confidence
+            confidence=confidence,
         )
 
     def add_regex_rule(
@@ -158,7 +163,7 @@ class RuleBasedRecognizer:
         regex: str,
         priority: int = 0,
         conditions: Optional[List[Callable[[Dict[str, Any]], bool]]] = None,
-        confidence: float = 0.8
+        confidence: float = 0.8,
     ) -> None:
         """
         添加正则表达式匹配规则
@@ -178,7 +183,7 @@ class RuleBasedRecognizer:
             match_type=MatchType.REGEX,
             priority=priority,
             conditions=conditions,
-            confidence=confidence
+            confidence=confidence,
         )
 
     def remove_rule(self, name: str) -> None:
@@ -200,9 +205,7 @@ class RuleBasedRecognizer:
         logger.debug("所有规则已清除")
 
     def recognize(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> Optional[RecognitionResult]:
         """
         识别文本的意图
@@ -220,11 +223,7 @@ class RuleBasedRecognizer:
         logger.debug(f"开始识别文本: {text}")
 
         # 按优先级降序排序
-        sorted_rules = sorted(
-            self.rules,
-            key=lambda x: x.priority,
-            reverse=True
-        )
+        sorted_rules = sorted(self.rules, key=lambda x: x.priority, reverse=True)
 
         for rule in sorted_rules:
             # 检查规则条件是否满足
@@ -242,8 +241,8 @@ class RuleBasedRecognizer:
                     matched_text=matched_text,
                     metadata={
                         "match_type": rule.match_type.value,
-                        "priority": rule.priority
-                    }
+                        "priority": rule.priority,
+                    },
                 )
 
         logger.debug("未匹配到任何规则")
@@ -307,9 +306,7 @@ class RuleBasedRecognizer:
         return None
 
     def recognize_all(
-        self,
-        text: str,
-        context: Optional[Dict[str, Any]] = None
+        self, text: str, context: Optional[Dict[str, Any]] = None
     ) -> List[RecognitionResult]:
         """
         识别文本的所有匹配意图 (按优先级排序)
@@ -337,16 +334,13 @@ class RuleBasedRecognizer:
                             matched_text=matched_text,
                             metadata={
                                 "match_type": rule.match_type.value,
-                                "priority": rule.priority
-                            }
+                                "priority": rule.priority,
+                            },
                         )
                     )
 
         # 按优先级降序排序
-        results.sort(
-            key=lambda x: x.metadata.get("priority", 0),
-            reverse=True
-        )
+        results.sort(key=lambda x: x.metadata.get("priority", 0), reverse=True)
 
         logger.debug(f"匹配到 {len(results)} 个结果")
         return results
@@ -367,7 +361,7 @@ class RuleBasedRecognizer:
                 match_type=match_type,
                 priority=rule_config.get("priority", 0),
                 conditions=rule_config.get("conditions", []),
-                confidence=rule_config.get("confidence", 0.8)
+                confidence=rule_config.get("confidence", 0.8),
             )
         logger.debug(f"从配置加载了 {len(config)} 个规则")
 
@@ -377,4 +371,4 @@ class RuleBasedRecognizer:
         return len(self.rules)
 
     def __repr__(self):
-        return (f"RuleBasedRecognizer(rules={self.rule_count})")
+        return f"RuleBasedRecognizer(rules={self.rule_count})"

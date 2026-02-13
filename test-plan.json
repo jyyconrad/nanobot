@@ -1,0 +1,32 @@
+{
+  "name": "Nanobot v0.4.0 阶段 5 集成测试计划",
+  "description": "执行 Nanobot v0.4.0 升级阶段 5 的集成测试，包括功能测试、性能测试、稳定性测试和代码质量检查",
+  "tasks": [
+    {
+      "id": "test-5.1",
+      "name": "功能测试",
+      "description": "测试多渠道消息路由、子代理管理、并发处理、错误恢复",
+      "command": ".venv/bin/pytest tests/ -v -k \"test_channel_route or test_subagent or test_concurrent or test_error_recovery\""
+    },
+    {
+      "id": "test-5.2",
+      "name": "性能测试",
+      "description": "测试高并发消息处理、大量子代理并发、资源限制、长时间运行稳定性",
+      "command": ".venv/bin/pytest tests/ -v -k \"test_performance or test_high_concurrency or test_resource_limits\""
+    },
+    {
+      "id": "test-5.3",
+      "name": "稳定性测试",
+      "description": "测试异常恢复、网络中断恢复、内存泄漏、死锁检测",
+      "command": ".venv/bin/pytest tests/ -v -k \"test_stability or test_recovery or test_memory_leak or test_deadlock\""
+    },
+    {
+      "id": "test-5.4",
+      "name": "代码质量检查",
+      "description": "运行代码格式检查、静态类型检查、复杂度分析、生成质量报告",
+      "command": "echo '=== 代码格式检查 ==='; .venv/bin/ruff check nanobot/ tests/; echo '\\n=== 静态类型检查 ==='; .venv/bin/mypy nanobot/; echo '\\n=== 代码复杂度分析 ==='; .venv/bin/pylint nanobot/ --output-format=text"
+    }
+  ],
+  "tracking_file": "upgrade-plan/upgrade-tracking.json",
+  "stage_id": "5"
+}

@@ -30,8 +30,12 @@ class TestHookType:
 
     def test_hook_type_comparison(self):
         """Test hook type comparison based on priority."""
-        high_priority = HookType(name="pre_run", priority=1, description="High priority")
-        low_priority = HookType(name="post_run", priority=10, description="Low priority")
+        high_priority = HookType(
+            name="pre_run", priority=1, description="High priority"
+        )
+        low_priority = HookType(
+            name="post_run", priority=10, description="Low priority"
+        )
 
         assert high_priority.priority < low_priority.priority
 

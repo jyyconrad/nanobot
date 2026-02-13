@@ -51,16 +51,23 @@ class CorrectionHandler:
             correction_request = CorrectionRequest(**request.data)
 
             # 处理修正请求
-            action, action_data = await self._handle_correction(correction_request, request.task)
+            action, action_data = await self._handle_correction(
+                correction_request, request.task
+            )
 
             # 返回决策结果
             return DecisionResult(
-                success=True, action=action, data=action_data, message=f"修正请求处理完成: {action}"
+                success=True,
+                action=action,
+                data=action_data,
+                message=f"修正请求处理完成: {action}",
             )
         except Exception as e:
             logger.error(f"处理修正请求时发生错误: {e}", exc_info=True)
             return DecisionResult(
-                success=False, action="error", message=f"处理修正请求时发生错误: {str(e)}"
+                success=False,
+                action="error",
+                message=f"处理修正请求时发生错误: {str(e)}",
             )
 
     async def _handle_correction(
@@ -104,7 +111,10 @@ class CorrectionHandler:
 
         # 检查任务状态
         if task.status in ["completed", "failed", "cancelled"]:
-            return "reopen_task", {"task_id": task.id, "correction": correction.correction}
+            return "reopen_task", {
+                "task_id": task.id,
+                "correction": correction.correction,
+            }
         elif task.status in ["running", "paused"]:
             return "update_task", {
                 "task_id": task.id,
@@ -112,7 +122,10 @@ class CorrectionHandler:
                 "status": task.status,
             }
         else:
-            return "start_task", {"task_id": task.id, "correction": correction.correction}
+            return "start_task", {
+                "task_id": task.id,
+                "correction": correction.correction,
+            }
 
     async def _handle_message_correction(
         self, correction: CorrectionRequest

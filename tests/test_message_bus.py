@@ -9,15 +9,16 @@ MessageBus 测试
 """
 
 import asyncio
-import pytest
 from datetime import datetime
 
-from nanobot.agent.message_bus import MessageBus, MemoryBackend, RedisBackend
+import pytest
+
+from nanobot.agent.message_bus import MemoryBackend, MessageBus, RedisBackend
 from nanobot.agent.message_schemas import (
-    TaskResultMessage,
-    StatusUpdateMessage,
     ControlMessage,
     MessageType,
+    StatusUpdateMessage,
+    TaskResultMessage,
 )
 
 
@@ -76,7 +77,7 @@ async def test_task_result_reporting(message_bus):
         status="completed",
         result={"output": "任务完成"},
         logs=["开始执行", "执行中...", "完成"],
-        execution_time=10.5
+        execution_time=10.5,
     )
 
     # 等待消息处理
@@ -105,7 +106,7 @@ async def test_status_sync(message_bus):
         status="running",
         progress=0.5,
         current_task="处理数据",
-        metadata={"cpu": "45%", "memory": "60%"}
+        metadata={"cpu": "45%", "memory": "60%"},
     )
 
     # 等待处理
@@ -133,7 +134,7 @@ async def test_control_command(message_bus):
         command="pause",
         target_agent_id="agent_002",
         source_agent_id="main_agent",
-        parameters={"reason": "资源紧张"}
+        parameters={"reason": "资源紧张"},
     )
 
     # 等待处理
@@ -167,9 +168,7 @@ async def test_message_retry():
 
         # 使用重试发布
         success = await bus.publish_with_retry(
-            "test.topic",
-            {"test": "data"},
-            max_retries=3
+            "test.topic", {"test": "data"}, max_retries=3
         )
 
         assert success is True
@@ -215,25 +214,27 @@ async def test_multiple_subscribers(message_bus):
 @pytest.mark.asyncio
 async def test_request_response(message_bus):
     """测试请求-响应模式"""
+
     # 订阅请求主题并发送响应
     async def request_handler(message):
         if message.get("_request_id"):
             # 发送响应
             response_topic = message.get("_response_topic")
             if response_topic:
-                await message_bus.publish(response_topic, {
-                    "status": "success",
-                    "data": "响应数据",
-                    "_request_id": message["_request_id"]
-                })
+                await message_bus.publish(
+                    response_topic,
+                    {
+                        "status": "success",
+                        "data": "响应数据",
+                        "_request_id": message["_request_id"],
+                    },
+                )
 
     await message_bus.subscribe("test.requests", request_handler)
 
     # 发送请求
     response = await message_bus.request(
-        "test.requests",
-        {"action": "test"},
-        timeout=5.0
+        "test.requests", {"action": "test"}, timeout=5.0
     )
 
     # 验证响应
@@ -248,8 +249,7 @@ async def test_redis_backend():
     """测试Redis后端（需要Redis服务器）"""
     try:
         bus = MessageBus(
-            backend_type="redis",
-            backend_config={"redis_url": "redis://localhost:6379"}
+            backend_type="redis", backend_config={"redis_url": "redis://localhost:6379"}
         )
         await bus.initialize()
 

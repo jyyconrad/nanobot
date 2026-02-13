@@ -12,6 +12,7 @@ from loguru import logger
 
 class EventType(Enum):
     """Event type categories."""
+
     TASK_STARTED = "task_started"
     TASK_COMPLETED = "task_completed"
     TASK_FAILED = "task_failed"
@@ -24,6 +25,7 @@ class EventType(Enum):
 @dataclass
 class Event:
     """Represents an event in the system."""
+
     event_id: str
     event_type: EventType
     source: str
@@ -37,7 +39,7 @@ class Event:
         event_type: EventType,
         source: str,
         data: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> "Event":
         """Create a new event."""
         return cls(
@@ -46,7 +48,7 @@ class Event:
             source=source,
             data=data,
             timestamp=time.time(),
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
 
@@ -57,7 +59,7 @@ class EventListener:
         self,
         listener_id: str,
         callback: Callable[[Event], Any],
-        event_filter: Optional[Callable[[Event], bool]] = None
+        event_filter: Optional[Callable[[Event], bool]] = None,
     ):
         """
         Initialize event listener.
@@ -123,7 +125,7 @@ class EventBus:
             "events_published": 0,
             "events_processed": 0,
             "events_filtered": 0,
-            "errors": 0
+            "errors": 0,
         }
 
     async def publish(
@@ -131,7 +133,7 @@ class EventBus:
         event_type: EventType,
         source: str,
         data: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Event:
         """
         Publish an event.
@@ -164,7 +166,7 @@ class EventBus:
         self,
         event_type: EventType,
         callback: Callable[[Event], Any],
-        event_filter: Optional[Callable[[Event], bool]] = None
+        event_filter: Optional[Callable[[Event], bool]] = None,
     ) -> str:
         """
         Subscribe to events.
@@ -204,8 +206,7 @@ class EventBus:
                 return False
 
             self._listeners[event_type] = [
-                l for l in self._listeners[event_type]
-                if l.listener_id != listener_id
+                l for l in self._listeners[event_type] if l.listener_id != listener_id
             ]
 
             logger.debug(f"Unsubscribed from {event_type.value}: {listener_id}")
@@ -236,14 +237,14 @@ class EventBus:
 
             # Trim history if needed
             if len(self._event_history) > self.max_history:
-                self._event_history = self._event_history[-self.max_history:]
+                self._event_history = self._event_history[-self.max_history :]
 
     async def get_history(
         self,
         event_type: Optional[EventType] = None,
         source: Optional[str] = None,
         limit: int = 100,
-        since: Optional[float] = None
+        since: Optional[float] = None,
     ) -> List[Event]:
         """
         Get event history.
@@ -312,7 +313,7 @@ class ServiceCommunicator:
         target_service: str,
         request_type: str,
         data: Dict[str, Any],
-        timeout: float = 30.0
+        timeout: float = 30.0,
     ) -> Optional[Dict[str, Any]]:
         """
         Send a request to another service.
@@ -337,8 +338,8 @@ class ServiceCommunicator:
                 "request_type": request_type,
                 "request_id": request_id,
                 "target": target_service,
-                "data": data
-            }
+                "data": data,
+            },
         )
 
         # Wait for response
@@ -356,8 +357,7 @@ class ServiceCommunicator:
 
         # Subscribe to responses
         listener_id = await self._event_bus.subscribe(
-            EventType.CUSTOM,
-            response_handler
+            EventType.CUSTOM, response_handler
         )
 
         try:
@@ -371,9 +371,7 @@ class ServiceCommunicator:
             await self._event_bus.unsubscribe(EventType.CUSTOM, listener_id)
 
     async def handle_request(
-        self,
-        request_type: str,
-        handler: Callable[[Dict[str, Any]], Dict[str, Any]]
+        self, request_type: str, handler: Callable[[Dict[str, Any]], Dict[str, Any]]
     ):
         """
         Register a request handler.
@@ -382,6 +380,7 @@ class ServiceCommunicator:
             request_type: Request type to handle
             handler: Handler function
         """
+
         async def request_handler(event: Event):
             if (
                 event.data.get("type") == "request"
@@ -402,27 +401,20 @@ class ServiceCommunicator:
                         {
                             "type": "response",
                             "request_id": request_id,
-                            "data": response_data
-                        }
+                            "data": response_data,
+                        },
                     )
 
                 except Exception as e:
                     logger.error(f"Error handling request {request_type}: {e}")
 
         # Subscribe to requests
-        listener_id = await self._event_bus.subscribe(
-            EventType.CUSTOM,
-            request_handler
-        )
+        listener_id = await self._event_bus.subscribe(EventType.CUSTOM, request_handler)
 
         self._subscriptions[request_type] = listener_id
         logger.debug(f"Registered handler for {request_type}")
 
-    async def broadcast_event(
-        self,
-        event_type: EventType,
-        data: Dict[str, Any]
-    ):
+    async def broadcast_event(self, event_type: EventType, data: Dict[str, Any]):
         """
         Broadcast an event to all services.
 
@@ -430,11 +422,7 @@ class ServiceCommunicator:
             event_type: Event type
             data: Event data
         """
-        await self._event_bus.publish(
-            event_type,
-            self.service_name,
-            data
-        )
+        await self._event_bus.publish(event_type, self.service_name, data)
 
     async def cleanup(self):
         """Clean up subscriptions."""

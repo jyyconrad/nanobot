@@ -5,15 +5,15 @@
 包括意图识别、关键词提取和实体检测功能，为消息路由提供基础支持。
 """
 
-import re
 import logging
-from typing import List, Dict, Any, Optional, Set
+import re
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Set
 
 # 配置日志记录
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
@@ -26,6 +26,7 @@ class AnalysisResult:
 
     包含消息的意图分析、关键词提取和实体检测结果
     """
+
     intent: str
     confidence: float
     keywords: List[str]
@@ -49,7 +50,7 @@ class MessageAnalyzer:
         设置预定义的意图模式和关键词库
         """
         self.logger = logger
-        
+
         # 意图优先级（数字越小优先级越高）
         self.intent_priority: Dict[str, int] = {
             "greeting": 1,
@@ -57,30 +58,38 @@ class MessageAnalyzer:
             "command": 3,
             "request": 4,
             "feedback": 5,
-            "unknown": 999
+            "unknown": 999,
         }
         self.intent_patterns: Dict[str, List[re.Pattern]] = {
             "greeting": [
-                re.compile(r"^(你好|您好|哈喽|嗨|早|早上好|晚上好|下午好)([，,\\s]*.*)?$", re.IGNORECASE),
-                re.compile(r"^.*(问候|打招呼).*$", re.IGNORECASE)
+                re.compile(
+                    r"^(你好|您好|哈喽|嗨|早|早上好|晚上好|下午好)([，,\\s]*.*)?$",
+                    re.IGNORECASE,
+                ),
+                re.compile(r"^.*(问候|打招呼).*$", re.IGNORECASE),
             ],
             "query": [
-                re.compile(r"^(?!^(你好|您好|哈喽|嗨).*$).*(查询|查找|搜索|请问|想知道|了解).*$", re.IGNORECASE),
-                re.compile(r"^(?!^(你好|您好|哈喽|嗨).*$).*\?+$", re.IGNORECASE)
+                re.compile(
+                    r"^(?!^(你好|您好|哈喽|嗨).*$).*(查询|查找|搜索|请问|想知道|了解).*$",
+                    re.IGNORECASE,
+                ),
+                re.compile(r"^(?!^(你好|您好|哈喽|嗨).*$).*\?+$", re.IGNORECASE),
             ],
             "command": [
-                re.compile(r"^.*(执行|运行|启动|停止|暂停|继续|打开|关闭).*$", re.IGNORECASE),
-                re.compile(r"^.*(命令|操作|控制).*$", re.IGNORECASE)
+                re.compile(
+                    r"^.*(执行|运行|启动|停止|暂停|继续|打开|关闭).*$", re.IGNORECASE
+                ),
+                re.compile(r"^.*(命令|操作|控制).*$", re.IGNORECASE),
             ],
             "request": [
                 re.compile(r"^.*(需要|请求|要求|希望|想要|请).*$", re.IGNORECASE),
-                re.compile(r"^.*(帮忙|协助|支持).*$", re.IGNORECASE)
+                re.compile(r"^.*(帮忙|协助|支持).*$", re.IGNORECASE),
             ],
             "feedback": [
                 re.compile(r"^.*(反馈|建议|意见|评价|评论|吐槽).*$", re.IGNORECASE),
-                re.compile(r"^.*(好|不好|满意|不满意|喜欢|不喜欢).*$", re.IGNORECASE)
+                re.compile(r"^.*(好|不好|满意|不满意|喜欢|不喜欢).*$", re.IGNORECASE),
             ],
-            "unknown": []
+            "unknown": [],
         }
 
         self.keyword_patterns: Dict[str, List[str]] = {
@@ -89,26 +98,65 @@ class MessageAnalyzer:
             "news": ["新闻", "资讯", "消息", "头条"],
             "calendar": ["日历", "日程", "约会", "提醒", "事件"],
             "email": ["邮件", "邮箱", "发送邮件", "收件箱"],
-            "search": ["搜索", "查找", "查询", "搜索一下"]
+            "search": ["搜索", "查找", "查询", "搜索一下"],
         }
 
         self.entity_patterns: Dict[str, re.Pattern] = {
             "datetime": re.compile(
                 r"(\d{4}年)?(\d{1,2}月)?(\d{1,2}日)?"
                 r"(\d{1,2}时)?(\d{1,2}分)?(\d{1,2}秒)?",
-                re.IGNORECASE
+                re.IGNORECASE,
             ),
             "email": re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"),
             "phone": re.compile(r"1[3-9]\d{9}"),
             "url": re.compile(r"https?://[^\s]+"),
-            "number": re.compile(r"\d+(\.\d+)?")
+            "number": re.compile(r"\d+(\.\d+)?"),
         }
 
         self.stop_words: Set[str] = {
-            "的", "了", "在", "是", "我", "有", "和", "就", "不", "人", "都", "一",
-            "一个", "上", "也", "很", "到", "说", "去", "你", "会", "着", "没有",
-            "看", "好", "自己", "这", "那", "里", "来", "他们", "出", "还", "你的",
-            "们", "现在", "起", "点", "中", "后", "看", "所", "以"
+            "的",
+            "了",
+            "在",
+            "是",
+            "我",
+            "有",
+            "和",
+            "就",
+            "不",
+            "人",
+            "都",
+            "一",
+            "一个",
+            "上",
+            "也",
+            "很",
+            "到",
+            "说",
+            "去",
+            "你",
+            "会",
+            "着",
+            "没有",
+            "看",
+            "好",
+            "自己",
+            "这",
+            "那",
+            "里",
+            "来",
+            "他们",
+            "出",
+            "还",
+            "你的",
+            "们",
+            "现在",
+            "起",
+            "点",
+            "中",
+            "后",
+            "看",
+            "所",
+            "以",
         }
 
     def analyze_intent(self, text: str) -> Dict[str, float]:
@@ -184,7 +232,8 @@ class MessageAnalyzer:
 
         # 过滤停用词和短词
         filtered_words = [
-            word for word in words
+            word
+            for word in words
             if len(word) > 1 and word not in self.stop_words and word not in keywords
         ]
 
@@ -240,7 +289,9 @@ class MessageAnalyzer:
         self.logger.debug(f"实体检测结果: {entities}")
         return entities
 
-    def analyze(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> AnalysisResult:
+    def analyze(
+        self, text: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> AnalysisResult:
         """
         完整分析消息
 
@@ -267,13 +318,15 @@ class MessageAnalyzer:
             keywords=keywords,
             entities=entities,
             raw_text=text,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.logger.info(f"消息分析完成: {result}")
         return result
 
-    def add_intent_pattern(self, intent: str, pattern: str, case_sensitive: bool = False):
+    def add_intent_pattern(
+        self, intent: str, pattern: str, case_sensitive: bool = False
+    ):
         """
         添加新的意图模式
 
@@ -305,7 +358,9 @@ class MessageAnalyzer:
         self.keyword_patterns[category].extend(keywords)
         self.logger.debug(f"添加关键词类别: {category} - {keywords}")
 
-    def add_entity_pattern(self, entity_type: str, pattern: str, case_sensitive: bool = False):
+    def add_entity_pattern(
+        self, entity_type: str, pattern: str, case_sensitive: bool = False
+    ):
         """
         添加新的实体检测模式
 

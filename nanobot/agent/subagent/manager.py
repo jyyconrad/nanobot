@@ -3,13 +3,13 @@ SubagentManager - Subagent 管理类
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
 
 from nanobot.agent.subagent.agno_subagent import AgnoSubagent
 from nanobot.agent.subagent.models import SubagentResult, SubagentState, SubagentTask
-from nanobot.agent.task_manager import TaskManager
 from nanobot.agent.task import Task, TaskStatus
+from nanobot.agent.task_manager import TaskManager
 
 logger = logging.getLogger(__name__)
 
@@ -73,31 +73,29 @@ class SubagentManager:
         self.subagents[task_id] = subagent
         self.tasks[task_id] = subagent_task
         self.states[task_id] = SubagentState(
-            task_id=task_id,
-            status="ASSIGNED",
-            progress=0.0,
-            started_at=datetime.now()
+            task_id=task_id, status="ASSIGNED", progress=0.0, started_at=datetime.now()
         )
-        
+
         # 记录任务时间戳
         self.task_timestamps[task_id] = {
             "created_at": datetime.now(),
             "started_at": None,
-            "completed_at": None
+            "completed_at": None,
         }
-        
+
         # 集成 TaskManager
         # 我们需要确保 TaskManager 使用与我们相同的 task_id
         import uuid
+
         from nanobot.agent.task_manager import Task
-        
+
         # 创建任务时使用我们自己的 task_id
         task_obj = Task(
             title=task[:50] + ("..." if len(task) > 50 else ""),
             description=task,
             task_id=task_id,
             priority=1,
-            status="pending"
+            status="pending",
         )
         self.task_manager.tasks[task_id] = task_obj
         self.task_manager._save_tasks()
@@ -131,25 +129,25 @@ class SubagentManager:
             task_id=task.task_id,
             status="ASSIGNED",
             progress=0.0,
-            started_at=datetime.now()
+            started_at=datetime.now(),
         )
-        
+
         # 记录任务时间戳
         self.task_timestamps[task.task_id] = {
             "created_at": datetime.now(),
             "started_at": None,
-            "completed_at": None
+            "completed_at": None,
         }
-        
+
         # 集成 TaskManager
         from nanobot.agent.task_manager import Task
-        
+
         task_obj = Task(
             title=task.description[:50] + ("..." if len(task.description) > 50 else ""),
             description=task.description,
             task_id=task.task_id,
             priority=task.priority,
-            status="pending"
+            status="pending",
         )
         self.task_manager.tasks[task.task_id] = task_obj
         self.task_manager._save_tasks()
@@ -171,34 +169,31 @@ class SubagentManager:
             start_time = datetime.now()
             self.task_timestamps[task_id]["started_at"] = start_time
             self.states[task_id].started_at = start_time
-            
+
             # 更新状态为运行中
             self.states[task_id].status = "RUNNING"
             self.states[task_id].progress = 0.1
-            
+
             # 同步到 TaskManager
-            self.task_manager.update_task(
-                task_id,
-                status="running"
-            )
+            self.task_manager.update_task(task_id, status="running")
 
             # 执行任务
             result = await subagent.execute()
             self.results[task_id] = result
             self.states[task_id] = result.state
-            
+
             # 更新完成时间
             end_time = datetime.now()
             self.task_timestamps[task_id]["completed_at"] = end_time
             self.states[task_id].completed_at = end_time
-            
+
             # 同步到 TaskManager
             task_status = "completed" if result.success else "failed"
             self.task_manager.update_task(
                 task_id,
                 status=task_status,
                 result={"output": result.output} if result.success else None,
-                error=result.error if not result.success else None
+                error=result.error if not result.success else None,
             )
 
             logger.info(f"SubagentManager Subagent 完成: {task_id}")
@@ -208,17 +203,15 @@ class SubagentManager:
                 await self._callback_map[task_id](result)
 
         except Exception as e:
-            logger.error(f"SubagentManager Subagent 执行失败: {task_id} - {e}", exc_info=True)
+            logger.error(
+                f"SubagentManager Subagent 执行失败: {task_id} - {e}", exc_info=True
+            )
             self.states[task_id].status = "FAILED"
             self.states[task_id].error = str(e)
             self.states[task_id].completed_at = datetime.now()
-            
+
             # 同步到 TaskManager
-            self.task_manager.update_task(
-                task_id,
-                status="failed",
-                error=str(e)
-            )
+            self.task_manager.update_task(task_id, status="failed", error=str(e))
 
     async def get_subagent_status(self, task_id: str) -> Optional[SubagentState]:
         """
@@ -260,7 +253,9 @@ class SubagentManager:
             return True
 
         except Exception as e:
-            logger.error(f"SubagentManager 取消 Subagent 失败: {task_id} - {e}", exc_info=True)
+            logger.error(
+                f"SubagentManager 取消 Subagent 失败: {task_id} - {e}", exc_info=True
+            )
             return False
 
     async def interrupt_subagent(self, task_id: str, message: str) -> bool:
@@ -287,7 +282,9 @@ class SubagentManager:
             return True
 
         except Exception as e:
-            logger.error(f"SubagentManager 中断 Subagent 失败: {task_id} - {e}", exc_info=True)
+            logger.error(
+                f"SubagentManager 中断 Subagent 失败: {task_id} - {e}", exc_info=True
+            )
             return False
 
     async def register_callback(self, task_id: str, callback: callable):
@@ -300,7 +297,13 @@ class SubagentManager:
         """
         self._callback_map[task_id] = callback
 
-    async def report_progress(self, task_id: str, progress: float, current_step: str = "", estimated_time_remaining: Optional[timedelta] = None):
+    async def report_progress(
+        self,
+        task_id: str,
+        progress: float,
+        current_step: str = "",
+        estimated_time_remaining: Optional[timedelta] = None,
+    ):
         """
         报告子代理任务进度
 
@@ -315,22 +318,21 @@ class SubagentManager:
         """
         if task_id not in self.states:
             raise ValueError(f"任务 {task_id} 不存在")
-            
+
         if not (0.0 <= progress <= 100.0):
             raise ValueError("进度值必须在 0-100 范围内")
-            
+
         # 更新状态
         self.states[task_id].progress = progress / 100.0  # 转换为 0-1 范围
         if current_step:
             self.states[task_id].current_step = current_step
-            
+
         # 同步到 TaskManager
-        self.task_manager.update_task(
-            task_id,
-            status="running"
+        self.task_manager.update_task(task_id, status="running")
+
+        logger.debug(
+            f"SubagentManager 任务进度更新: {task_id} - {progress}%, 当前步骤: {current_step}"
         )
-        
-        logger.debug(f"SubagentManager 任务进度更新: {task_id} - {progress}%, 当前步骤: {current_step}")
 
     async def get_progress(self, task_id: str) -> Dict[str, Any]:
         """
@@ -354,10 +356,10 @@ class SubagentManager:
         """
         if task_id not in self.states:
             raise ValueError(f"任务 {task_id} 不存在")
-            
+
         state = self.states[task_id]
         timestamps = self.task_timestamps.get(task_id, {})
-        
+
         # 计算执行时间和预计剩余时间
         execution_time = None
         estimated_time_remaining = None
@@ -366,7 +368,7 @@ class SubagentManager:
             if state.progress > 0:
                 total_estimated_time = execution_time / state.progress
                 estimated_time_remaining = total_estimated_time - execution_time
-                
+
         return {
             "progress": state.progress * 100,  # 转换为百分比
             "current_step": state.current_step,
@@ -374,10 +376,12 @@ class SubagentManager:
             "status": state.status,
             "started_at": timestamps.get("started_at"),
             "completed_at": state.completed_at,
-            "execution_time": execution_time
+            "execution_time": execution_time,
         }
 
-    async def request_correction(self, task_id: str, issue: str, details: str = "") -> str:
+    async def request_correction(
+        self, task_id: str, issue: str, details: str = ""
+    ) -> str:
         """
         请求任务修正
 
@@ -394,25 +398,33 @@ class SubagentManager:
         """
         if task_id not in self.states:
             raise ValueError(f"任务 {task_id} 不存在")
-            
-        correction_id = f"correction-{task_id}-{len(self.correction_requests.get(task_id, [])) + 1}"
-        
+
+        correction_id = (
+            f"correction-{task_id}-{len(self.correction_requests.get(task_id, [])) + 1}"
+        )
+
         if task_id not in self.correction_requests:
             self.correction_requests[task_id] = []
-            
-        self.correction_requests[task_id].append({
-            "correction_id": correction_id,
-            "issue": issue,
-            "details": details,
-            "requested_at": datetime.now(),
-            "status": "pending"
-        })
-        
-        logger.warning(f"SubagentManager 任务修正请求: {task_id} - {correction_id}: {issue}")
-        
+
+        self.correction_requests[task_id].append(
+            {
+                "correction_id": correction_id,
+                "issue": issue,
+                "details": details,
+                "requested_at": datetime.now(),
+                "status": "pending",
+            }
+        )
+
+        logger.warning(
+            f"SubagentManager 任务修正请求: {task_id} - {correction_id}: {issue}"
+        )
+
         return correction_id
 
-    async def provide_correction(self, task_id: str, correction_id: str, guidance: str) -> bool:
+    async def provide_correction(
+        self, task_id: str, correction_id: str, guidance: str
+    ) -> bool:
         """
         提供任务修正指导
 
@@ -429,18 +441,22 @@ class SubagentManager:
         """
         if task_id not in self.correction_requests:
             raise ValueError(f"任务 {task_id} 不存在修正请求")
-            
+
         for request in self.correction_requests[task_id]:
             if request["correction_id"] == correction_id:
                 request["guidance"] = guidance
                 request["provided_at"] = datetime.now()
                 request["status"] = "provided"
-                logger.info(f"SubagentManager 修正指导已提供: {task_id} - {correction_id}")
+                logger.info(
+                    f"SubagentManager 修正指导已提供: {task_id} - {correction_id}"
+                )
                 return True
-                
+
         raise ValueError(f"修正请求 {correction_id} 不存在")
 
-    async def retry_task(self, task_id: str, new_task: Optional[SubagentTask] = None) -> str:
+    async def retry_task(
+        self, task_id: str, new_task: Optional[SubagentTask] = None
+    ) -> str:
         """
         重试任务
 
@@ -456,10 +472,10 @@ class SubagentManager:
         """
         if task_id not in self.tasks:
             raise ValueError(f"任务 {task_id} 不存在")
-            
+
         # 增加重试计数
         self.retry_counts[task_id] = self.retry_counts.get(task_id, 0) + 1
-        
+
         # 使用原任务或新任务
         if new_task is None:
             original_task = self.tasks[task_id]
@@ -470,11 +486,11 @@ class SubagentManager:
                 agent_type=original_task.agent_type,
                 skills=original_task.skills,
                 priority=original_task.priority,
-                deadline=original_task.deadline
+                deadline=original_task.deadline,
             )
-            
+
         logger.info(f"SubagentManager 任务重试: {task_id} -> {new_task.task_id}")
-        
+
         # 生成新的 Subagent
         return await self.spawn_subagent(new_task)
 
@@ -508,7 +524,9 @@ class SubagentManager:
 
         logger.debug(f"SubagentManager 已清理 Subagent: {task_id}")
 
-    async def get_correction_requests(self, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def get_correction_requests(
+        self, task_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         获取任务修正请求
 
@@ -541,7 +559,7 @@ class SubagentManager:
         """
         if task_id not in self.tasks:
             raise ValueError(f"任务 {task_id} 不存在")
-            
+
         return self.retry_counts.get(task_id, 0)
 
     async def get_task_timeline(self, task_id: str) -> Dict[str, Optional[datetime]]:
@@ -559,7 +577,7 @@ class SubagentManager:
         """
         if task_id not in self.task_timestamps:
             raise ValueError(f"任务 {task_id} 不存在")
-            
+
         return self.task_timestamps[task_id]
 
     async def get_task_result(self, task_id: str) -> Optional[SubagentResult]:
@@ -587,16 +605,18 @@ class SubagentManager:
                 subagent_task = self.tasks.get(task_id)
                 if subagent_task:
                     from nanobot.agent.task_manager import Task
+
                     task_obj = Task(
-                        title=subagent_task.description[:50] + ("..." if len(subagent_task.description) > 50 else ""),
+                        title=subagent_task.description[:50]
+                        + ("..." if len(subagent_task.description) > 50 else ""),
                         description=subagent_task.description,
                         task_id=task_id,
                         priority=subagent_task.priority,
-                        status="pending"
+                        status="pending",
                     )
                     self.task_manager.tasks[task_id] = task_obj
                     self.task_manager._save_tasks()
-            
+
             # 同步状态
             if task:
                 task_status = {
@@ -605,15 +625,12 @@ class SubagentManager:
                     "COMPLETED": "completed",
                     "FAILED": "failed",
                     "CANCELLED": "cancelled",
-                    "PENDING": "pending"
+                    "PENDING": "pending",
                 }.get(state.status, "pending")
-                
+
                 # 避免 TaskManager 的状态转换限制
                 try:
-                    self.task_manager.update_task(
-                        task_id,
-                        status=task_status
-                    )
+                    self.task_manager.update_task(task_id, status=task_status)
                 except ValueError as e:
                     logger.warning(f"无法同步任务状态 {task_id}: {e}")
 

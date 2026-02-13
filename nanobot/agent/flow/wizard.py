@@ -10,22 +10,18 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from loguru import logger
 
-from .models import (
-    FlowContext,
-    FlowResult,
-    FlowState,
-    WizardConfig,
-    WizardStep,
-)
+from .models import FlowContext, FlowResult, FlowState, WizardConfig, WizardStep
 
 
 class WizardError(Exception):
     """向导错误"""
+
     pass
 
 
 class WizardStepError(WizardError):
     """向导步骤错误"""
+
     pass
 
 
@@ -50,7 +46,9 @@ class Wizard:
         """
         self.config = config
         self.flow_manager = flow_manager
-        self._steps_map: Dict[str, WizardStep] = {step.id: step for step in config.steps}
+        self._steps_map: Dict[str, WizardStep] = {
+            step.id: step for step in config.steps
+        }
 
         # 步骤处理器
         self._step_handlers: Dict[str, Callable] = {}
@@ -190,7 +188,9 @@ class Wizard:
         """
         self._validators[step_id] = validator
 
-    def validate_input(self, step_id: str, input_value: Any) -> tuple[bool, Optional[str]]:
+    def validate_input(
+        self, step_id: str, input_value: Any
+    ) -> tuple[bool, Optional[str]]:
         """
         验证输入
 

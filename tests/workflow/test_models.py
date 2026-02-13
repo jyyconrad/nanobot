@@ -57,7 +57,14 @@ class TestTaskState:
 
     def test_task_state_values(self):
         """Test that all expected task states are defined."""
-        expected_states = ["pending", "running", "paused", "completed", "cancelled", "failed"]
+        expected_states = [
+            "pending",
+            "running",
+            "paused",
+            "completed",
+            "cancelled",
+            "failed",
+        ]
 
         actual_states = [state.value for state in TaskState]
 
@@ -65,7 +72,14 @@ class TestTaskState:
 
     def test_task_state_names(self):
         """Test that all expected task state names are defined."""
-        expected_names = ["PENDING", "RUNNING", "PAUSED", "COMPLETED", "CANCELLED", "FAILED"]
+        expected_names = [
+            "PENDING",
+            "RUNNING",
+            "PAUSED",
+            "COMPLETED",
+            "CANCELLED",
+            "FAILED",
+        ]
 
         actual_names = [state.name for state in TaskState]
 

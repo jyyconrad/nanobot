@@ -11,14 +11,14 @@ ContextMonitor 单元测试
 """
 
 import unittest
-from typing import List, Dict, Any
-from unittest.mock import patch, MagicMock
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, patch
 
 from nanobot.agent.context_monitor import (
+    CompressionEvent,
     ContextMonitor,
     ContextMonitorConfig,
     ModelType,
-    CompressionEvent,
     TokenLimits,
 )
 
@@ -59,8 +59,11 @@ class TestTokenCounting(unittest.TestCase):
                 "role": "user",
                 "content": [
                     {"type": "text", "text": "What's in this image?"},
-                    {"type": "image_url", "image_url": {"url": "data:image/png;base64,abc123"}}
-                ]
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/png;base64,abc123"},
+                    },
+                ],
             }
         ]
         count = self.monitor.token_count(messages)
@@ -78,10 +81,10 @@ class TestTokenCounting(unittest.TestCase):
                         "type": "function",
                         "function": {
                             "name": "read_file",
-                            "arguments": '{"path": "/test.txt"}'
-                        }
+                            "arguments": '{"path": "/test.txt"}',
+                        },
                     }
-                ]
+                ],
             }
         ]
         count = self.monitor.token_count(messages)
@@ -105,17 +108,17 @@ class TestThresholdCheck(unittest.TestCase):
         self.monitor.add_message({"role": "user", "content": "Hello"})
         self.assertFalse(self.monitor.check_threshold())
 
-    @patch.object(ContextMonitor, 'token_count', return_value=79)
+    @patch.object(ContextMonitor, "token_count", return_value=79)
     def test_near_threshold(self, mock_token_count):
         """测试接近阈值的情况"""
         self.assertFalse(self.monitor.check_threshold())
 
-    @patch.object(ContextMonitor, 'token_count', return_value=110)
+    @patch.object(ContextMonitor, "token_count", return_value=110)
     def test_above_threshold(self, mock_token_count):
         """测试超过阈值的情况"""
         self.assertTrue(self.monitor.check_threshold())
 
-    @patch.object(ContextMonitor, 'token_count', return_value=80)
+    @patch.object(ContextMonitor, "token_count", return_value=80)
     def test_exactly_threshold(self, mock_token_count):
         """测试正好等于阈值的情况"""
         self.assertFalse(self.monitor.check_threshold())
@@ -137,26 +140,38 @@ class TestContextCompression(unittest.TestCase):
     def test_auto_compression_trigger(self):
         """测试自动压缩触发"""
         # 添加大量消息，确保超过阈值
-        with patch.object(ContextMonitor, 'token_count', side_effect=[50, 120, 90]):
+        with patch.object(ContextMonitor, "token_count", side_effect=[50, 120, 90]):
             self.monitor.add_message({"role": "user", "content": "消息1"})
             self.assertTrue(len(self.monitor.get_messages()) > 0)
 
-    @patch.object(ContextMonitor, '_truncate_context', return_value=[{"role": "user", "content": "压缩后的消息"}])
-    @patch.object(ContextMonitor, 'token_count', side_effect=[150, 90])
+    @patch.object(
+        ContextMonitor,
+        "_truncate_context",
+        return_value=[{"role": "user", "content": "压缩后的消息"}],
+    )
+    @patch.object(ContextMonitor, "token_count", side_effect=[150, 90])
     async def test_manual_compression(self, mock_token_count, mock_truncate):
         """测试手动压缩"""
         compressed = await self.monitor.compress_context()
         self.assertEqual(len(compressed), 1)
 
-    @patch.object(ContextMonitor, '_truncate_context', return_value=[{"role": "user", "content": "压缩后的消息"}])
-    @patch.object(ContextMonitor, 'token_count', side_effect=[150, 90])
+    @patch.object(
+        ContextMonitor,
+        "_truncate_context",
+        return_value=[{"role": "user", "content": "压缩后的消息"}],
+    )
+    @patch.object(ContextMonitor, "token_count", side_effect=[150, 90])
     async def test_compression_events_recording(self, mock_token_count, mock_truncate):
         """测试压缩事件记录"""
         await self.monitor.compress_context()
         self.assertEqual(len(self.monitor.get_compression_events()), 1)
 
-    @patch.object(ContextMonitor, 'token_count', return_value=150)
-    @patch.object(ContextMonitor, '_truncate_context', return_value=[{"role": "system", "content": "系统提示"}])
+    @patch.object(ContextMonitor, "token_count", return_value=150)
+    @patch.object(
+        ContextMonitor,
+        "_truncate_context",
+        return_value=[{"role": "system", "content": "系统提示"}],
+    )
     async def test_truncate_strategy(self, mock_truncate, mock_token_count):
         """测试截断策略"""
         messages = [
@@ -198,7 +213,7 @@ class TestMessageManagement(unittest.TestCase):
     def test_remove_invalid_index(self):
         """测试移除无效索引的消息"""
         self.monitor.add_message({"role": "user", "content": "消息1"})
-        with self.assertLogs(level='WARNING'):
+        with self.assertLogs(level="WARNING"):
             self.monitor.remove_message(10)
         self.assertEqual(len(self.monitor.get_messages()), 1)
 
@@ -224,7 +239,9 @@ class TestModelConfiguration(unittest.TestCase):
         monitor = ContextMonitor(config)
         self.assertEqual(monitor.config.model, ModelType.GPT_4.value)
         # GPT-4 的上下文窗口应该更大
-        self.assertGreater(monitor.max_context_tokens, ContextMonitor().max_context_tokens)
+        self.assertGreater(
+            monitor.max_context_tokens, ContextMonitor().max_context_tokens
+        )
 
     def test_custom_max_tokens(self):
         """测试自定义最大token限制"""
@@ -259,7 +276,7 @@ class TestStatsCollection(unittest.TestCase):
 class TestIntegrationWithCompressor(unittest.TestCase):
     """测试与 ContextCompressor 的集成"""
 
-    @patch('nanobot.agent.context_monitor.ContextCompressor')
+    @patch("nanobot.agent.context_monitor.ContextCompressor")
     async def test_intelligent_compression(self, mock_compressor_class):
         """测试智能压缩策略"""
         mock_compressor = MagicMock()
@@ -269,8 +286,10 @@ class TestIntegrationWithCompressor(unittest.TestCase):
         config = ContextMonitorConfig(compression_strategy="intelligent")
         monitor = ContextMonitor(config)
 
-        with patch.object(monitor, 'token_count', side_effect=[1000, 500]):
-            with patch.object(monitor, '_create_token_counter', return_value=lambda x: len(x) // 4):
+        with patch.object(monitor, "token_count", side_effect=[1000, 500]):
+            with patch.object(
+                monitor, "_create_token_counter", return_value=lambda x: len(x) // 4
+            ):
                 messages = [
                     {"role": "system", "content": "系统提示"},
                     {"role": "user", "content": "长文本内容" * 100},

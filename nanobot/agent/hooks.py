@@ -40,7 +40,9 @@ class MainAgentHooks:
         Returns:
             Hook 处理结果
         """
-        logger.debug(f"MainAgentHooks.on_message_receive: session={session_id}, message={message}")
+        logger.debug(
+            f"MainAgentHooks.on_message_receive: session={session_id}, message={message}"
+        )
         return HookResult()
 
     async def before_planning(self, message: str) -> HookResult:
@@ -132,7 +134,9 @@ class MainAgentHooks:
             response: 要发送的响应
             session_id: 会话 ID
         """
-        logger.debug(f"MainAgentHooks.on_response_send: session={session_id}, response={response}")
+        logger.debug(
+            f"MainAgentHooks.on_response_send: session={session_id}, response={response}"
+        )
 
     async def on_error(self, error: Exception, session_id: str) -> Optional[str]:
         """
@@ -257,7 +261,9 @@ class MetricsHooksDecorator(MainAgentHooksDecorator):
         self.metrics: Dict[str, Any] = {}
 
     async def on_message_receive(self, message: str, session_id: str) -> HookResult:
-        self.metrics["message_receive_count"] = self.metrics.get("message_receive_count", 0) + 1
+        self.metrics["message_receive_count"] = (
+            self.metrics.get("message_receive_count", 0) + 1
+        )
         self.metrics["last_message_time"] = message  # 实际应该是时间戳
         return await super().on_message_receive(message, session_id)
 
@@ -273,11 +279,15 @@ class MetricsHooksDecorator(MainAgentHooksDecorator):
         await super().after_decision(decision)
 
     async def on_subagent_spawn(self, agent_id: str, task: SubagentTask) -> None:
-        self.metrics["subagent_spawn_count"] = self.metrics.get("subagent_spawn_count", 0) + 1
+        self.metrics["subagent_spawn_count"] = (
+            self.metrics.get("subagent_spawn_count", 0) + 1
+        )
         await super().on_subagent_spawn(agent_id, task)
 
     async def on_subagent_result(self, result: SubagentResult) -> None:
-        self.metrics["subagent_result_count"] = self.metrics.get("subagent_result_count", 0) + 1
+        self.metrics["subagent_result_count"] = (
+            self.metrics.get("subagent_result_count", 0) + 1
+        )
         self.metrics["last_subagent_status"] = result.state.status
         await super().on_subagent_result(result)
 

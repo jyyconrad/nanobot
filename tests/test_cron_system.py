@@ -4,13 +4,20 @@ Cron 系统测试模块
 包含 CronSystem 的测试用例
 """
 
-import unittest
+import datetime
 import logging
 import time
-import datetime
-from nanobot.agent.cron_system import CronSystem, JobType, JobConfig, create_cron_system
-from nanobot.agent.cron_system import add_interval_job, add_cron_job, add_once_job
+import unittest
 
+from nanobot.agent.cron_system import (
+    CronSystem,
+    JobConfig,
+    JobType,
+    add_cron_job,
+    add_interval_job,
+    add_once_job,
+    create_cron_system,
+)
 
 # 配置日志记录
 logging.basicConfig(level=logging.DEBUG)
@@ -50,6 +57,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试添加间隔任务
         """
+
         def test_task():
             self.test_counter += 1
 
@@ -58,7 +66,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_interval_job",
             function=test_task,
             seconds=1,
-            enabled=True
+            enabled=True,
         )
 
         self.assertIn(job_id, [job["job_id"] for job in self.cron.get_all_jobs()])
@@ -67,6 +75,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试添加 Cron 任务
         """
+
         def test_task():
             self.test_counter += 1
 
@@ -75,7 +84,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_cron_job",
             function=test_task,
             cron_str="* * * * *",
-            enabled=True
+            enabled=True,
         )
 
         self.assertIn(job_id, [job["job_id"] for job in self.cron.get_all_jobs()])
@@ -84,6 +93,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试添加一次性任务
         """
+
         def test_task():
             self.test_counter += 1
 
@@ -93,7 +103,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_once_job",
             function=test_task,
             run_at=run_at,
-            enabled=True
+            enabled=True,
         )
 
         self.assertIn(job_id, [job["job_id"] for job in self.cron.get_all_jobs()])
@@ -102,6 +112,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试移除任务
         """
+
         def test_task():
             pass
 
@@ -110,7 +121,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_remove_job",
             function=test_task,
             seconds=60,
-            enabled=True
+            enabled=True,
         )
 
         self.assertTrue(self.cron.remove_job(job_id))
@@ -120,6 +131,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试启用/禁用任务
         """
+
         def test_task():
             pass
 
@@ -128,7 +140,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_enable_job",
             function=test_task,
             seconds=60,
-            enabled=True
+            enabled=True,
         )
 
         # 测试禁用
@@ -155,6 +167,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试获取任务计数
         """
+
         def test_task():
             pass
 
@@ -175,6 +188,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试任务状态跟踪
         """
+
         def test_task():
             self.test_counter += 1
 
@@ -183,7 +197,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_status_job",
             function=test_task,
             seconds=1,
-            enabled=True
+            enabled=True,
         )
 
         status = self.cron.get_job_status(job_id)
@@ -196,6 +210,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试间隔任务执行
         """
+
         def test_task():
             self.test_counter += 1
 
@@ -204,7 +219,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_execution_job",
             function=test_task,
             seconds=0.5,
-            enabled=True
+            enabled=True,
         )
 
         self.cron.start()
@@ -223,6 +238,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试任务错误处理
         """
+
         def error_task():
             raise Exception("测试错误")
 
@@ -231,7 +247,7 @@ class TestCronSystem(unittest.TestCase):
             name="test_error_job",
             function=error_task,
             seconds=0.5,
-            enabled=True
+            enabled=True,
         )
 
         self.cron.start()
@@ -251,6 +267,7 @@ class TestCronSystem(unittest.TestCase):
         """
         测试任务元数据
         """
+
         def test_task():
             pass
 
@@ -262,7 +279,7 @@ class TestCronSystem(unittest.TestCase):
             function=test_task,
             seconds=60,
             enabled=True,
-            metadata=metadata
+            metadata=metadata,
         )
 
         jobs_info = self.cron.get_all_jobs()
@@ -274,6 +291,6 @@ class TestCronSystem(unittest.TestCase):
                 self.assertEqual(job["metadata"]["category"], "test")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger.info("开始运行 Cron 系统测试")
     unittest.main()

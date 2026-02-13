@@ -8,12 +8,8 @@ import pytest
 
 from nanobot.agent.decision.models import DecisionResult
 from nanobot.agent.main_agent import MainAgent, MainAgentState
-from nanobot.agent.planner.models import TaskPlan, TaskPriority, TaskType, TaskStep
-from nanobot.agent.subagent.models import (
-    SubagentState,
-    SubagentStatus,
-    SubagentTask,
-)
+from nanobot.agent.planner.models import TaskPlan, TaskPriority, TaskStep, TaskType
+from nanobot.agent.subagent.models import SubagentState, SubagentStatus, SubagentTask
 
 
 @pytest.fixture
@@ -39,14 +35,14 @@ def mock_task_planner():
                     id="step1",
                     description="step1",
                     expected_output="output1",
-                    validation_criteria="valid1"
+                    validation_criteria="valid1",
                 ),
                 TaskStep(
                     id="step2",
                     description="step2",
                     expected_output="output2",
-                    validation_criteria="valid2"
-                )
+                    validation_criteria="valid2",
+                ),
             ],
             estimated_time=600,
             requires_approval=True,
@@ -64,7 +60,9 @@ def mock_decision_maker():
     """创建模拟的 ExecutionDecisionMaker"""
     mock = Mock()
     mock.make_decision = AsyncMock(
-        return_value=DecisionResult(success=True, action="reply", data={}, message="Test response")
+        return_value=DecisionResult(
+            success=True, action="reply", data={}, message="Test response"
+        )
     )
     return mock
 
@@ -134,14 +132,14 @@ async def test_process_message_new_task(
                     id="step1",
                     description="step1",
                     expected_output="output1",
-                    validation_criteria="valid1"
+                    validation_criteria="valid1",
                 ),
                 TaskStep(
                     id="step2",
                     description="step2",
                     expected_output="output2",
-                    validation_criteria="valid2"
-                )
+                    validation_criteria="valid2",
+                ),
             ],
             estimated_time=600,
             requires_approval=True,
@@ -155,7 +153,9 @@ async def test_process_message_new_task(
 
     mock_dm = Mock()
     mock_dm.make_decision = AsyncMock(
-        return_value=DecisionResult(success=True, action="reply", data={}, message="Task completed")
+        return_value=DecisionResult(
+            success=True, action="reply", data={}, message="Task completed"
+        )
     )
     mock_dm_cls.return_value = mock_dm
 
@@ -190,7 +190,9 @@ async def test_process_message_new_task(
     mock_hooks_cls.return_value = mock_hooks
 
     # 模拟 LLM 响应
-    with patch("nanobot.providers.litellm_provider.LiteLLMProvider") as mock_provider_cls:
+    with patch(
+        "nanobot.providers.litellm_provider.LiteLLMProvider"
+    ) as mock_provider_cls:
         mock_provider = Mock()
         mock_response = Mock()
         mock_response.content = "Task completed"
@@ -354,7 +356,7 @@ async def test_process_message_correction(
                     id="step1",
                     description="step1",
                     expected_output="output1",
-                    validation_criteria="valid1"
+                    validation_criteria="valid1",
                 )
             ],
             estimated_time=300,
@@ -403,7 +405,9 @@ async def test_process_message_correction(
     mock_hooks_cls.return_value = mock_hooks
 
     # 模拟 LLM 响应
-    with patch("nanobot.providers.litellm_provider.LiteLLMProvider") as mock_provider_cls:
+    with patch(
+        "nanobot.providers.litellm_provider.LiteLLMProvider"
+    ) as mock_provider_cls:
         mock_provider = Mock()
         mock_response = Mock()
         mock_response.content = "Corrected task completed"

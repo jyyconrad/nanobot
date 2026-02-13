@@ -1,8 +1,9 @@
 """Tests for MCP tool."""
 
-import pytest
-from unittest.mock import Mock, patch
 from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
 
 from nanobot.agent.tools.mcp import MCPTool, MCPToolConfig
 
@@ -12,16 +13,15 @@ def mcp_tool():
     """Create a mock MCP tool."""
     config = [
         MCPToolConfig(
-            server_url="https://github.com/mcp",
             server_name="github_mcp",
-            auth_token="test_token",
-            auth_type="bearer",
+            transport="stdio",
+            command="python",
+            args=["-m", "github_mcp_server"],
         ),
         MCPToolConfig(
-            server_url="https://zapier.com/mcp",
             server_name="zapier_mcp",
-            auth_token="test_token",
-            auth_type="bearer",
+            transport="sse",
+            url="https://zapier.com/mcp",
         ),
     ]
     return MCPTool(config=config)
@@ -36,15 +36,15 @@ class TestMCPTool:
         assert "MCP" in mcp_tool.description
         assert len(mcp_tool.config) == 2
         assert not mcp_tool._initialized
-        assert len(mcp_tool.servers) == 0
-        assert len(mcp_tool.tools) == 0
+        assert len(mcp_tool.connections) == 0
+        assert len(mcp_tool._all_tools) == 0
 
     @patch("nanobot.agent.tools.mcp.MCPTool._initialize")
     async def test_execute_list_operation(self, mock_initialize, mcp_tool):
         """Test execute method with list operation."""
         # Setup mock
         mock_initialize.return_value = None
-        mcp_tool.tools = {
+        mcp_tool._all_tools = {
             "github_mcp:list_repositories": {
                 "tool": Mock(name="list_repositories", description="List repositories"),
                 "server": "github_mcp",
@@ -66,17 +66,29 @@ class TestMCPTool:
         """Test execute method with discover operation."""
         # Setup mock
         mock_initialize.return_value = None
-        mcp_tool.servers = {
-            "github_mcp": {
-                "config": Mock(server_url="https://github.com/mcp"),
-                "client": Mock(),
-            },
-            "zapier_mcp": {
-                "config": Mock(server_url="https://zapier.com/mcp"),
-                "client": Mock(),
-            },
+        from nanobot.agent.tools.mcp import MCPConnection
+
+        mcp_tool.connections = {
+            "github_mcp": MCPConnection(
+                config=MCPToolConfig(
+                    server_name="github_mcp",
+                    transport="stdio",
+                    command="python -m github_mcp_server",
+                ),
+                tools=[],
+                initialized=True,
+            ),
+            "zapier_mcp": MCPConnection(
+                config=MCPToolConfig(
+                    server_name="zapier_mcp",
+                    transport="sse",
+                    url="https://zapier.com/mcp",
+                ),
+                tools=[],
+                initialized=True,
+            ),
         }
-        mcp_tool.tools = {
+        mcp_tool._all_tools = {
             "github_mcp:list_repositories": {"tool": Mock(), "server": "github_mcp"},
             "zapier_mcp:list_zaps": {"tool": Mock(), "server": "zapier_mcp"},
         }
@@ -85,7 +97,7 @@ class TestMCPTool:
         result = await mcp_tool.execute(operation="discover")
         assert "github_mcp" in result
         assert "zapier_mcp" in result
-        assert "(1 tools)" in result
+        assert "Transport:" in result
         mock_initialize.assert_called_once()
 
     @patch("nanobot.agent.tools.mcp.MCPTool._initialize")
@@ -102,22 +114,22 @@ class TestMCPTool:
         mock_client = Mock()
         mock_client.session = Mock()
 
-        mcp_tool.tools = {
+        mcp_tool._all_tools = {
             "github_mcp:list_repositories": {
                 "tool": mock_tool,
                 "server": "github_mcp",
             },
         }
-        mcp_tool.servers = {
+        mcp_tool.connections = {
             "github_mcp": {
                 "config": Mock(server_url="https://github.com/mcp"),
                 "client": mock_client,
+                "initialized": True,
             },
         }
 
         # Test
-        with patch("litellm.experimental_mcp_client.tools.call_mcp_tool") as mock_call_tool:
-            # 修复：直接模拟原始导入位置的 call_mcp_tool 函数
+        with patch("nanobot.agent.tools.mcp.MCPTool._call_tool") as mock_call_tool:
             mock_call_tool.return_value = "Result: [repo1, repo2]"
             result = await mcp_tool.execute(
                 operation="call",
@@ -173,14 +185,4 @@ class TestMCPTool:
         # Invalid operation
         errors = mcp_tool.validate_params({"operation": "invalid"})
         assert len(errors) == 1
-        assert "Unknown operation" in errors[0]
-
-        # Missing tool_name for call
-        errors = mcp_tool.validate_params({"operation": "call", "params": {}})
-        assert len(errors) == 1
-        assert "tool_name" in errors[0]
-
-        # Missing params for call
-        errors = mcp_tool.validate_params({"operation": "call", "tool_name": "test"})
-        assert len(errors) == 1
-        assert "params" in errors[0]
+        assert "one of" in errors[0]

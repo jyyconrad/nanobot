@@ -13,10 +13,10 @@
 - 性能指标报告
 """
 
-import time
 import resource
+import time
 from datetime import datetime
-from typing import Dict, Optional, Any, Callable
+from typing import Any, Callable, Dict, Optional
 
 from loguru import logger
 
@@ -203,7 +203,9 @@ class PerformanceMonitor:
         """
         return self.Timer(self, operation)
 
-    def record_response_time(self, endpoint: str, duration: float, status_code: int = 200):
+    def record_response_time(
+        self, endpoint: str, duration: float, status_code: int = 200
+    ):
         """
         记录 API 响应时间
 
@@ -292,7 +294,9 @@ class PerformanceMonitor:
                 "message_processing",
             ]:
                 durations = [
-                    entry["duration"] for entry in history if entry.get("status") == "success"
+                    entry["duration"]
+                    for entry in history
+                    if entry.get("status") == "success"
                 ]
                 if durations:
                     avg_duration = sum(durations) / len(durations)
@@ -333,9 +337,12 @@ class PerformanceMonitor:
                 alerts.append(
                     {
                         "type": "memory",
-                        "severity": "warning" if system_info["memory_usage"] < thresholds.get(
-                            "memory_critical_threshold", 90
-                        ) else "critical",
+                        "severity": (
+                            "warning"
+                            if system_info["memory_usage"]
+                            < thresholds.get("memory_critical_threshold", 90)
+                            else "critical"
+                        ),
                         "message": f"Memory usage {system_info['memory_usage']:.1f}% exceeds threshold {thresholds['memory_threshold']}%",
                         "value": system_info["memory_usage"],
                     }
@@ -347,9 +354,12 @@ class PerformanceMonitor:
                 alerts.append(
                     {
                         "type": "cpu",
-                        "severity": "warning" if system_info["cpu_usage"] < thresholds.get(
-                            "cpu_critical_threshold", 95
-                        ) else "critical",
+                        "severity": (
+                            "warning"
+                            if system_info["cpu_usage"]
+                            < thresholds.get("cpu_critical_threshold", 95)
+                            else "critical"
+                        ),
                         "message": f"CPU usage {system_info['cpu_usage']:.1f}% exceeds threshold {thresholds['cpu_threshold']}%",
                         "value": system_info["cpu_usage"],
                     }
@@ -363,7 +373,9 @@ class PerformanceMonitor:
             ]:
                 if f"{operation}_response_threshold" in thresholds:
                     durations = [
-                        entry["duration"] for entry in history if entry.get("status") == "success"
+                        entry["duration"]
+                        for entry in history
+                        if entry.get("status") == "success"
                     ]
                     if durations:
                         avg_duration = sum(durations) / len(durations)

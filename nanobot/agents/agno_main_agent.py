@@ -20,7 +20,8 @@ from pydantic import BaseModel, Field
 
 # 导入现有组件
 try:
-    from agno import Agent, Knowledge, Toolkit, Function
+    from agno import Agent, Function, Knowledge, Toolkit
+
     AGNO_AVAILABLE = True
 except ImportError:
     AGNO_AVAILABLE = False
@@ -31,6 +32,7 @@ except ImportError:
 
 try:
     from nanobot.agent.prompt_system import PromptSystemV2, get_prompt_system_v2
+
     PROMPT_SYSTEM_V2_AVAILABLE = True
 except ImportError:
     PROMPT_SYSTEM_V2_AVAILABLE = False
@@ -39,6 +41,7 @@ except ImportError:
 
 try:
     from nanobot.config.schema import NanobotConfig
+
     CONFIG_AVAILABLE = True
 except ImportError:
     CONFIG_AVAILABLE = False
@@ -69,11 +72,7 @@ class AgnoMainAgent:
     - 子任务分发: 与 AgnoSubAgent 配合
     """
 
-    def __init__(
-        self,
-        config: Optional[AgnoMainAgentConfig] = None,
-        **kwargs
-    ):
+    def __init__(self, config: Optional[AgnoMainAgentConfig] = None, **kwargs):
         """
         初始化 AgnoMainAgent
 
@@ -82,27 +81,27 @@ class AgnoMainAgent:
             **kwargs: 配置参数（优先级高于 config）
         """
         if not AGNO_AVAILABLE:
-            raise ImportError(
-                "agno 框架未安装。请先安装: pip install agno"
-            )
+            raise ImportError("agno 框架未安装。请先安装: pip install agno")
 
         # 合并配置
         if config is None:
             config = AgnoMainAgentConfig()
-        
+
         self.config = config.model_copy(update=kwargs)
-        
+
         # 设置工作目录
         self.workspace = self.config.workspace or Path.cwd()
-        
+
         # 初始化组件
         self.prompt_system = self._init_prompt_system()
         self.toolkits = self._create_toolkits()
-        self.knowledge = self._create_knowledge() if self.config.enable_knowledge else None
-        
+        self.knowledge = (
+            self._create_knowledge() if self.config.enable_knowledge else None
+        )
+
         # 创建 agno Agent
         self.agent = self._create_agent()
-        
+
         logger.info(f"AgnoMainAgent 初始化完成: {self.config.name}")
 
     def _init_prompt_system(self) -> Optional[PromptSystemV2]:
@@ -110,7 +109,7 @@ class AgnoMainAgent:
         if not PROMPT_SYSTEM_V2_AVAILABLE:
             logger.warning("PromptSystemV2 不可用，将使用默认提示词")
             return None
-        
+
         try:
             return get_prompt_system_v2()
         except Exception as e:
@@ -121,7 +120,7 @@ class AgnoMainAgent:
         """获取系统提示词"""
         if self.prompt_system is None:
             return "你是一个 AI 助手，帮助用户完成各种任务。"
-        
+
         try:
             return self.prompt_system.get_prompt("main_agent")
         except Exception as e:
@@ -131,22 +130,22 @@ class AgnoMainAgent:
     def _create_toolkits(self) -> List[Toolkit]:
         """创建工具包列表"""
         toolkits = []
-        
+
         # 文件系统工具包
         file_toolkit = self._create_filesystem_toolkit()
         if file_toolkit:
             toolkits.append(file_toolkit)
-        
+
         # Web 工具包
         web_toolkit = self._create_web_toolkit()
         if web_toolkit:
             toolkits.append(web_toolkit)
-        
+
         # Shell 工具包
         shell_toolkit = self._create_shell_toolkit()
         if shell_toolkit:
             toolkits.append(shell_toolkit)
-        
+
         logger.info(f"创建了 {len(toolkits)} 个工具包")
         return toolkits
 
@@ -154,20 +153,18 @@ class AgnoMainAgent:
         """创建文件系统工具包"""
         try:
             tools = []
-            
+
             # read_file
             def read_file(path: str) -> str:
                 """读取文件内容"""
                 file_path = self.workspace / path
                 with open(file_path, "r", encoding="utf-8") as f:
                     return f.read()
-            
-            tools.append(Function(
-                name="read_file",
-                description="读取文件内容",
-                func=read_file
-            ))
-            
+
+            tools.append(
+                Function(name="read_file", description="读取文件内容", func=read_file)
+            )
+
             # write_file
             def write_file(path: str, content: str) -> str:
                 """写入文件内容"""
@@ -176,13 +173,11 @@ class AgnoMainAgent:
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(content)
                 return f"成功写入文件: {path}"
-            
-            tools.append(Function(
-                name="write_file",
-                description="写入文件内容",
-                func=write_file
-            ))
-            
+
+            tools.append(
+                Function(name="write_file", description="写入文件内容", func=write_file)
+            )
+
             # list_directory
             def list_directory(path: str = ".") -> str:
                 """列出目录内容"""
@@ -191,18 +186,16 @@ class AgnoMainAgent:
                     return f"目录不存在: {path}"
                 items = [item.name for item in dir_path.iterdir()]
                 return "\n".join(items)
-            
-            tools.append(Function(
-                name="list_directory",
-                description="列出目录内容",
-                func=list_directory
-            ))
-            
-            return Toolkit(
-                name="filesystem",
-                description="文件系统操作",
-                tools=tools
+
+            tools.append(
+                Function(
+                    name="list_directory",
+                    description="列出目录内容",
+                    func=list_directory,
+                )
             )
+
+            return Toolkit(name="filesystem", description="文件系统操作", tools=tools)
         except Exception as e:
             logger.error(f"创建文件系统工具包失败: {e}")
             return None
@@ -210,7 +203,7 @@ class AgnoMainAgent:
     def _create_web_toolkit(self) -> Optional[Toolkit]:
         """创建 Web 工具包"""
         try:
-            from nanobot.agent.tools.web import WebSearchTool, WebFetchTool
+            from nanobot.agent.tools.web import WebFetchTool, WebSearchTool
 
             tools = []
 
@@ -221,6 +214,7 @@ class AgnoMainAgent:
                 """搜索网络"""
                 try:
                     import asyncio
+
                     # Run the async search tool
                     result = asyncio.run(search_tool.execute(query=query, count=count))
                     return result
@@ -228,11 +222,13 @@ class AgnoMainAgent:
                     logger.error(f"Web search failed: {e}")
                     return f"搜索失败: {e}"
 
-            tools.append(Function(
-                name="web_search",
-                description="搜索网络，使用 Brave Search API。需要 BRAVE_API_KEY 环境变量。",
-                func=web_search
-            ))
+            tools.append(
+                Function(
+                    name="web_search",
+                    description="搜索网络，使用 Brave Search API。需要 BRAVE_API_KEY 环境变量。",
+                    func=web_search,
+                )
+            )
 
             # web_fetch - use real WebFetchTool
             fetch_tool = WebFetchTool()
@@ -241,23 +237,28 @@ class AgnoMainAgent:
                 """获取网页内容"""
                 try:
                     import asyncio
+
                     # Run the async fetch tool
-                    result = asyncio.run(fetch_tool.execute(url=url, extract_mode=extract_mode))
+                    result = asyncio.run(
+                        fetch_tool.execute(url=url, extract_mode=extract_mode)
+                    )
                     return result
                 except Exception as e:
                     logger.error(f"Web fetch failed: {e}")
                     return f"获取网页失败: {e}"
 
-            tools.append(Function(
-                name="web_fetch",
-                description="获取网页内容，转换为 markdown 或纯文本。",
-                func=web_fetch
-            ))
+            tools.append(
+                Function(
+                    name="web_fetch",
+                    description="获取网页内容，转换为 markdown 或纯文本。",
+                    func=web_fetch,
+                )
+            )
 
             return Toolkit(
                 name="web",
                 description="网络搜索和获取工具（使用 Brave Search API）",
-                tools=tools
+                tools=tools,
             )
         except Exception as e:
             logger.error(f"创建 Web 工具包失败: {e}")
@@ -267,11 +268,12 @@ class AgnoMainAgent:
         """创建 Shell 工具包"""
         try:
             tools = []
-            
+
             # execute_command
             def execute_command(command: str) -> str:
                 """执行 Shell 命令"""
                 import subprocess
+
                 try:
                     result = subprocess.run(
                         command,
@@ -279,7 +281,7 @@ class AgnoMainAgent:
                         cwd=self.workspace,
                         capture_output=True,
                         text=True,
-                        timeout=30
+                        timeout=30,
                     )
                     if result.returncode == 0:
                         return result.stdout or "命令执行成功"
@@ -289,18 +291,16 @@ class AgnoMainAgent:
                     return "命令执行超时"
                 except Exception as e:
                     return f"执行命令失败: {e}"
-            
-            tools.append(Function(
-                name="execute_command",
-                description="执行 Shell 命令",
-                func=execute_command
-            ))
-            
-            return Toolkit(
-                name="shell",
-                description="Shell 命令执行",
-                tools=tools
+
+            tools.append(
+                Function(
+                    name="execute_command",
+                    description="执行 Shell 命令",
+                    func=execute_command,
+                )
             )
+
+            return Toolkit(name="shell", description="Shell 命令执行", tools=tools)
         except Exception as e:
             logger.error(f"创建 Shell 工具包失败: {e}")
             return None
@@ -313,7 +313,7 @@ class AgnoMainAgent:
     def _create_agent(self) -> Agent:
         """创建 agno Agent"""
         system_prompt = self._get_system_prompt()
-        
+
         agent = Agent(
             name=self.config.name,
             model=self.config.model,
@@ -321,7 +321,7 @@ class AgnoMainAgent:
             toolkits=self.toolkits,
             knowledge=self.knowledge,
         )
-        
+
         logger.info(f"创建 agno Agent: {self.config.name}")
         return agent
 
@@ -336,11 +336,11 @@ class AgnoMainAgent:
             Agent 的响应内容
         """
         logger.info(f"运行 Agent: {self.config.name}")
-        
+
         try:
             response = self.agent.run(user_message)
-            result = response.content if hasattr(response, 'content') else str(response)
-            
+            result = response.content if hasattr(response, "content") else str(response)
+
             logger.info(f"Agent 响应: {result[:100]}...")
             return result
         except Exception as e:
@@ -358,11 +358,11 @@ class AgnoMainAgent:
             Agent 的响应内容
         """
         logger.info(f"异步运行 Agent: {self.config.name}")
-        
+
         try:
             response = await self.agent.arun(user_message)
-            result = response.content if hasattr(response, 'content') else str(response)
-            
+            result = response.content if hasattr(response, "content") else str(response)
+
             logger.info(f"Agent 响应: {result[:100]}...")
             return result
         except Exception as e:
@@ -395,7 +395,7 @@ def create_agno_main_agent(
     name: str = "main_agent",
     model: str = "openai/gpt-4",
     workspace: Optional[Path] = None,
-    **kwargs
+    **kwargs,
 ) -> AgnoMainAgent:
     """
     创建 AgnoMainAgent 的便捷函数
@@ -409,12 +409,7 @@ def create_agno_main_agent(
     Returns:
         AgnoMainAgent 实例
     """
-    config = AgnoMainAgentConfig(
-        name=name,
-        model=model,
-        workspace=workspace,
-        **kwargs
-    )
+    config = AgnoMainAgentConfig(name=name, model=model, workspace=workspace, **kwargs)
     return AgnoMainAgent(config=config)
 
 
@@ -422,7 +417,7 @@ def create_agno_main_agent(
 class MainAgent(AgnoMainAgent):
     """
     MainAgent 兼容层
-    
+
     这个类保持与现有 MainAgent 的兼容性，内部使用 AgnoMainAgent 实现。
     """
 
@@ -432,7 +427,7 @@ class MainAgent(AgnoMainAgent):
         model: str = "openai/gpt-4",
         workspace: Optional[Path] = None,
         config_path: Optional[Path] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         初始化 MainAgent（兼容性接口）
@@ -449,7 +444,7 @@ class MainAgent(AgnoMainAgent):
             model=model,
             workspace=workspace,
             config_path=config_path,
-            **kwargs
+            **kwargs,
         )
         super().__init__(config=config)
 

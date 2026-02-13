@@ -57,12 +57,17 @@ class CancellationHandler:
 
             # 返回决策结果
             return DecisionResult(
-                success=True, action=action, data=action_data, message=f"取消请求处理完成: {action}"
+                success=True,
+                action=action,
+                data=action_data,
+                message=f"取消请求处理完成: {action}",
             )
         except Exception as e:
             logger.error(f"处理取消请求时发生错误: {e}", exc_info=True)
             return DecisionResult(
-                success=False, action="error", message=f"处理取消请求时发生错误: {str(e)}"
+                success=False,
+                action="error",
+                message=f"处理取消请求时发生错误: {str(e)}",
             )
 
     async def _handle_cancellation(
@@ -89,7 +94,9 @@ class CancellationHandler:
         # 检查是否有正在运行的任务
         active_tasks = await self._get_active_tasks()
         if active_tasks:
-            return await self._handle_active_tasks_cancellation(cancellation, active_tasks)
+            return await self._handle_active_tasks_cancellation(
+                cancellation, active_tasks
+            )
 
         # 没有任务需要取消
         return "no_tasks_to_cancel", {"reason": "没有正在运行的任务需要取消"}
@@ -176,7 +183,9 @@ class CancellationHandler:
         all_tasks = await self.agent_loop.task_manager.get_all_tasks()
         return [task for task in all_tasks if task.status in ["running", "paused"]]
 
-    async def _validate_cancellation_request(self, cancellation: CancellationRequest) -> bool:
+    async def _validate_cancellation_request(
+        self, cancellation: CancellationRequest
+    ) -> bool:
         """
         验证取消请求
 
@@ -187,7 +196,10 @@ class CancellationHandler:
             请求是否有效
         """
         # 简单的验证逻辑
-        if cancellation.cancellation_reason and len(cancellation.cancellation_reason.strip()) < 3:
+        if (
+            cancellation.cancellation_reason
+            and len(cancellation.cancellation_reason.strip()) < 3
+        ):
             logger.warning("取消原因描述太短")
             return False
 

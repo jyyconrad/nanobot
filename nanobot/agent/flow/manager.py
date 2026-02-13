@@ -13,27 +13,24 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 from loguru import logger
 
-from .models import (
-    FlowContext,
-    FlowProgress,
-    FlowResult,
-    FlowState,
-    FlowStep,
-)
+from .models import FlowContext, FlowProgress, FlowResult, FlowState, FlowStep
 
 
 class FlowError(Exception):
     """流程错误"""
+
     pass
 
 
 class FlowNotFoundError(FlowError):
     """流程未找到错误"""
+
     pass
 
 
 class FlowInvalidStateError(FlowError):
     """流程状态无效错误"""
+
     pass
 
 
@@ -320,7 +317,9 @@ class FlowManager:
 
         return flows
 
-    async def cancel_flow(self, flow_id: str, reason: Optional[str] = None) -> FlowContext:
+    async def cancel_flow(
+        self, flow_id: str, reason: Optional[str] = None
+    ) -> FlowContext:
         """
         取消流程
 

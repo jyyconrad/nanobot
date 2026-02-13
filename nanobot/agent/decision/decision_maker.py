@@ -60,7 +60,9 @@ class ExecutionDecisionMaker:
         if not handler:
             logger.error(f"不支持的决策请求类型: {request.request_type}")
             return DecisionResult(
-                success=False, action="unknown", message=f"不支持的请求类型: {request.request_type}"
+                success=False,
+                action="unknown",
+                message=f"不支持的请求类型: {request.request_type}",
             )
 
         try:
@@ -69,7 +71,8 @@ class ExecutionDecisionMaker:
             return result
         except Exception as e:
             logger.error(
-                f"处理决策请求时发生错误: {request.request_type}, 错误: {e}", exc_info=True
+                f"处理决策请求时发生错误: {request.request_type}, 错误: {e}",
+                exc_info=True,
             )
             return DecisionResult(
                 success=False, action="error", message=f"处理请求时发生错误: {str(e)}"

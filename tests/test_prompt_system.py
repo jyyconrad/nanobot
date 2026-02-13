@@ -23,7 +23,7 @@ def test_prompt_layer_loading():
     # 现在直接检查配置中是否定义了预期的层
     layers = ["core", "workspace", "user", "memory", "decisions"]
     config_layers = system.config.get("layers", {})
-    
+
     for layer in layers:
         assert layer in config_layers
         assert isinstance(config_layers[layer], dict)
@@ -84,7 +84,7 @@ def test_layer_load_hook():
         layer_loaded = True
 
     system.register_hook("on_layer_loaded", on_layer_loaded)
-    
+
     # 模拟加载一个层
     with patch.object(system, "_load_layer") as mock_load:
         mock_load.return_value = {"test": "content"}
@@ -169,6 +169,6 @@ def test_cache_invalidation():
     # 测试缓存清除方法
     system.prompts_cache["test"] = "value"
     assert len(system.prompts_cache) > 0
-    
+
     system.clear_cache()
     assert len(system.prompts_cache) == 0
