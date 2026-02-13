@@ -1,0 +1,39 @@
+{
+  "private_chat": {
+    "message_id": "msg_001",
+    "chat_type": "private",
+    "sender_id": "ou_test001",
+    "recipient_id": "ou_bot001",
+    "content": "Hello, can you help me?",
+    "timestamp": "2026-02-13T09:00:00Z",
+    "mentions": []
+  },
+  "group_chat": {
+    "message_id": "msg_002",
+    "chat_type": "group",
+    "sender_id": "ou_test002",
+    "recipient_id": "oc_group001",
+    "content": "How is everyone doing?",
+    "timestamp": "2026-02-13T09:05:00Z",
+    "mentions": []
+  },
+  "group_mention": {
+    "message_id": "msg_003",
+    "chat_type": "group",
+    "sender_id": "ou_test003",
+    "recipient_id": "oc_group001",
+    "content": "@openclaw What's the weather?",
+    "timestamp": "2026-02-13T09:10:00Z",
+    "mentions": ["ou_bot001"],
+    "bot_id": "ou_bot001"
+  },
+  "command_message": {
+    "message_id": "msg_004",
+    "chat_type": "private",
+    "sender_id": "ou_test004",
+    "recipient_id": "ou_bot001",
+    "content": "/status",
+    "timestamp": "2026-02-13T09:15:00Z",
+    "mentions": []
+  }
+}

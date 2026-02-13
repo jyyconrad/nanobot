@@ -1,322 +1,262 @@
-"""
-SubagentManager 单元测试
-"""
+"""Tests for SubagentManager."""
 
 import asyncio
-from unittest.mock import AsyncMock, Mock, patch
-
 import pytest
-
-from nanobot.agent.subagent.manager import SubagentManager
-from nanobot.agent.subagent.models import (
-    SubagentResult,
-    SubagentState,
-    SubagentStatus,
+from nanobot.agents.subagent_manager import (
+    SubagentManager,
     SubagentTask,
+    SubagentStatus
 )
 
 
-@pytest.fixture
-def subagent_manager():
-    """创建 SubagentManager 实例"""
-    return SubagentManager()
+class TestSubagentManager:
+    """Test suite for SubagentManager."""
 
+    @pytest.mark.asyncio
+    async def test_manager_initialization(self):
+        """Test manager initialization."""
+        manager = SubagentManager(max_concurrent=5, timeout=300.0)
+        assert manager.max_concurrent == 5
+        assert manager.default_timeout == 300.0
+        assert not manager._running
 
-@pytest.fixture
-def mock_subagent_task():
-    """创建模拟的 SubagentTask"""
-    return SubagentTask(
-        task_id="test-task-1",
-        description="Test task description",
-        config={"key": "value"},
-        agent_type="code-mentor",
-        skills=["code-review"],
-    )
+    @pytest.mark.asyncio
+    async def test_start_stop(self):
+        """Test start and stop."""
+        manager = SubagentManager(max_concurrent=3)
+        await manager.start()
+        assert manager._running
+        await manager.stop()
+        assert not manager._running
 
+    @pytest.mark.asyncio
+    async def test_submit_task(self):
+        """Test task submission."""
+        manager = SubagentManager(max_concurrent=3)
+        await manager.start()
 
-@pytest.mark.asyncio
-async def test_subagent_manager_initialization(subagent_manager):
-    """测试 SubagentManager 初始化"""
-    assert isinstance(subagent_manager, SubagentManager)
-    assert len(subagent_manager.subagents) == 0
-    assert len(subagent_manager.tasks) == 0
-    assert len(subagent_manager.results) == 0
-    assert len(subagent_manager.states) == 0
-    assert len(subagent_manager._callback_map) == 0
+        async def sample_task(x, y):
+            return x + y
 
-
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_spawn_subagent(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试生成 Subagent"""
-    # 设置 mock，让它在执行时返回一个 SubagentResult
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(
-        return_value=SubagentResult(
-            task_id=mock_subagent_task.task_id,
-            output="Test output",
-            success=True,
-            state=SubagentState(
-                task_id=mock_subagent_task.task_id, status=SubagentStatus.COMPLETED, progress=1.0
-            ),
+        task_id = await manager.submit_task(
+            "task-1",
+            "Test Task",
+            sample_task,
+            2, 3
         )
-    )
-    mock_agno_subagent.return_value = mock_instance
 
-    # 测试
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+        assert task_id == "task-1"
+        task = await manager.get_task(task_id)
+        assert task is not None
+        assert task.id == "task-1"
+        assert task.name == "Test Task"
 
-    assert task_id == mock_subagent_task.task_id
-    assert task_id in subagent_manager.subagents
-    assert task_id in subagent_manager.tasks
-    assert task_id in subagent_manager.states
+        await manager.stop()
 
+    @pytest.mark.asyncio
+    async def test_task_execution(self):
+        """Test task execution."""
+        manager = SubagentManager(max_concurrent=3)
+        await manager.start()
 
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_get_subagent_status(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试获取 Subagent 状态"""
-    # 设置 mock，让它在执行时返回一个 SubagentResult
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(
-        return_value=SubagentResult(
-            task_id=mock_subagent_task.task_id,
-            output="Test output",
-            success=True,
-            state=SubagentState(
-                task_id=mock_subagent_task.task_id, status=SubagentStatus.COMPLETED, progress=1.0
-            ),
+        async def sample_task(x, y):
+            await asyncio.sleep(0.1)
+            return x + y
+
+        task_id = await manager.submit_task(
+            "task-2",
+            "Add Task",
+            sample_task,
+            10, 20
         )
-    )
-    mock_agno_subagent.return_value = mock_instance
 
-    # 生成 Subagent
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+        # Wait for task completion
+        result = await manager.wait_for_task(task_id, timeout=5.0)
+        assert result == 30
 
-    # 获取状态
-    status = await subagent_manager.get_subagent_status(task_id)
+        task = await manager.get_task(task_id)
+        assert task.status == SubagentStatus.COMPLETED
 
-    assert status is not None
-    assert isinstance(status, SubagentState)
-    assert status.task_id == task_id
-    assert status.status in [
-        SubagentStatus.ASSIGNED,
-        SubagentStatus.RUNNING,
-        SubagentStatus.COMPLETED,
-    ]
+        await manager.stop()
 
+    @pytest.mark.asyncio
+    async def test_concurrent_limit(self):
+        """Test concurrent execution limit."""
+        manager = SubagentManager(max_concurrent=2)
+        await manager.start()
 
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_cancel_subagent(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试取消 Subagent"""
-    # 设置 mock，让它在执行时等待一段时间，以便我们有时间取消
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(side_effect=lambda: asyncio.sleep(0.5))
-    mock_instance.cancel = AsyncMock()
-    mock_agno_subagent.return_value = mock_instance
+        running_count = 0
+        max_running = 0
+        lock = asyncio.Lock()
 
-    # 生成 Subagent
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+        async def counting_task():
+            nonlocal running_count, max_running
+            async with lock:
+                running_count += 1
+                max_running = max(max_running, running_count)
 
-    # 取消任务
-    result = await subagent_manager.cancel_subagent(task_id)
+            await asyncio.sleep(0.2)
 
-    assert result is True
+            async with lock:
+                running_count -= 1
 
-    # 验证状态
-    status = await subagent_manager.get_subagent_status(task_id)
-    assert status.status == SubagentStatus.CANCELLED
+            return "done"
 
+        # Submit 5 tasks
+        task_ids = []
+        for i in range(5):
+            task_id = await manager.submit_task(
+                f"task-{i}",
+                f"Counting Task {i}",
+                counting_task
+            )
+            task_ids.append(task_id)
 
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_interrupt_subagent(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试中断 Subagent"""
-    # 设置 mock，让它在执行时等待一段时间，以便我们有时间中断
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(side_effect=lambda: asyncio.sleep(0.5))
-    mock_instance.interrupt = AsyncMock()
-    mock_agno_subagent.return_value = mock_instance
+        # Wait for all tasks
+        for task_id in task_ids:
+            await manager.wait_for_task(task_id, timeout=10.0)
 
-    # 生成 Subagent
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+        # Verify max concurrent was 2
+        assert max_running <= 2
 
-    # 中断任务
-    result = await subagent_manager.interrupt_subagent(task_id, "New message")
+        await manager.stop()
 
-    assert result is True
+    @pytest.mark.asyncio
+    async def test_task_failure(self):
+        """Test task failure handling."""
+        manager = SubagentManager(max_concurrent=3)
+        await manager.start()
 
+        async def failing_task():
+            await asyncio.sleep(0.1)
+            raise ValueError("Task failed")
 
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_get_running_tasks(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试获取正在运行的任务"""
-    # 设置 mock，让它在执行时等待一段时间，以便我们能检测到正在运行的任务
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(side_effect=lambda: asyncio.sleep(0.5))
-    mock_agno_subagent.return_value = mock_instance
-
-    # 生成 Subagent
-    await subagent_manager.spawn_subagent(mock_subagent_task)
-
-    # 获取正在运行的任务 - 我们需要直接检查状态而不是等待执行完成
-    await asyncio.sleep(0.1)
-    running_tasks = await subagent_manager.get_running_tasks()
-
-    # 任务可能已经完成，所以我们检查是否有任务在列表中
-    assert len(running_tasks) >= 0
-
-
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_get_completed_tasks(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试获取已完成的任务"""
-    # 设置 mock，让它立即完成
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(
-        return_value=SubagentResult(
-            task_id=mock_subagent_task.task_id,
-            output="Test output",
-            success=True,
-            state=SubagentState(
-                task_id=mock_subagent_task.task_id, status=SubagentStatus.COMPLETED, progress=1.0
-            ),
+        task_id = await manager.submit_task(
+            "task-fail",
+            "Failing Task",
+            failing_task
         )
-    )
-    mock_agno_subagent.return_value = mock_instance
 
-    # 生成 Subagent
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+        # Wait for task to complete (will fail)
+        with pytest.raises(RuntimeError):
+            await manager.wait_for_task(task_id, timeout=5.0)
 
-    # 等待任务完成
-    await asyncio.sleep(0.1)
+        task = await manager.get_task(task_id)
+        assert task.status == SubagentStatus.FAILED
+        assert "Task failed" in task.error
 
-    # 获取已完成的任务
-    completed_tasks = await subagent_manager.get_completed_tasks()
+        await manager.stop()
 
-    assert len(completed_tasks) == 1
-    assert any(task.task_id == task_id for task in completed_tasks)
+    @pytest.mark.asyncio
+    async def test_task_timeout(self):
+        """Test task timeout handling."""
+        manager = SubagentManager(max_concurrent=3, timeout=0.5)
+        await manager.start()
 
+        async def slow_task():
+            await asyncio.sleep(2.0)
+            return "done"
 
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_register_and_unregister_callback(
-    mock_agno_subagent, subagent_manager, mock_subagent_task
-):
-    """测试注册和取消注册回调"""
-    # 设置 mock，让它立即完成
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(
-        return_value=SubagentResult(
-            task_id=mock_subagent_task.task_id,
-            output="Test output",
-            success=True,
-            state=SubagentState(
-                task_id=mock_subagent_task.task_id, status=SubagentStatus.COMPLETED, progress=1.0
-            ),
+        task_id = await manager.submit_task(
+            "task-slow",
+            "Slow Task",
+            slow_task
         )
-    )
-    mock_agno_subagent.return_value = mock_instance
 
-    # 生成 Subagent
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+        # Wait for task to fail with timeout
+        with pytest.raises(RuntimeError):
+            await manager.wait_for_task(task_id, timeout=5.0)
 
-    # 注册回调
-    callback = AsyncMock()
-    await subagent_manager.register_callback(task_id, callback)
+        task = await manager.get_task(task_id)
+        assert task.status == SubagentStatus.FAILED
+        assert "timeout" in task.error.lower()
 
-    # 等待任务完成
-    await asyncio.sleep(0.1)
+        await manager.stop()
 
-    # 验证回调被调用
-    # 注意：这里可能需要根据实际实现进行调整
-    # 我们可以直接调用回调来验证
-    result = SubagentResult(
-        task_id=mock_subagent_task.task_id,
-        output="Test output",
-        success=True,
-        state=SubagentState(
-            task_id=mock_subagent_task.task_id, status=SubagentStatus.COMPLETED, progress=1.0
-        ),
-    )
-    await subagent_manager._callback_map[task_id](result)
-    callback.assert_called_once()
+    @pytest.mark.asyncio
+    async def test_task_cancellation(self):
+        """Test task cancellation."""
+        manager = SubagentManager(max_concurrent=3)
+        await manager.start()
 
-    # 取消注册回调
-    await subagent_manager.unregister_callback(task_id)
+        async def long_task():
+            await asyncio.sleep(10.0)
+            return "done"
 
-    # 验证回调已取消注册
-    assert task_id not in subagent_manager._callback_map
-
-
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_cleanup_subagent(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试清理 Subagent 资源"""
-    # 设置 mock，让它立即完成
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(
-        return_value=SubagentResult(
-            task_id=mock_subagent_task.task_id,
-            output="Test output",
-            success=True,
-            state=SubagentState(
-                task_id=mock_subagent_task.task_id, status=SubagentStatus.COMPLETED, progress=1.0
-            ),
+        task_id = await manager.submit_task(
+            "task-cancel",
+            "Long Task",
+            long_task
         )
-    )
-    mock_agno_subagent.return_value = mock_instance
 
-    # 生成 Subagent
-    task_id = await subagent_manager.spawn_subagent(mock_subagent_task)
+        # Cancel the task
+        cancelled = await manager.cancel_task(task_id)
+        assert cancelled
 
-    # 等待任务完成
-    await asyncio.sleep(0.1)
+        task = await manager.get_task(task_id)
+        assert task.status == SubagentStatus.CANCELLED
 
-    # 清理资源
-    await subagent_manager.cleanup_subagent(task_id)
+        await manager.stop()
 
-    # 验证资源已清理
-    assert task_id not in subagent_manager.subagents
-    assert task_id not in subagent_manager.tasks
-    assert task_id not in subagent_manager.results
-    assert task_id not in subagent_manager.states
-    assert task_id not in subagent_manager._callback_map
+    @pytest.mark.asyncio
+    async def test_get_stats(self):
+        """Test statistics gathering."""
+        manager = SubagentManager(max_concurrent=3)
+        await manager.start()
+
+        async def quick_task():
+            return "done"
+
+        # Submit some tasks
+        for i in range(3):
+            await manager.submit_task(
+                f"task-{i}",
+                f"Quick Task {i}",
+                quick_task
+            )
+
+        stats = await manager.get_stats()
+        assert stats["total_tasks"] >= 3
+        assert stats["is_running"]
+        assert "running" in stats
+        assert "completed" in stats
+
+        await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_multiple_tasks(self):
+        """Test multiple concurrent tasks."""
+        manager = SubagentManager(max_concurrent=5)
+        await manager.start()
+
+        results = []
+
+        async def multiply_task(a, b):
+            await asyncio.sleep(0.1)
+            return a * b
+
+        # Submit multiple tasks
+        task_ids = []
+        for i in range(10):
+            task_id = await manager.submit_task(
+                f"mult-task-{i}",
+                f"Multiply Task {i}",
+                multiply_task,
+                i, i + 1
+            )
+            task_ids.append(task_id)
+
+        # Collect results
+        for task_id in task_ids:
+            result = await manager.wait_for_task(task_id, timeout=10.0)
+            results.append(result)
+
+        # Verify results
+        assert len(results) == 10
+        assert results == [i * (i + 1) for i in range(10)]
+
+        await manager.stop()
 
 
-@pytest.mark.asyncio
-@patch("nanobot.agent.subagent.manager.AgnoSubagent")
-async def test_cleanup_all(mock_agno_subagent, subagent_manager, mock_subagent_task):
-    """测试清理所有 Subagent 资源"""
-    # 设置 mock，让它立即完成
-    mock_instance = Mock()
-    mock_instance.execute = AsyncMock(
-        return_value=SubagentResult(
-            task_id=mock_subagent_task.task_id,
-            output="Test output",
-            success=True,
-            state=SubagentState(
-                task_id=mock_subagent_task.task_id, status=SubagentStatus.COMPLETED, progress=1.0
-            ),
-        )
-    )
-    mock_agno_subagent.return_value = mock_instance
-
-    # 生成多个 Subagent
-    for i in range(3):
-        task = SubagentTask(task_id=f"test-task-{i}", description=f"Test task {i}")
-        await subagent_manager.spawn_subagent(task)
-
-    # 等待任务完成
-    await asyncio.sleep(0.1)
-
-    # 清理所有资源
-    await subagent_manager.cleanup_all()
-
-    # 验证所有资源已清理
-    assert len(subagent_manager.subagents) == 0
-    assert len(subagent_manager.tasks) == 0
-    assert len(subagent_manager.results) == 0
-    assert len(subagent_manager.states) == 0
-    assert len(subagent_manager._callback_map) == 0
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

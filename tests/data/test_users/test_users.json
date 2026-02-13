@@ -1,0 +1,32 @@
+{
+  "user_001": {
+    "id": "ou_test001",
+    "name": "Test User 1",
+    "email": "test1@example.com",
+    "role": "user",
+    "preferences": {
+      "language": "en",
+      "timezone": "Asia/Shanghai"
+    }
+  },
+  "user_002": {
+    "id": "ou_test002",
+    "name": "Test User 2",
+    "email": "test2@example.com",
+    "role": "admin",
+    "preferences": {
+      "language": "en",
+      "timezone": "Asia/Shanghai"
+    }
+  },
+  "user_003": {
+    "id": "ou_test003",
+    "name": "Test User 3",
+    "email": "test3@example.com",
+    "role": "user",
+    "preferences": {
+      "language": "zh",
+      "timezone": "America/New_York"
+    }
+  }
+}

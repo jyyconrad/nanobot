@@ -1,0 +1,35 @@
+{
+  "chat_message": {
+    "id": "wc_001",
+    "type": "chat",
+    "from": "user_test001",
+    "to": "bot",
+    "content": "Hello from WebChat",
+    "timestamp": "2026-02-13T09:20:00Z",
+    "metadata": {
+      "client_type": "web"
+    }
+  },
+  "command_message": {
+    "id": "wc_002",
+    "type": "command",
+    "from": "user_test002",
+    "to": "bot",
+    "content": "/help",
+    "timestamp": "2026-02-13T09:25:00Z",
+    "metadata": {
+      "client_type": "web"
+    }
+  },
+  "feedback_message": {
+    "id": "wc_003",
+    "type": "feedback",
+    "from": "user_test003",
+    "to": "bot",
+    "content": "Great response!",
+    "timestamp": "2026-02-13T09:30:00Z",
+    "metadata": {
+      "rating": 5
+    }
+  }
+}

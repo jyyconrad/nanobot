@@ -649,29 +649,5 @@
     "completed_at": null,
     "result": null,
     "error": null
-  },
-  {
-    "task_id": "test-task-1",
-    "title": "错误处理测试任务",
-    "description": "错误处理测试任务",
-    "status": "pending",
-    "priority": 1,
-    "created_at": "2026-02-12T13:19:46.498902",
-    "updated_at": "2026-02-12T13:19:46.498902",
-    "completed_at": null,
-    "result": null,
-    "error": null
-  },
-  {
-    "task_id": "test-task-2",
-    "title": "任务2",
-    "description": "任务2",
-    "status": "pending",
-    "priority": 1,
-    "created_at": "2026-02-12T13:19:46.495570",
-    "updated_at": "2026-02-12T13:19:46.495571",
-    "completed_at": null,
-    "result": null,
-    "error": null
   }
 ]
