@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -383,7 +383,7 @@ class Config(BaseSettings):
             return self.providers.volcengine.api_base
         return None
 
-    model_config = {
-        "env_prefix": "NANOBOT_",
-        "env_nested_delimiter": "__"
-    }
+    model_config = ConfigDict(
+        env_prefix="NANOBOT_",
+        env_nested_delimiter="__"
+    )
