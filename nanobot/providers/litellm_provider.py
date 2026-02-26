@@ -22,53 +22,113 @@ class LiteLLMProvider(LLMProvider):
         api_key: str | None = None,
         api_base: str | None = None,
         default_model: str = "anthropic/claude-opus-4-5",
+        custom_protocol: str | None = None,  # "openai" or "anthropic"
+        custom_headers: dict[str, str] | None = None,
     ):
-        super().__init__(api_key, api_base)
+        # Store the initial API key - but it will be resolved dynamically on each call
+        self._api_key = api_key
+        self.api_base = api_base
         self.default_model = default_model
+        self.custom_protocol = custom_protocol
+        self.custom_headers = custom_headers or {}
 
         # Detect OpenRouter by api_key prefix or explicit api_base
         self.is_openrouter = (api_key and api_key.startswith("sk-or-")) or (
             api_base and "openrouter" in api_base
         )
 
-        # Track if using custom endpoint (vLLM, etc.)
-        self.is_vllm = bool(api_base) and not self.is_openrouter
+        # Track if using custom provider with explicit protocol
+        self.is_custom_openai = custom_protocol == "openai"
+        self.is_custom_anthropic = custom_protocol == "anthropic"
+
+        # Track if using ollama (check before vllm since ollama uses port 11434)
+        self.is_ollama = "ollama" in default_model.lower() or (api_base and "11434" in api_base)
+
+        # Track if using custom endpoint (vLLM, etc.) - exclude Ollama
+        self.is_vllm = bool(api_base) and not self.is_openrouter and not self.is_ollama
 
         # Track if using volcengine
         self.is_volcengine = "volcengine" in default_model
 
-        # Configure LiteLLM based on provider
+        # Track if model uses custom/ prefix
+        self.is_custom_model = default_model.startswith("custom/")
+
+        # Configure LiteLLM based on provider (initial setup only)
         if api_key:
-            if self.is_openrouter:
-                # OpenRouter mode - set key
-                os.environ["OPENROUTER_API_KEY"] = api_key
-            elif self.is_vllm:
-                # vLLM/custom endpoint - uses OpenAI-compatible API
-                os.environ["OPENAI_API_KEY"] = api_key
-            elif "deepseek" in default_model:
-                os.environ.setdefault("DEEPSEEK_API_KEY", api_key)
-            elif "anthropic" in default_model:
-                os.environ.setdefault("ANTHROPIC_API_KEY", api_key)
-            elif "openai" in default_model or "gpt" in default_model:
-                os.environ.setdefault("OPENAI_API_KEY", api_key)
-            elif "gemini" in default_model.lower():
-                os.environ.setdefault("GEMINI_API_KEY", api_key)
-            elif (
-                "zhipu" in default_model
-                or "glm" in default_model
-                or "zai" in default_model
-            ):
-                os.environ.setdefault("ZHIPUAI_API_KEY", api_key)
-            elif "volcengine" in default_model:
-                os.environ["OPENAI_API_KEY"] = api_key
-            elif "groq" in default_model:
-                os.environ.setdefault("GROQ_API_KEY", api_key)
+            self._set_initial_env_vars(api_key)
 
         if api_base:
             litellm.api_base = api_base
 
         # Disable LiteLLM logging noise
         litellm.suppress_debug_info = True
+
+    @property
+    def api_key(self) -> str | None:
+        """Resolve API key on each call for hot-reload support.
+
+        This allows API key changes to take effect without restarting the application.
+        Priority: Environment Variable > Config File
+        """
+        # Check environment variables first (highest priority)
+        if self.is_openrouter:
+            return os.getenv("OPENROUTER_API_KEY") or self._api_key
+        elif self.is_custom_openai or (self.is_custom_model and not self.is_custom_anthropic):
+            return os.getenv("OPENAI_API_KEY") or self._api_key
+        elif self.is_custom_anthropic:
+            return os.getenv("ANTHROPIC_API_KEY") or self._api_key
+        elif self.is_vllm or self.is_ollama:
+            return os.getenv("OPENAI_API_KEY") or self._api_key
+        elif "deepseek" in self.default_model:
+            return os.getenv("DEEPSEEK_API_KEY") or self._api_key
+        elif "anthropic" in self.default_model:
+            return os.getenv("ANTHROPIC_API_KEY") or self._api_key
+        elif "openai" in self.default_model or "gpt" in self.default_model:
+            return os.getenv("OPENAI_API_KEY") or self._api_key
+        elif "gemini" in self.default_model.lower():
+            return os.getenv("GEMINI_API_KEY") or self._api_key
+        elif (
+            "zhipu" in self.default_model
+            or "glm" in self.default_model
+            or "zai" in self.default_model
+        ):
+            return os.getenv("ZHIPUAI_API_KEY") or self._api_key
+        elif "volcengine" in self.default_model:
+            return os.getenv("OPENAI_API_KEY") or self._api_key
+        elif "groq" in self.default_model:
+            return os.getenv("GROQ_API_KEY") or self._api_key
+
+        # Fallback to stored value
+        return self._api_key
+
+    def _set_initial_env_vars(self, api_key: str) -> None:
+        """Set environment variables during initialization (legacy support)."""
+        if self.is_openrouter:
+            os.environ["OPENROUTER_API_KEY"] = api_key
+        elif self.is_custom_openai or (self.is_custom_model and not self.is_custom_anthropic):
+            os.environ["OPENAI_API_KEY"] = api_key
+        elif self.is_custom_anthropic:
+            os.environ["ANTHROPIC_API_KEY"] = api_key
+        elif self.is_vllm or self.is_ollama:
+            os.environ["OPENAI_API_KEY"] = api_key
+        elif "deepseek" in self.default_model:
+            os.environ.setdefault("DEEPSEEK_API_KEY", api_key)
+        elif "anthropic" in self.default_model:
+            os.environ.setdefault("ANTHROPIC_API_KEY", api_key)
+        elif "openai" in self.default_model or "gpt" in self.default_model:
+            os.environ.setdefault("OPENAI_API_KEY", api_key)
+        elif "gemini" in self.default_model.lower():
+            os.environ.setdefault("GEMINI_API_KEY", api_key)
+        elif (
+            "zhipu" in self.default_model
+            or "glm" in self.default_model
+            or "zai" in self.default_model
+        ):
+            os.environ.setdefault("ZHIPUAI_API_KEY", api_key)
+        elif "volcengine" in self.default_model:
+            os.environ["OPENAI_API_KEY"] = api_key
+        elif "groq" in self.default_model:
+            os.environ.setdefault("GROQ_API_KEY", api_key)
 
     async def chat(
         self,
@@ -93,28 +153,75 @@ class LiteLLMProvider(LLMProvider):
         """
         model = model or self.default_model
 
+        # Resolve API key dynamically on each call for hot-reload support
+        current_api_key = self.api_key
+
+        # Set environment variable before each call to ensure latest value is used
+        if current_api_key:
+            if self.is_openrouter:
+                os.environ["OPENROUTER_API_KEY"] = current_api_key
+            elif self.is_custom_openai or (self.is_custom_model and not self.is_custom_anthropic):
+                os.environ["OPENAI_API_KEY"] = current_api_key
+            elif self.is_custom_anthropic:
+                os.environ["ANTHROPIC_API_KEY"] = current_api_key
+            elif self.is_vllm or self.is_ollama:
+                os.environ["OPENAI_API_KEY"] = current_api_key
+            elif "deepseek" in model:
+                os.environ["DEEPSEEK_API_KEY"] = current_api_key
+            elif "anthropic" in model:
+                os.environ["ANTHROPIC_API_KEY"] = current_api_key
+            elif "openai" in model or "gpt" in model:
+                os.environ["OPENAI_API_KEY"] = current_api_key
+            elif "gemini" in model.lower():
+                os.environ["GEMINI_API_KEY"] = current_api_key
+            elif "zhipu" in model or "glm" in model or "zai" in model:
+                os.environ["ZHIPUAI_API_KEY"] = current_api_key
+            elif "volcengine" in model:
+                os.environ["OPENAI_API_KEY"] = current_api_key
+            elif "groq" in model:
+                os.environ["GROQ_API_KEY"] = current_api_key
+
+        # Handle custom/ prefix models
+        if model.startswith("custom/"):
+            base_model = model.replace("custom/", "")
+            if self.is_custom_anthropic:
+                model = f"anthropic/{base_model}"
+            else:
+                # Default to openai/ for OpenAI-compatible endpoints
+                if not base_model.startswith("openai/"):
+                    model = f"openai/{base_model}"
+                else:
+                    model = base_model
+
         # For volcengine, use OpenAI-compatible format
         if model.startswith("volcengine/"):
             model = model.replace("volcengine/", "openai/")
+
+        # For Ollama using OpenAI-compatible API (port 11434 with /v1 endpoint)
+        # Use 'openai/' prefix so LiteLLM uses the OpenAI-compatible API, not native Ollama API
+        if self.is_ollama and not model.startswith("ollama/") and not model.startswith("openai/"):
+            model = f"openai/{model}"
 
         # For OpenRouter, prefix model name if not already prefixed
         if self.is_openrouter and not model.startswith("openrouter/"):
             model = f"openrouter/{model}"
 
-        # For Zhipu/Z.ai, ensure prefix is present
+        # For Zhipu/Z.ai, ensure prefix is present (skip if already ollama/openai/)
         # Handle cases like "glm-4.7-flash" -> "zai/glm-4.7-flash"
         if ("glm" in model.lower() or "zhipu" in model.lower()) and not (
             model.startswith("zhipu/")
             or model.startswith("zai/")
             or model.startswith("openrouter/")
             or model.startswith("openai/")
+            or model.startswith("ollama/")
         ):
             model = f"zai/{model}"
 
-        # For vLLM, use hosted_vllm/ prefix per LiteLLM docs
-        # Convert openai/ prefix to hosted_vllm/ if user specified it
-        if self.is_vllm and not self.is_volcengine:
-            model = f"hosted_vllm/{model}"
+        # For vLLM, use hosted_vllm/ prefix per LiteLLM docs (skip if already ollama/openai/)
+        # Don't add hosted_vllm/ if model already has openai/ prefix (e.g., for Alibaba DashScope)
+        if self.is_vllm and not self.is_volcengine and not self.is_ollama:
+            if not model.startswith("openai/"):
+                model = f"hosted_vllm/{model}"
 
         # For Gemini, ensure gemini/ prefix if not already present
         if "gemini" in model.lower() and not model.startswith("gemini/"):
