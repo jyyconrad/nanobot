@@ -229,7 +229,7 @@ class LiteLLMProvider(LLMProvider):
 
         kwargs: dict[str, Any] = {
             "model": model,
-            "messages": messages,
+            "messages": self._sanitize_empty_content(messages),
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
@@ -286,11 +286,27 @@ class LiteLLMProvider(LLMProvider):
                 "total_tokens": response.usage.total_tokens,
             }
 
+        # Extract reasoning_content for thinking models (DeepSeek-R1, Kimi, etc.)
+        reasoning_content = None
+        if hasattr(message, "reasoning_content"):
+            reasoning_content = message.reasoning_content
+        elif hasattr(message, "parsed") and hasattr(message.parsed, "reasoning_content"):
+            reasoning_content = message.parsed.reasoning_content
+        elif isinstance(message, dict):
+            reasoning_content = message.get("reasoning_content")
+        elif hasattr(choice, "message") and isinstance(choice.message, dict):
+            reasoning_content = choice.message.get("reasoning_content")
+        elif hasattr(response, "choices") and len(response.choices) > 0:
+            first_choice = response.choices[0]
+            if hasattr(first_choice, "message") and isinstance(first_choice.message, dict):
+                reasoning_content = first_choice.message.get("reasoning_content")
+
         return LLMResponse(
             content=message.content,
             tool_calls=tool_calls,
             finish_reason=choice.finish_reason or "stop",
             usage=usage,
+            reasoning_content=reasoning_content,
         )
 
     def get_default_model(self) -> str:
