@@ -1,9 +1,9 @@
 """Configuration schema using Pydantic."""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
 
@@ -37,12 +37,39 @@ class FeishuConfig(BaseModel):
     allow_from: list[str] = Field(default_factory=list)  # Allowed user open_ids
 
 
+class MatrixConfig(BaseModel):
+    """Matrix (Element) channel configuration."""
+
+    enabled: bool = False
+    homeserver: str = "https://matrix.org"
+    access_token: str = ""
+    user_id: str = ""  # @bot:matrix.org
+    device_id: str = ""
+    e2ee_enabled: bool = True
+    sync_stop_grace_seconds: int = 2
+    max_media_bytes: int = 20 * 1024 * 1024
+    allow_from: list[str] = Field(default_factory=list)
+    group_policy: Literal["open", "mention", "allowlist"] = "open"
+    group_allow_from: list[str] = Field(default_factory=list)
+    allow_room_mentions: bool = False
+
+
+class TUIConfig(BaseModel):
+    """TUI (Text User Interface) channel configuration."""
+
+    enabled: bool = True  # Default enabled for local use
+    prompt: str = "> "
+    colors: bool = True
+
+
 class ChannelsConfig(BaseModel):
     """Configuration for chat channels."""
 
     whatsapp: WhatsAppConfig = Field(default_factory=WhatsAppConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
     feishu: FeishuConfig = Field(default_factory=FeishuConfig)
+    matrix: MatrixConfig = Field(default_factory=MatrixConfig)
+    tui: TUIConfig = Field(default_factory=TUIConfig)
 
 
 class AgentDefaults(BaseModel):
@@ -55,12 +82,21 @@ class AgentDefaults(BaseModel):
     max_tool_iterations: int = 20
 
 
+class ModelConfig(BaseModel):
+    """Per-model configuration."""
+
+    max_tokens: int | None = None
+    temperature: float | None = None
+    max_tool_iterations: int | None = None
+
+
 class AgentsConfig(BaseModel):
     """Agent configuration."""
 
     defaults: AgentDefaults = Field(default_factory=AgentDefaults)
     main_agent: Optional[Dict[str, Any]] = Field(default_factory=dict)
     subagents: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    models: Dict[str, ModelConfig] = Field(default_factory=dict)  # Per-model overrides
 
 
 class ProviderConfig(BaseModel):
@@ -68,6 +104,17 @@ class ProviderConfig(BaseModel):
 
     api_key: str = ""
     api_base: str | None = None
+
+
+class CustomProviderConfig(BaseModel):
+    """Custom LLM provider configuration for OpenAI/Anthropic compatible APIs."""
+
+    enabled: bool = True
+    protocol: str = "openai"  # "openai" or "anthropic"
+    api_key: str = ""
+    api_base: str | None = None
+    model: str = ""  # Base model name without provider prefix
+    headers: Dict[str, str] = Field(default_factory=dict)  # Optional custom headers
 
 
 class ProvidersConfig(BaseModel):
@@ -82,6 +129,8 @@ class ProvidersConfig(BaseModel):
     vllm: ProviderConfig = Field(default_factory=ProviderConfig)
     gemini: ProviderConfig = Field(default_factory=ProviderConfig)
     volcengine: ProviderConfig = Field(default_factory=ProviderConfig)
+    ollama: ProviderConfig = Field(default_factory=ProviderConfig)
+    custom: CustomProviderConfig = Field(default_factory=CustomProviderConfig)
 
 
 class GatewayConfig(BaseModel):
@@ -108,9 +157,7 @@ class ExecToolConfig(BaseModel):
     """Shell exec tool configuration."""
 
     timeout: int = 60
-    restrict_to_workspace: bool = (
-        False  # If true, block commands accessing paths outside workspace
-    )
+    restrict_to_workspace: bool = False  # If true, block commands accessing paths outside workspace
 
 
 class ToolsConfig(BaseModel):
@@ -178,9 +225,7 @@ class MCPServerConfig(BaseModel):
     name: str = Field(..., description="MCP server name")
     url: str = Field(..., description="MCP server URL")
     auth_token: Optional[str] = Field(None, description="Authentication token")
-    auth_type: str = Field(
-        "bearer", description="Authentication type (bearer, basic, etc.)"
-    )
+    auth_type: str = Field("bearer", description="Authentication type (bearer, basic, etc.)")
 
 
 class OpencodeConfig(BaseModel):
@@ -250,9 +295,7 @@ class Config(BaseSettings):
             if "model" in config_data["llm"]:
                 migrated["agents"]["defaults"]["model"] = config_data["llm"]["model"]
             if "temperature" in config_data["llm"]:
-                migrated["agents"]["defaults"]["temperature"] = config_data["llm"][
-                    "temperature"
-                ]
+                migrated["agents"]["defaults"]["temperature"] = config_data["llm"]["temperature"]
 
         # 处理旧格式的 database 配置
         if "database" in config_data:
@@ -274,9 +317,7 @@ class Config(BaseSettings):
             if "engine" in config_data["ai"]:
                 migrated["agents"]["defaults"]["model"] = config_data["ai"]["engine"]
             if "temp" in config_data["ai"]:
-                migrated["agents"]["defaults"]["temperature"] = config_data["ai"][
-                    "temp"
-                ]
+                migrated["agents"]["defaults"]["temperature"] = config_data["ai"]["temp"]
 
         # 处理 legacy 格式的 db 配置
         if "db" in config_data:
@@ -357,7 +398,10 @@ class Config(BaseSettings):
         }
 
     def get_api_key(self) -> str | None:
-        """Get API key in priority order: OpenRouter > DeepSeek > Anthropic > OpenAI > Gemini > Zhipu > Groq > vLLM > Volcengine."""
+        """Get API key in priority order: Custom > OpenRouter > DeepSeek > Anthropic > OpenAI > Gemini > Zhipu > Groq > vLLM > Volcengine > Ollama."""
+        # Check custom provider first if enabled
+        if self.providers.custom.enabled and self.providers.custom.api_key:
+            return self.providers.custom.api_key
         return (
             self.providers.openrouter.api_key
             or self.providers.deepseek.api_key
@@ -368,11 +412,15 @@ class Config(BaseSettings):
             or self.providers.groq.api_key
             or self.providers.vllm.api_key
             or self.providers.volcengine.api_key
+            or self.providers.ollama.api_key
             or None
         )
 
     def get_api_base(self) -> str | None:
-        """Get API base URL if using OpenRouter, Zhipu, vLLM or Volcengine."""
+        """Get API base URL if using Custom, OpenRouter, Zhipu, vLLM, Volcengine or Ollama."""
+        # Check custom provider first if enabled
+        if self.providers.custom.enabled and self.providers.custom.api_base:
+            return self.providers.custom.api_base
         if self.providers.openrouter.api_key:
             return self.providers.openrouter.api_base or "https://openrouter.ai/api/v1"
         if self.providers.zhipu.api_key:
@@ -381,9 +429,47 @@ class Config(BaseSettings):
             return self.providers.vllm.api_base
         if self.providers.volcengine.api_key:
             return self.providers.volcengine.api_base
+        if self.providers.ollama.api_base:
+            return self.providers.ollama.api_base
         return None
 
-    model_config = ConfigDict(
-        env_prefix="NANOBOT_",
-        env_nested_delimiter="__"
-    )
+    def get_custom_provider_config(self) -> dict | None:
+        """Get custom provider configuration if enabled."""
+        if not self.providers.custom.enabled:
+            return None
+        return {
+            "protocol": self.providers.custom.protocol,
+            "headers": self.providers.custom.headers,
+        }
+
+    def get_model_config(self, model_name: str) -> ModelConfig:
+        """
+        Get model-specific configuration with fallback to defaults.
+
+        Args:
+            model_name: Full model name (e.g., 'custom/glm-4.7')
+
+        Returns:
+            ModelConfig with resolved values (model-specific or defaults)
+        """
+        defaults = self.agents.defaults
+        model_config = self.agents.models.get(model_name)
+
+        if not model_config:
+            # No specific config, return defaults
+            return ModelConfig(
+                max_tokens=defaults.max_tokens,
+                temperature=defaults.temperature,
+                max_tool_iterations=defaults.max_tool_iterations,
+            )
+
+        # Merge with defaults (model-specific values override)
+        return ModelConfig(
+            max_tokens=model_config.max_tokens or defaults.max_tokens,
+            temperature=model_config.temperature
+            if model_config.temperature is not None
+            else defaults.temperature,
+            max_tool_iterations=model_config.max_tool_iterations or defaults.max_tool_iterations,
+        )
+
+    model_config = ConfigDict(env_prefix="NANOBOT_", env_nested_delimiter="__")

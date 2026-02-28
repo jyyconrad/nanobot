@@ -31,6 +31,16 @@ class ChannelManager:
     def _init_channels(self) -> None:
         """Initialize channels based on config."""
 
+        # TUI channel (default enabled for local use)
+        if self.config.channels.tui.enabled:
+            try:
+                from nanobot.channels.tui_channel import TUIChannel
+
+                self.channels["tui"] = TUIChannel(self.config.channels.tui, self.bus)
+                logger.info("TUI channel enabled")
+            except ImportError as e:
+                logger.warning(f"TUI channel not available: {e}")
+
         # Telegram channel
         if self.config.channels.telegram.enabled:
             try:
@@ -50,9 +60,7 @@ class ChannelManager:
             try:
                 from nanobot.channels.whatsapp import WhatsAppChannel
 
-                self.channels["whatsapp"] = WhatsAppChannel(
-                    self.config.channels.whatsapp, self.bus
-                )
+                self.channels["whatsapp"] = WhatsAppChannel(self.config.channels.whatsapp, self.bus)
                 logger.info("WhatsApp channel enabled")
             except ImportError as e:
                 logger.warning(f"WhatsApp channel not available: {e}")
@@ -62,12 +70,20 @@ class ChannelManager:
             try:
                 from nanobot.channels.feishu import FeishuChannel
 
-                self.channels["feishu"] = FeishuChannel(
-                    self.config.channels.feishu, self.bus
-                )
+                self.channels["feishu"] = FeishuChannel(self.config.channels.feishu, self.bus)
                 logger.info("Feishu channel enabled")
             except ImportError as e:
                 logger.warning(f"Feishu channel not available: {e}")
+
+        # Matrix channel
+        if self.config.channels.matrix.enabled:
+            try:
+                from nanobot.channels.matrix import MatrixChannel
+
+                self.channels["matrix"] = MatrixChannel(self.config.channels.matrix, self.bus)
+                logger.info("Matrix channel enabled")
+            except ImportError as e:
+                logger.warning(f"Matrix channel not available: {e}")
 
     async def start_all(self) -> None:
         """Start WhatsApp channel and the outbound dispatcher."""
