@@ -19,6 +19,7 @@ class ExecTool(Tool):
         deny_patterns: list[str] | None = None,
         allow_patterns: list[str] | None = None,
         restrict_to_workspace: bool = False,
+        path_append: str = "/usr/sbin:/usr/local/sbin",
     ):
         self.timeout = timeout
         self.working_dir = working_dir
@@ -34,6 +35,7 @@ class ExecTool(Tool):
         ]
         self.allow_patterns = allow_patterns or []
         self.restrict_to_workspace = restrict_to_workspace
+        self.path_append = path_append
 
     @property
     def name(self) -> str:
@@ -60,13 +62,15 @@ class ExecTool(Tool):
             "required": ["command"],
         }
 
-    async def execute(
-        self, command: str, working_dir: str | None = None, **kwargs: Any
-    ) -> str:
+    async def execute(self, command: str, working_dir: str | None = None, **kwargs: Any) -> str:
         cwd = working_dir or self.working_dir or os.getcwd()
         guard_error = self._guard_command(command, cwd)
         if guard_error:
             return guard_error
+
+        env = os.environ.copy()
+        if self.path_append:
+            env["PATH"] = env.get("PATH", "") + ":" + self.path_append
 
         try:
             process = await asyncio.create_subprocess_shell(
@@ -74,12 +78,11 @@ class ExecTool(Tool):
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=cwd,
+                env=env,
             )
 
             try:
-                stdout, stderr = await asyncio.wait_for(
-                    process.communicate(), timeout=self.timeout
-                )
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=self.timeout)
             except asyncio.TimeoutError:
                 process.kill()
                 return f"Error: Command timed out after {self.timeout} seconds"
@@ -102,10 +105,7 @@ class ExecTool(Tool):
             # Truncate very long output
             max_len = 10000
             if len(result) > max_len:
-                result = (
-                    result[:max_len]
-                    + f"\n... (truncated, {len(result) - max_len} more chars)"
-                )
+                result = result[:max_len] + f"\n... (truncated, {len(result) - max_len} more chars)"
 
             return result
 
@@ -127,9 +127,7 @@ class ExecTool(Tool):
 
         if self.restrict_to_workspace:
             if "..\\" in cmd or "../" in cmd:
-                return (
-                    "Error: Command blocked by safety guard (path traversal detected)"
-                )
+                return "Error: Command blocked by safety guard (path traversal detected)"
 
             cwd_path = Path(cwd).resolve()
 

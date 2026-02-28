@@ -77,6 +77,7 @@ class AgentDefaults(BaseModel):
 
     workspace: str = "~/.nanobot/workspace"
     model: str = "anthropic/claude-opus-4-5"
+    provider: str = "auto"
     max_tokens: int = 8192
     temperature: float = 0.7
     max_tool_iterations: int = 20
@@ -157,7 +158,8 @@ class ExecToolConfig(BaseModel):
     """Shell exec tool configuration."""
 
     timeout: int = 60
-    restrict_to_workspace: bool = False  # If true, block commands accessing paths outside workspace
+    restrict_to_workspace: bool = False
+    path_append: str = "/usr/sbin:/usr/local/sbin"
 
 
 class ToolsConfig(BaseModel):
