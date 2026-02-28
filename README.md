@@ -1,6 +1,6 @@
 # Nanobot - 轻量级 AI Agent 框架
 
-> **版本**: v0.4.0
+> **版本**: v0.4.4
 > **Python**: >=3.11
 > **许可证**: MIT
 
@@ -12,11 +12,14 @@ Nanobot 是一个轻量级的个人 AI 助手框架，专注于代码质量提�
 
 ### 核心特性
 
+- **多渠道支持**: Telegram、飞书、WhatsApp、Matrix、CLI
 - **任务识别与规划**: 自动识别用户意图，分解复杂任务
 - **多 Agent 协作**: 基于 Agno 框架的 Subagent 系统
 - **上下文管理**: 智能上下文压缩和记忆系统
 - **工具集成**: MCP (Model Context Protocol) 服务器支持
 - **技能系统**: 可扩展的技能加载机制
+- **安全防护**: 路径遍历防护、API 密钥热加载
+- **心跳机制**: 虚拟工具调用决策，静默心跳降低 API 成本
 
 ---
 
@@ -34,6 +37,16 @@ cd nanobot
 python -m venv venv
 source venv/bin/activate
 pip install -e ".[dev]"
+```
+
+### 可选依赖
+
+```bash
+# 飞书渠道
+pip install nanobot-ai[feishu]
+
+# Matrix 渠道
+pip install nanobot-ai[matrix]
 ```
 
 ---
